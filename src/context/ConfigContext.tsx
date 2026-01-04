@@ -22,9 +22,9 @@ const defaultConfig: ConfigData = {
   description: "lost in the digital void. searching for bits and stars.",
   profileImage: "https://api.dicebear.com/7.x/pixel-art/svg?seed=void",
   primaryColor: "#ffffff", // Branco
-  secondaryColor: "#a1a1aa", // Cinza médio
-  backgroundColor: "#000000", // Preto puro
-  cardColor: "#09090b", // Preto zinco
+  secondaryColor: "#a1a1aa", // Cinza
+  backgroundColor: "#000000", // Preto Puro
+  cardColor: "#0a0a0a", // Preto muito escuro
   twitterUrl: "#",
   discordUrl: "#",
   email: "void@example.com",

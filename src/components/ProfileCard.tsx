@@ -8,7 +8,6 @@ const ProfileCard = () => {
   const { config } = useConfig();
 
   const primaryStyle = { borderColor: config.primaryColor };
-  const secondaryStyle = { color: config.secondaryColor, borderColor: config.secondaryColor };
   const cardStyle = { 
     backgroundColor: `${config.cardColor}cc`, 
     borderColor: config.primaryColor,
@@ -24,25 +23,25 @@ const ProfileCard = () => {
           <img 
             src={config.profileImage} 
             alt="Profile" 
-            className="w-full h-full p-1 bg-gray-800 rounded-full object-cover"
+            className="w-full h-full p-1 bg-black rounded-full object-cover"
           />
         </div>
         
-        <h1 style={{ color: config.secondaryColor }} className="text-lg mb-2 font-['Press_Start_2P'] uppercase">
+        <h1 style={{ color: config.primaryColor }} className="text-lg mb-2 font-['Press_Start_2P'] uppercase">
           {config.profileName}
         </h1>
-        <p className="text-gray-400 text-[10px] text-center mb-6 leading-relaxed px-4">
+        <p className="text-gray-400 text-[10px] text-center mb-6 leading-relaxed px-4 uppercase">
           {config.description}
         </p>
 
         <div className="flex gap-4">
-          <a href={config.twitterUrl} style={primaryStyle} className="p-3 bg-[#2d2d5f] hover:brightness-125 transition-all border-2 rounded-full">
+          <a href={config.twitterUrl} style={primaryStyle} className="p-3 bg-zinc-900 hover:bg-zinc-800 transition-all border-2 rounded-full">
             <Twitter className="w-5 h-5 text-white" />
           </a>
-          <a href={config.discordUrl} style={primaryStyle} className="p-3 bg-[#2d2d5f] hover:brightness-125 transition-all border-2 rounded-full">
+          <a href={config.discordUrl} style={primaryStyle} className="p-3 bg-zinc-900 hover:bg-zinc-800 transition-all border-2 rounded-full">
             <MessageSquare className="w-5 h-5 text-white" />
           </a>
-          <a href={`mailto:${config.email}`} style={primaryStyle} className="p-3 bg-[#2d2d5f] hover:brightness-125 transition-all border-2 rounded-full">
+          <a href={`mailto:${config.email}`} style={primaryStyle} className="p-3 bg-zinc-900 hover:bg-zinc-800 transition-all border-2 rounded-full">
             <Mail className="w-5 h-5 text-white" />
           </a>
         </div>
@@ -50,37 +49,24 @@ const ProfileCard = () => {
 
       {/* Action Sections */}
       <div className="grid grid-cols-1 gap-4 w-full px-2">
-        <button 
-          style={{ 
-            backgroundColor: `${config.cardColor}cc`, 
-            borderColor: config.primaryColor,
-            boxShadow: `6px 6px 0px 0px ${config.primaryColor}33`
-          }}
-          className="flex items-center justify-between border-4 py-4 px-8 rounded-full group hover:brightness-125 transition-all"
-        >
-          <span className="text-white text-[10px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-transform uppercase">
-            {config.longFormText}
-          </span>
-          <div style={{ backgroundColor: config.secondaryColor }} className="p-1 rounded-full">
-            <ChevronRight className="w-4 h-4 text-white" />
-          </div>
-        </button>
-        
-        <button 
-          style={{ 
-            backgroundColor: `${config.cardColor}cc`, 
-            borderColor: config.primaryColor,
-            boxShadow: `6px 6px 0px 0px ${config.primaryColor}33`
-          }}
-          className="flex items-center justify-between border-4 py-4 px-8 rounded-full group hover:brightness-125 transition-all"
-        >
-          <span className="text-white text-[10px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-transform uppercase">
-            {config.shortFormText}
-          </span>
-          <div style={{ backgroundColor: config.secondaryColor }} className="p-1 rounded-full">
-            <ChevronRight className="w-4 h-4 text-white" />
-          </div>
-        </button>
+        {[config.longFormText, config.shortFormText].map((text, i) => (
+          <button 
+            key={i}
+            style={{ 
+              backgroundColor: `${config.cardColor}cc`, 
+              borderColor: config.primaryColor,
+              boxShadow: `6px 6px 0px 0px ${config.primaryColor}33`
+            }}
+            className="flex items-center justify-between border-4 py-4 px-8 rounded-full group hover:bg-zinc-900 transition-all"
+          >
+            <span className="text-white text-[10px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-transform uppercase">
+              {text}
+            </span>
+            <div style={{ backgroundColor: config.secondaryColor }} className="p-1 rounded-full">
+              <ChevronRight className="w-4 h-4 text-black" />
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );
