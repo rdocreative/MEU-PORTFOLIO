@@ -6,10 +6,10 @@ interface ConfigData {
   profileName: string;
   description: string;
   profileImage: string;
-  primaryColor: string; // Ex: #4d4dff
-  secondaryColor: string; // Ex: #ff4d4d
-  backgroundColor: string; // Ex: #0f0f1a
-  cardColor: string; // Ex: #1a1a2e
+  primaryColor: string; 
+  secondaryColor: string; 
+  backgroundColor: string; 
+  cardColor: string; 
   twitterUrl: string;
   discordUrl: string;
   email: string;
@@ -18,18 +18,18 @@ interface ConfigData {
 }
 
 const defaultConfig: ConfigData = {
-  profileName: "Pixel User",
-  description: "welcome to my space. here you can find my work and socials.",
-  profileImage: "https://api.dicebear.com/7.x/pixel-art/svg?seed=pixel",
-  primaryColor: "#4d4dff",
-  secondaryColor: "#ff4d4d",
-  backgroundColor: "#0f0f1a",
-  cardColor: "#1a1a2e",
+  profileName: "PIXEL OBSERVER",
+  description: "lost in the digital void. searching for bits and stars.",
+  profileImage: "https://api.dicebear.com/7.x/pixel-art/svg?seed=void",
+  primaryColor: "#ffffff", // Branco
+  secondaryColor: "#a1a1aa", // Cinza médio
+  backgroundColor: "#000000", // Preto puro
+  cardColor: "#09090b", // Preto zinco
   twitterUrl: "#",
   discordUrl: "#",
-  email: "contact@example.com",
-  longFormText: "Long-Form",
-  shortFormText: "Short-Form",
+  email: "void@example.com",
+  longFormText: "LOG_ENTRY",
+  shortFormText: "SIGNAL_LOST",
 };
 
 interface ConfigContextType {
@@ -48,7 +48,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     localStorage.setItem('pixel-site-config', JSON.stringify(config));
-    // Aplicar cor de fundo ao body
     document.body.style.backgroundColor = config.backgroundColor;
   }, [config]);
 
