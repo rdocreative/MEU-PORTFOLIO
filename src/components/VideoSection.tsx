@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { Play, Eye } from 'lucide-react';
+import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
@@ -15,6 +16,11 @@ const VideoSection = () => {
   const { config } = useConfig();
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [hoveringId, setHoveringId] = useState<string | null>(null);
+
+  // Plugin de Autoplay
+  const plugin = useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  );
 
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -35,9 +41,12 @@ const VideoSection = () => {
   return (
     <section className="w-full max-w-6xl px-4 mx-auto group/carousel relative">
       <Carousel
+        plugins={[plugin.current]}
+        onMouseEnter={plugin.current.stop}
+        onMouseLeave={plugin.current.play}
         opts={{
           align: "start",
-          loop: false,
+          loop: true,
         }}
         className="w-full"
       >
@@ -54,7 +63,7 @@ const VideoSection = () => {
                   onMouseEnter={() => setHoveringId(video.id)}
                   onMouseLeave={() => setHoveringId(null)}
                 >
-                  <div className="aspect-video relative bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                  <div className="aspect-video relative bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20">
                     {isPlaying ? (
                       <div className="absolute inset-0 z-30">
                         {video.customVideoUrl ? (
@@ -84,7 +93,6 @@ const VideoSection = () => {
                         onClick={() => setPlayingId(video.id)}
                         className="w-full h-full relative block"
                       >
-                        {/* Preview Automática no Hover */}
                         {isHovering ? (
                           <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
                             {video.customVideoUrl ? (
@@ -125,7 +133,6 @@ const VideoSection = () => {
                           </div>
                         )}
                         
-                        {/* Overlay de Info */}
                         <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-1 pointer-events-none">
                           <div className="flex items-center gap-2 text-white bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
                             <Eye className="w-3 h-3 text-cyan-400" />
@@ -156,7 +163,6 @@ const VideoSection = () => {
           })}
         </CarouselContent>
         
-        {/* Controles de Navegação */}
         <div className="flex justify-center gap-4 mt-8 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-0 lg:justify-between pointer-events-none">
           <CarouselPrevious className="relative lg:absolute lg:-left-6 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md" />
           <CarouselNext className="relative lg:absolute lg:-right-6 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md" />
