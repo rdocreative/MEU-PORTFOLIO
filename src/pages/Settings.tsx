@@ -121,7 +121,7 @@ const Settings = () => {
 
     setProcessingIndex(index);
     setProcessingProgress(0);
-    const toastId = showLoading("PROCESSANDO VÍDEO...");
+    let currentToastId = showLoading("PROCESSANDO VÍDEO...");
 
     try {
       let resultDataUrl: string | null = null;
@@ -137,8 +137,8 @@ const Settings = () => {
       }
 
       if (!resultDataUrl) {
-        dismissToast(toastId);
-        showLoading("Otimização indisponível. Usando original...");
+        dismissToast(currentToastId);
+        currentToastId = showLoading("Otimização indisponível. Usando original...");
         
         resultDataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
@@ -152,12 +152,12 @@ const Settings = () => {
         newList[index] = { ...newList[index], customVideoUrl: resultDataUrl };
         updateLocalConfig({ featuredVideos: newList });
         
-        dismissToast(toastId);
+        dismissToast(currentToastId);
         showSuccess(usedOptimization ? "SUCESSO! VÍDEO COMPRIMIDO." : "VÍDEO CARREGADO (ORIGINAL)");
       }
       
     } catch (err) {
-      dismissToast(toastId);
+      dismissToast(currentToastId);
       console.error(err);
       showError("Erro fatal no upload.");
     } finally {
@@ -189,12 +189,26 @@ const Settings = () => {
   };
 
   const handleSave = async () => {
+    if (isSaving) return;
+    
     setIsSaving(true);
-    const success = await saveConfigToDb();
-    setIsSaving(false);
-    if (success) {
-      showSuccess("CONFIG_SAVED_GLOBALLY!");
-      navigate('/');
+    const toastId = showLoading("SINCRONIZANDO COM BANCO DE DADOS...");
+    
+    try {
+      const success = await saveConfigToDb();
+      dismissToast(toastId);
+      
+      if (success) {
+        showSuccess("CONFIGURAÇÕES SALVAS COM SUCESSO!");
+        setTimeout(() => navigate('/'), 1000);
+      } else {
+        showError("ERRO AO SALVAR. VERIFIQUE O TAMANHO DOS VÍDEOS.");
+      }
+    } catch (error) {
+      dismissToast(toastId);
+      showError("ERRO CRÍTICO NA CONEXÃO.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -271,7 +285,7 @@ const Settings = () => {
                   
                   <div className="flex gap-2">
                     <Button 
-                      disabled={processingIndex !== null} 
+                      disabled={processingIndex !== null || isSaving} 
                       onClick={() => videoInputRefs.current[index]?.click()} 
                       className={`text-[7px] flex-1 h-10 rounded-xl transition-all ${
                         video.customVideoUrl 

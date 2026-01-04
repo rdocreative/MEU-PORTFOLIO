@@ -119,7 +119,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             backgroundColor: data.background_color || defaultConfig.backgroundColor,
             cardColor: data.card_color || defaultConfig.cardColor,
             twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
-            discordUrl: data.discord_url || defaultConfig.discordUrl,
+            discord_url: data.discord_url || defaultConfig.discordUrl, // Compatibilidade com nomes do banco
             email: data.email || defaultConfig.email,
             clients: (data.clients as unknown as Client[]) || [],
             featuredVideos: (data.featured_videos as unknown as VideoData[]) || defaultFeatured,
@@ -176,6 +176,15 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updated_at: new Date().toISOString()
       };
 
+      // Verificação de tamanho (Supabase tem limites de payload em JSONB)
+      const payloadSize = JSON.stringify(dbPayload).length;
+      console.log(`Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)} MB`);
+      
+      if (payloadSize > 8 * 1024 * 1024) {
+        toast.error("VÍDEOS MUITO GRANDES! Tente remover ou comprimir mais.");
+        return false;
+      }
+
       let result;
       if (config.id) {
         result = await supabase
@@ -190,17 +199,18 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           .single();
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+        throw result.error;
+      }
       
       if (!config.id && 'data' in result && result.data) {
         setConfig(prev => ({ ...prev, id: result.data.id }));
       }
       
-      toast.success("CONFIG_SAVED_GLOBALLY");
       return true;
     } catch (error) {
       console.error('Error saving config:', error);
-      toast.error("DATABASE_SYNC_FAILED");
       return false;
     }
   };
