@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { supabase } from '@/integrations/supabase/client';
 
 const Settings = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
@@ -25,13 +26,7 @@ const Settings = () => {
   const ffmpegRef = useRef(new FFmpeg());
   const isLoadedRef = useRef(false);
 
-  useEffect(() => {
-    if (!window.crossOriginIsolated) {
-      console.warn("SharedArrayBuffer is not available. Video optimization will be skipped.");
-    }
-  }, []);
-
-  const load = async () => {
+  const loadFFmpeg = async () => {
     if (isLoadedRef.current) return true;
     if (!window.crossOriginIsolated) return false;
 
@@ -55,6 +50,27 @@ const Settings = () => {
     }
   };
 
+  const uploadToStorage = async (file: File | Blob, path: string): Promise<string | null> => {
+    const fileName = `${Date.now()}_${path}`;
+    const { data, error } = await supabase.storage
+      .from('portfolio')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      console.error("Upload error:", error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('portfolio')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     updateLocalConfig({ [name]: value });
@@ -67,18 +83,16 @@ const Settings = () => {
     updateLocalConfig({ [listKey]: newList });
   };
 
-  const processVideo = async (file: File): Promise<string | null> => {
+  const processVideo = async (file: File): Promise<Blob | null> => {
     const ffmpeg = ffmpegRef.current;
-    
     if (!ffmpeg.loaded) {
-      const loaded = await load();
+      const loaded = await loadFFmpeg();
       if (!loaded) return null;
     }
 
     try {
       const inputName = 'input.mp4';
       const outputName = 'output.mp4';
-
       await ffmpeg.writeFile(inputName, await fetchFile(file));
 
       await ffmpeg.exec([
@@ -94,21 +108,7 @@ const Settings = () => {
       ]);
 
       const data = await ffmpeg.readFile(outputName);
-      
-      try {
-        await ffmpeg.deleteFile(inputName);
-        await ffmpeg.deleteFile(outputName);
-      } catch (e) {}
-
-      const buffer = data instanceof Uint8Array ? data : new Uint8Array(data as any);
-      const blob = new Blob([buffer], { type: 'video/mp4' });
-
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(blob);
-      });
-
+      return new Blob([data as any], { type: 'video/mp4' });
     } catch (error) {
       console.error("Transcode error:", error);
       return null;
@@ -121,45 +121,36 @@ const Settings = () => {
 
     setProcessingIndex(index);
     setProcessingProgress(0);
-    let currentToastId = showLoading("PROCESSANDO VÍDEO...");
+    const currentToastId = showLoading("PROCESSANDO E ENVIANDO VÍDEO...");
 
     try {
-      let resultDataUrl: string | null = null;
+      let finalFile: File | Blob = file;
       let usedOptimization = false;
 
       if (window.crossOriginIsolated) {
-        try {
-          resultDataUrl = await processVideo(file);
-          if (resultDataUrl) usedOptimization = true;
-        } catch (err) {
-          console.warn("Optimization failed, skipping...");
+        const optimized = await processVideo(file);
+        if (optimized) {
+          finalFile = optimized;
+          usedOptimization = true;
         }
       }
 
-      if (!resultDataUrl) {
-        dismissToast(currentToastId);
-        currentToastId = showLoading("Otimização indisponível. Usando original...");
-        
-        resultDataUrl = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-      }
-
-      if (resultDataUrl) {
+      const publicUrl = await uploadToStorage(finalFile, 'video.mp4');
+      
+      if (publicUrl) {
         const newList = [...config.featuredVideos];
-        newList[index] = { ...newList[index], customVideoUrl: resultDataUrl };
+        newList[index] = { ...newList[index], customVideoUrl: publicUrl };
         updateLocalConfig({ featuredVideos: newList });
         
         dismissToast(currentToastId);
-        showSuccess(usedOptimization ? "SUCESSO! VÍDEO COMPRIMIDO." : "VÍDEO CARREGADO (ORIGINAL)");
+        showSuccess(usedOptimization ? "VÍDEO OTIMIZADO E SALVO!" : "VÍDEO SALVO NO SERVIDOR!");
+      } else {
+        throw new Error("Falha no upload");
       }
       
     } catch (err) {
       dismissToast(currentToastId);
-      console.error(err);
-      showError("Erro fatal no upload.");
+      showError("Erro ao enviar vídeo para o servidor.");
     } finally {
       setProcessingIndex(null);
       setProcessingProgress(0);
@@ -176,37 +167,40 @@ const Settings = () => {
     showSuccess("VÍDEO REMOVIDO!");
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        updateLocalConfig({ profileImage: event.target?.result as string });
+      const toastId = showLoading("ENVIANDO IMAGEM...");
+      const publicUrl = await uploadToStorage(file, 'avatar.png');
+      
+      dismissToast(toastId);
+      if (publicUrl) {
+        updateLocalConfig({ profileImage: publicUrl });
         showSuccess("FOTO CARREGADA!");
-      };
-      reader.readAsDataURL(file);
+      } else {
+        showError("Erro no upload da foto.");
+      }
     }
   };
 
   const handleSave = async () => {
     if (isSaving) return;
-    
     setIsSaving(true);
-    const toastId = showLoading("SINCRONIZANDO COM BANCO DE DADOS...");
+    const toastId = showLoading("SALVANDO CONFIGURAÇÕES...");
     
     try {
       const success = await saveConfigToDb();
       dismissToast(toastId);
       
       if (success) {
-        showSuccess("CONFIGURAÇÕES SALVAS COM SUCESSO!");
+        showSuccess("TUDO PRONTO! SALVO COM SUCESSO.");
         setTimeout(() => navigate('/'), 1000);
       } else {
-        showError("ERRO AO SALVAR. VERIFIQUE O TAMANHO DOS VÍDEOS.");
+        showError("ERRO AO SALVAR NO BANCO.");
       }
     } catch (error) {
       dismissToast(toastId);
-      showError("ERRO CRÍTICO NA CONEXÃO.");
+      showError("ERRO DE CONEXÃO.");
     } finally {
       setIsSaving(false);
     }
@@ -227,7 +221,7 @@ const Settings = () => {
           {!window.crossOriginIsolated && (
             <div className="text-[8px] text-yellow-400 flex items-center gap-2 border border-yellow-500 p-2 rounded max-w-md bg-yellow-900/20">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              Modo de Compatibilidade: Otimização desativada.
+              Modo de Compatibilidade Ativo.
             </div>
           )}
         </div>
@@ -301,12 +295,12 @@ const Settings = () => {
                       ) : (
                         video.customVideoUrl ? (
                           <div className="flex items-center gap-2">
-                             <span>PREVIEW_ACTIVE</span>
+                             <span>CLOUD_STORAGE_ACTIVE</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
                              {window.crossOriginIsolated ? <Wand2 className="w-3 h-3" /> : <UploadCloud className="w-3 h-3" />}
-                             <span>{window.crossOriginIsolated ? "UPLOAD_OPTIMIZED" : "UPLOAD_RAW"}</span>
+                             <span>UPLOAD_TO_CLOUD</span>
                           </div>
                         )
                       )}

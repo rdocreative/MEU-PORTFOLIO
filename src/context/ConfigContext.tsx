@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 export interface Client {
   id: string;
@@ -119,7 +118,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             backgroundColor: data.background_color || defaultConfig.backgroundColor,
             cardColor: data.card_color || defaultConfig.cardColor,
             twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
-            discord_url: data.discord_url || defaultConfig.discordUrl, // Compatibilidade com nomes do banco
+            discordUrl: data.discord_url || defaultConfig.discordUrl,
             email: data.email || defaultConfig.email,
             clients: (data.clients as unknown as Client[]) || [],
             featuredVideos: (data.featured_videos as unknown as VideoData[]) || defaultFeatured,
@@ -175,15 +174,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         shorts_videos: config.shortsVideos,
         updated_at: new Date().toISOString()
       };
-
-      // Verificação de tamanho (Supabase tem limites de payload em JSONB)
-      const payloadSize = JSON.stringify(dbPayload).length;
-      console.log(`Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)} MB`);
-      
-      if (payloadSize > 8 * 1024 * 1024) {
-        toast.error("VÍDEOS MUITO GRANDES! Tente remover ou comprimir mais.");
-        return false;
-      }
 
       let result;
       if (config.id) {
