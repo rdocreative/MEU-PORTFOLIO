@@ -18,7 +18,6 @@ const Settings = () => {
   
   const [processingIndex, setProcessingIndex] = useState<number | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
-  const [ffmpegError, setFfmpegError] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,7 +25,6 @@ const Settings = () => {
   const ffmpegRef = useRef(new FFmpeg());
   const isLoadedRef = useRef(false);
 
-  // Verifica compatibilidade ao carregar
   useEffect(() => {
     if (!window.crossOriginIsolated) {
       console.warn("SharedArrayBuffer is not available. Video optimization will be skipped.");
@@ -35,11 +33,7 @@ const Settings = () => {
 
   const load = async () => {
     if (isLoadedRef.current) return true;
-    
-    // Se não tiver suporte a SharedArrayBuffer, nem tenta carregar o FFmpeg para evitar erro
-    if (!window.crossOriginIsolated) {
-      return false;
-    }
+    if (!window.crossOriginIsolated) return false;
 
     const ffmpeg = ffmpegRef.current;
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
@@ -54,11 +48,9 @@ const Settings = () => {
       });
       
       isLoadedRef.current = true;
-      setFfmpegError(null);
       return true;
     } catch (error) {
       console.error("FFmpeg load failed:", error);
-      // Não mostra erro fatal, apenas loga. O fallback cuidará do resto.
       return false;
     }
   };
@@ -106,9 +98,7 @@ const Settings = () => {
       try {
         await ffmpeg.deleteFile(inputName);
         await ffmpeg.deleteFile(outputName);
-      } catch (e) {
-        // Ignora erro de limpeza
-      }
+      } catch (e) {}
 
       const buffer = data instanceof Uint8Array ? data : new Uint8Array(data as any);
       const blob = new Blob([buffer], { type: 'video/mp4' });
@@ -129,12 +119,6 @@ const Settings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limite de 50MB geral
-    if (file.size > 50 * 1024 * 1024) {
-      showError("Arquivo muito grande! Máximo 50MB.");
-      return;
-    }
-
     setProcessingIndex(index);
     setProcessingProgress(0);
     const toastId = showLoading("PROCESSANDO VÍDEO...");
@@ -143,35 +127,16 @@ const Settings = () => {
       let resultDataUrl: string | null = null;
       let usedOptimization = false;
 
-      // Tenta otimizar se o ambiente suportar
       if (window.crossOriginIsolated) {
         try {
-          // Timeout de 60s para otimização
-          const timeoutPromise = new Promise<null>((_, reject) => 
-            setTimeout(() => reject(new Error("TIMEOUT")), 60000)
-          );
-
-          resultDataUrl = await Promise.race([
-            processVideo(file),
-            timeoutPromise
-          ]);
-          
+          resultDataUrl = await processVideo(file);
           if (resultDataUrl) usedOptimization = true;
         } catch (err) {
-          console.warn("Optimization failed or timed out, skipping...", err);
+          console.warn("Optimization failed, skipping...");
         }
       }
 
-      // FALLBACK: Se não otimizou (por erro ou falta de suporte), usa o arquivo original
       if (!resultDataUrl) {
-        // Limite mais rigoroso para arquivo bruto (15MB) para não quebrar o LocalStorage/DB
-        if (file.size > 15 * 1024 * 1024) {
-          dismissToast(toastId);
-          showError("Otimização indisponível e arquivo > 15MB. Use um arquivo menor.");
-          setProcessingIndex(null);
-          return;
-        }
-
         dismissToast(toastId);
         showLoading("Otimização indisponível. Usando original...");
         
@@ -187,12 +152,8 @@ const Settings = () => {
         newList[index] = { ...newList[index], customVideoUrl: resultDataUrl };
         updateLocalConfig({ featuredVideos: newList });
         
-        dismissToast(toastId); // Limpa loadings anteriores
-        if (usedOptimization) {
-          showSuccess("SUCESSO! VÍDEO COMPRIMIDO.");
-        } else {
-          showSuccess("VÍDEO CARREGADO (ORIGINAL)");
-        }
+        dismissToast(toastId);
+        showSuccess(usedOptimization ? "SUCESSO! VÍDEO COMPRIMIDO." : "VÍDEO CARREGADO (ORIGINAL)");
       }
       
     } catch (err) {
@@ -252,13 +213,12 @@ const Settings = () => {
           {!window.crossOriginIsolated && (
             <div className="text-[8px] text-yellow-400 flex items-center gap-2 border border-yellow-500 p-2 rounded max-w-md bg-yellow-900/20">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              Modo de Compatibilidade: Otimização de vídeo desativada.
+              Modo de Compatibilidade: Otimização desativada.
             </div>
           )}
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[40px]">
-          {/* Header Profile Info */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
              <div className="flex flex-col items-center gap-6 p-8 border-2 border-dashed border-zinc-800 rounded-[30px] bg-black/50">
                 <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" alt="Preview" />
@@ -345,9 +305,6 @@ const Settings = () => {
                       className="hidden" 
                     />
                   </div>
-                  <p className="text-[7px] text-zinc-600 text-center">
-                    {window.crossOriginIsolated ? "*Auto: 15s, Mute, 240p" : "*Modo direto (Max 15MB)"}
-                  </p>
                 </div>
               ))}
             </div>
@@ -374,11 +331,7 @@ const Settings = () => {
             onClick={handleSave} 
             className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400 disabled:opacity-50"
           >
-            {isSaving ? (
-              <Loader2 className="mr-3 w-5 h-5 animate-spin" />
-            ) : (
-              <Save className="mr-3 w-5 h-5" />
-            )}
+            {isSaving ? <Loader2 className="mr-3 w-5 h-5 animate-spin" /> : <Save className="mr-3 w-5 h-5" />}
             {isSaving ? "SAVING..." : "SAVE_CHANGES"}
           </Button>
         </div>

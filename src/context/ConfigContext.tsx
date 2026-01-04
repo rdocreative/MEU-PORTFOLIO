@@ -82,18 +82,20 @@ const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY = 'pixel_profile_draft';
 
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Inicializa com o que estiver no LocalStorage ou o default
   const [config, setConfig] = useState<ConfigData>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : defaultConfig;
+      try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return saved ? JSON.parse(saved) : defaultConfig;
+      } catch (e) {
+        return defaultConfig;
+      }
     }
     return defaultConfig;
   });
   
   const [isLoading, setIsLoading] = useState(true);
 
-  // Busca do Supabase apenas uma vez no carregamento
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -125,7 +127,9 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           };
           
           setConfig(loadedConfig);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadedConfig));
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadedConfig));
+          } catch (e) {}
           document.body.style.backgroundColor = loadedConfig.backgroundColor;
         }
       } catch (error) {
@@ -138,9 +142,12 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     fetchConfig();
   }, []);
 
-  // Sincroniza LocalStorage sempre que o config local mudar
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
+    } catch (e) {
+      console.warn("LocalStorage quota exceeded. Draft not saved locally.");
+    }
     if (config.backgroundColor) {
       document.body.style.backgroundColor = config.backgroundColor;
     }
