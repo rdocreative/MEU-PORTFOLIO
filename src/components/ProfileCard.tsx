@@ -16,8 +16,8 @@ const ProfileCard = () => {
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-lg">
-      {/* Profile Section */}
-      <div style={cardStyle} className="relative overflow-hidden backdrop-blur-md border-4 p-12 rounded-[50px] w-full flex flex-col items-center group/card">
+      {/* Profile Section - Updated to rounded-[40px] */}
+      <div style={cardStyle} className="relative overflow-hidden backdrop-blur-md border-4 p-12 rounded-[40px] w-full flex flex-col items-center group/card">
         <div className="scanline"></div>
         
         <div className="relative w-32 h-32 mb-6 group-hover/card:scale-105 transition-transform duration-500">

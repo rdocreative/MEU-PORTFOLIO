@@ -73,7 +73,8 @@ const VideoSection = () => {
             return (
               <CarouselItem key={video.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                 <div className="group relative flex flex-col gap-4 p-1">
-                  <div className="aspect-video relative bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                  {/* Updated to border-4 and rounded-[40px] */}
+                  <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
                     {isPlaying ? (
                       <div className="absolute inset-0 z-30">
                         {video.customVideoUrl ? (
@@ -124,7 +125,7 @@ const VideoSection = () => {
                           )}
                         </div>
                         
-                        {/* Fallback image behind iframe (to prevent black flash if iframe loads slow) */}
+                        {/* Fallback image */}
                         <div className="absolute inset-0 z-0">
                            {videoId && (
                               <img 
