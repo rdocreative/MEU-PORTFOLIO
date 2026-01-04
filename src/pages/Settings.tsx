@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Zap, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,21 +11,22 @@ import { Label } from '@/components/ui/label';
 import { showSuccess, showError } from '@/utils/toast';
 
 const Settings = () => {
-  const { config, updateConfig, isLoading } = useConfig();
+  const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    updateConfig({ [name]: value });
+    updateLocalConfig({ [name]: value });
   };
 
   const handleVideoChange = (index: number, field: keyof VideoData, value: string, type: 'featured' | 'shorts') => {
     const listKey = type === 'featured' ? 'featuredVideos' : 'shortsVideos';
     const newList = [...config[listKey]];
     newList[index] = { ...newList[index], [field]: value };
-    updateConfig({ [listKey]: newList });
+    updateLocalConfig({ [listKey]: newList });
   };
 
   const handleVideoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,8 +40,8 @@ const Settings = () => {
       reader.onload = (event) => {
         const newList = [...config.featuredVideos];
         newList[index] = { ...newList[index], customVideoUrl: event.target?.result as string };
-        updateConfig({ featuredVideos: newList });
-        showSuccess("VÍDEO CARREGADO! CLIQUE EM SALVAR.");
+        updateLocalConfig({ featuredVideos: newList });
+        showSuccess("VÍDEO CARREGADO!");
       };
       reader.readAsDataURL(file);
     }
@@ -49,7 +50,7 @@ const Settings = () => {
   const removeCustomVideo = (index: number) => {
     const newList = [...config.featuredVideos];
     newList[index] = { ...newList[index], customVideoUrl: "" };
-    updateConfig({ featuredVideos: newList });
+    updateLocalConfig({ featuredVideos: newList });
     showSuccess("VÍDEO REMOVIDO!");
   };
 
@@ -58,10 +59,20 @@ const Settings = () => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        updateConfig({ profileImage: event.target?.result as string });
+        updateLocalConfig({ profileImage: event.target?.result as string });
         showSuccess("FOTO CARREGADA!");
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const success = await saveConfigToDb();
+    setIsSaving(false);
+    if (success) {
+      showSuccess("CONFIG_SAVED_GLOBALLY!");
+      navigate('/');
     }
   };
 
@@ -125,8 +136,8 @@ const Settings = () => {
                     )}
                   </div>
                   
-                  <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px] h-10" placeholder="TITLE" />
-                  <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px] h-10" placeholder="YOUTUBE URL" />
+                  <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[10px] h-10" placeholder="TITLE" />
+                  <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[10px] h-10" placeholder="YOUTUBE URL" />
                   
                   <div className="flex gap-2">
                     <Button 
@@ -156,7 +167,7 @@ const Settings = () => {
               {config.shortsVideos.map((video, index) => (
                 <div key={video.id} className="p-4 border border-zinc-800 rounded-2xl bg-black/20 flex gap-4 items-center">
                   <span className="text-[8px] text-zinc-600">#{index+1}</span>
-                  <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value, 'shorts')} className="bg-black border-zinc-800 text-[8px] h-10" placeholder="YOUTUBE URL" />
+                  <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value, 'shorts')} className="bg-black border-zinc-800 text-[10px] h-10" placeholder="YOUTUBE URL" />
                 </div>
               ))}
             </div>
@@ -164,8 +175,17 @@ const Settings = () => {
         </div>
 
         <div className="flex gap-6">
-          <Button onClick={() => { showSuccess("CONFIG_SAVED!"); navigate('/'); }} className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400">
-            <Save className="mr-3 w-5 h-5" /> SAVE_CHANGES
+          <Button 
+            disabled={isSaving}
+            onClick={handleSave} 
+            className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400 disabled:opacity-50"
+          >
+            {isSaving ? (
+              <Loader2 className="mr-3 w-5 h-5 animate-spin" />
+            ) : (
+              <Save className="mr-3 w-5 h-5" />
+            )}
+            {isSaving ? "SAVING..." : "SAVE_CHANGES"}
           </Button>
         </div>
       </div>

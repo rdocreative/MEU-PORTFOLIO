@@ -27,7 +27,7 @@ const VideoSection = () => {
   );
 
   const getYouTubeId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
@@ -53,7 +53,6 @@ const VideoSection = () => {
         }}
         className="w-full relative"
       >
-        {/* Gradientes Laterais Corrigidos (Usando a cor de fundo dinâmica) */}
         <div 
           style={{ 
             background: `linear-gradient(to right, ${config.backgroundColor} 0%, ${config.backgroundColor}66 50%, transparent 100%)` 

@@ -71,7 +71,8 @@ const defaultConfig: ConfigData = {
 
 interface ConfigContextType {
   config: ConfigData;
-  updateConfig: (newConfig: Partial<ConfigData>) => Promise<void>;
+  updateLocalConfig: (newConfig: Partial<ConfigData>) => void;
+  saveConfigToDb: () => Promise<boolean>;
   resetConfig: () => void;
   isLoading: boolean;
 }
@@ -82,7 +83,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [config, setConfig] = useState<ConfigData>(defaultConfig);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch Config from DB
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -92,10 +92,10 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           .limit(1)
           .single();
 
-        if (error) throw error;
+        if (error && error.code !== 'PGRST116') throw error;
 
         if (data) {
-          setConfig({
+          const loadedConfig = {
             id: data.id,
             profileName: data.profile_name || defaultConfig.profileName,
             description: data.description || defaultConfig.description,
@@ -110,8 +110,9 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             clients: (data.clients as unknown as Client[]) || [],
             featuredVideos: (data.featured_videos as unknown as VideoData[]) || defaultFeatured,
             shortsVideos: (data.shorts_videos as unknown as VideoData[]) || defaultShorts,
-          });
-          document.body.style.backgroundColor = data.background_color || defaultConfig.backgroundColor;
+          };
+          setConfig(loadedConfig);
+          document.body.style.backgroundColor = loadedConfig.backgroundColor;
         }
       } catch (error) {
         console.error('Error fetching config:', error);
@@ -123,38 +124,55 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     fetchConfig();
   }, []);
 
-  const updateConfig = async (newConfig: Partial<ConfigData>) => {
-    const updatedState = { ...config, ...newConfig };
-    setConfig(updatedState);
-    document.body.style.backgroundColor = updatedState.backgroundColor;
+  const updateLocalConfig = (newConfig: Partial<ConfigData>) => {
+    setConfig(prev => {
+      const updated = { ...prev, ...newConfig };
+      if (newConfig.backgroundColor) {
+        document.body.style.backgroundColor = newConfig.backgroundColor;
+      }
+      return updated;
+    });
+  };
 
+  const saveConfigToDb = async () => {
     try {
       const dbPayload = {
-        profile_name: updatedState.profileName,
-        description: updatedState.description,
-        profile_image: updatedState.profileImage,
-        primary_color: updatedState.primaryColor,
-        secondary_color: updatedState.secondaryColor,
-        background_color: updatedState.backgroundColor,
-        card_color: updatedState.cardColor,
-        twitter_url: updatedState.twitterUrl,
-        discord_url: updatedState.discordUrl,
-        email: updatedState.email,
-        clients: updatedState.clients,
-        featured_videos: updatedState.featured_videos,
-        shorts_videos: updatedState.shorts_videos,
+        profile_name: config.profileName,
+        description: config.description,
+        profile_image: config.profileImage,
+        primary_color: config.primaryColor,
+        secondary_color: config.secondaryColor,
+        background_color: config.backgroundColor,
+        card_color: config.cardColor,
+        twitter_url: config.twitterUrl,
+        discord_url: config.discordUrl,
+        email: config.email,
+        clients: config.clients,
+        featured_videos: config.featuredVideos,
+        shorts_videos: config.shortsVideos,
       };
 
-      const { error } = await supabase
-        .from('portfolio_config')
-        .update(dbPayload)
-        .eq('id', config.id || '');
-
-      if (error) throw error;
+      if (config.id) {
+        const { error } = await supabase
+          .from('portfolio_config')
+          .update(dbPayload)
+          .eq('id', config.id);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('portfolio_config')
+          .insert([dbPayload])
+          .select()
+          .single();
+        if (error) throw error;
+        if (data) setConfig(prev => ({ ...prev, id: data.id }));
+      }
       
+      return true;
     } catch (error) {
       console.error('Error saving config:', error);
-      toast.error("Failed to save changes to the server.");
+      toast.error("ERROR_SAVING_TO_DATABASE");
+      return false;
     }
   };
 
@@ -165,7 +183,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <ConfigContext.Provider value={{ 
       config, 
-      updateConfig, 
+      updateLocalConfig, 
+      saveConfigToDb,
       resetConfig, 
       isLoading
     }}>
