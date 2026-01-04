@@ -20,7 +20,9 @@ interface ConfigData {
   discordUrl: string;
   email: string;
   longFormText: string;
+  longFormUrl: string;
   shortFormText: string;
+  shortFormUrl: string;
   clients: Client[];
 }
 
@@ -32,11 +34,13 @@ const defaultConfig: ConfigData = {
   secondaryColor: "#a1a1aa", 
   backgroundColor: "#000000", 
   cardColor: "#0a0a0a", 
-  twitterUrl: "#",
-  discordUrl: "#",
+  twitterUrl: "https://twitter.com",
+  discordUrl: "https://discord.com",
   email: "void@example.com",
-  longFormText: "LOG_ENTRY",
-  shortFormText: "SIGNAL_LOST",
+  longFormText: "PORTFOLIO",
+  longFormUrl: "#",
+  shortFormText: "COMMISSIONS",
+  shortFormUrl: "#",
   clients: [
     { id: '1', name: 'Client 1', image: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=1' },
     { id: '2', name: 'Client 2', image: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=2' },

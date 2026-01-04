@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import { useConfig, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft, Upload, Plus, Trash2 } from 'lucide-react';
+import { Save, RotateCcw, ArrowLeft, Upload, Plus, Trash2, Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -67,25 +67,75 @@ const Settings = () => {
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[30px]">
-          {/* Profile Section */}
+          {/* Profile Info */}
           <div className="space-y-6">
-            <h2 className="text-zinc-500 text-[12px] uppercase">Profile_Info</h2>
-            <div className="flex flex-col items-center gap-6 p-6 border-2 border-dashed border-zinc-700 rounded-2xl">
+            <h2 className="text-zinc-500 text-[12px] uppercase flex items-center gap-2">
+              <div className="w-2 h-2 bg-white animate-pulse"></div> Profile_Info
+            </h2>
+            <div className="flex flex-col items-center gap-6 p-6 border-2 border-dashed border-zinc-700 rounded-2xl bg-black/50">
               <img src={config.profileImage} className="w-28 h-28 rounded-full border-2 border-white object-cover" alt="Preview" />
               <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black hover:bg-zinc-300 text-[10px] w-full h-12">
-                <Upload className="mr-3 w-5 h-5" /> UPLOAD_IMG
+                <Upload className="mr-3 w-5 h-5" /> UPLOAD_IMAGE
               </Button>
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             </div>
-            <div className="space-y-4">
-              <Label className="text-[10px] uppercase">Profile Name</Label>
-              <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" />
+            <div className="grid grid-cols-1 gap-4">
+              <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" placeholder="NAME" />
+              <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] min-h-[100px]" placeholder="DESCRIPTION" />
+            </div>
+          </div>
+
+          {/* Action Links */}
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
+            <h2 className="text-zinc-500 text-[12px] uppercase flex items-center gap-2">
+              <LinkIcon className="w-4 h-4" /> Action_Buttons
+            </h2>
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[8px] uppercase">Button 1 Text</Label>
+                  <Input name="longFormText" value={config.longFormText} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[8px] uppercase">Button 1 URL</Label>
+                  <Input name="longFormUrl" value={config.longFormUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[8px] uppercase">Button 2 Text</Label>
+                  <Input name="shortFormText" value={config.shortFormText} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[8px] uppercase">Button 2 URL</Label>
+                  <Input name="shortFormUrl" value={config.shortFormUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Socials */}
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
+            <h2 className="text-zinc-500 text-[12px] uppercase">Social_Matrix</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[8px] uppercase">Twitter URL</Label>
+                <Input name="twitterUrl" value={config.twitterUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[8px] uppercase">Discord URL</Label>
+                <Input name="discordUrl" value={config.discordUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[8px] uppercase">Email</Label>
+                <Input name="email" value={config.email} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" />
+              </div>
             </div>
           </div>
 
           {/* Clients Section */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
-            <h2 className="text-zinc-500 text-[12px] uppercase">Clients_Section</h2>
+            <h2 className="text-zinc-500 text-[12px] uppercase">Clients_Logos</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {config.clients?.map((client) => (
                 <div key={client.id} className="relative group">
@@ -108,19 +158,6 @@ const Settings = () => {
                 <span className="text-[8px]">ADD_NEW</span>
               </button>
               <input type="file" ref={clientInputRef} onChange={handleAddClient} accept="image/*" className="hidden" />
-            </div>
-          </div>
-
-          {/* Style Section */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
-            <h2 className="text-zinc-500 text-[12px] uppercase">Style_Palette</h2>
-            <div className="grid grid-cols-2 gap-6">
-              {['primaryColor', 'secondaryColor', 'backgroundColor', 'cardColor'].map((key) => (
-                <div key={key} className="space-y-3">
-                  <Label className="text-[8px] uppercase">{key.replace('Color', '')}</Label>
-                  <Input type="color" name={key} value={(config as any)[key]} onChange={handleChange} className="h-14 bg-black border-zinc-800" />
-                </div>
-              ))}
             </div>
           </div>
         </div>
