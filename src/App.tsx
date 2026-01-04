@@ -7,6 +7,7 @@ import { ConfigProvider } from "./context/ConfigContext";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Preloader from "./components/Preloader";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +15,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ConfigProvider>
       <TooltipProvider>
+        <Preloader />
         <Toaster />
         <Sonner />
         <BrowserRouter>
