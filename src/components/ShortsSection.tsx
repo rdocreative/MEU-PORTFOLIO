@@ -35,20 +35,20 @@ const ShortsSection = () => {
       <Carousel
         plugins={[plugin.current]}
         opts={{
-          align: "start",
+          align: "center",
           loop: true,
           dragFree: true,
         }}
-        className="w-full"
+        className="w-full max-w-5xl mx-auto"
       >
-        <CarouselContent className="-ml-6">
+        <CarouselContent className="-ml-6 items-center">
           {shorts.map((short, idx) => {
             const videoId = getYouTubeId(short.url);
             return (
               <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
                 <div 
                   style={{ borderColor: `${config.primaryColor}22` }}
-                  className="w-48 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform hover:scale-105"
+                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform hover:scale-105"
                   onClick={() => window.open(short.url, '_blank')}
                 >
                   {videoId ? (
