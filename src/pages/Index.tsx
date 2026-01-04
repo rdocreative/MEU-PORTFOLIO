@@ -1,19 +1,25 @@
 import ProfileCard from "@/components/ProfileCard";
 import Navbar from "@/components/Navbar";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import { useConfig } from "@/context/ConfigContext";
 
 const Index = () => {
+  const { config } = useConfig();
+
   return (
-    <div className="min-h-screen bg-[#0f0f1a] flex flex-col items-center p-4 font-['Press_Start_2P'] relative overflow-hidden">
+    <div 
+      style={{ backgroundColor: config.backgroundColor }}
+      className="min-h-screen flex flex-col items-center p-4 font-['Press_Start_2P'] relative overflow-hidden transition-colors duration-500"
+    >
       {/* Navbar */}
       <Navbar />
 
       {/* Background decoration elements */}
-      <div className="absolute top-24 left-10 w-4 h-4 bg-[#4d4dff]/20 animate-pulse"></div>
-      <div className="absolute bottom-20 right-20 w-8 h-8 border-2 border-[#ff4d4d]/20 rotate-45"></div>
+      <div style={{ backgroundColor: `${config.primaryColor}33` }} className="absolute top-24 left-10 w-4 h-4 animate-pulse"></div>
+      <div style={{ borderColor: `${config.secondaryColor}33` }} className="absolute bottom-20 right-20 w-8 h-8 border-2 rotate-45"></div>
       <div className="absolute top-1/3 right-10 w-2 h-2 bg-white/10 rounded-full"></div>
       
-      {/* Main Content with padding-top to avoid overlap with fixed Navbar */}
+      {/* Main Content */}
       <main className="z-10 w-full flex justify-center mt-32 mb-12">
         <ProfileCard />
       </main>
