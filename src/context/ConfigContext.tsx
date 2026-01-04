@@ -1,6 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 
 export interface Client {
   id: string;
@@ -12,13 +15,14 @@ export interface VideoData {
   id: string;
   title: string;
   url: string;
-  customVideoUrl?: string; // Para vídeos upados diretamente
+  customVideoUrl?: string;
   views?: string;
   editTime?: string;
   deliveryTime?: string;
 }
 
 interface ConfigData {
+  id?: string;
   profileName: string;
   description: string;
   profileImage: string;
@@ -68,50 +72,132 @@ const defaultConfig: ConfigData = {
 
 interface ConfigContextType {
   config: ConfigData;
-  updateConfig: (newConfig: Partial<ConfigData>) => void;
+  updateConfig: (newConfig: Partial<ConfigData>) => Promise<void>;
   resetConfig: () => void;
+  isLoading: boolean;
+  isAdmin: boolean;
+  session: Session | null;
 }
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfig] = useState<ConfigData>(() => {
-    const saved = localStorage.getItem('pixel-site-config-v2');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Garante que existam 6 slots se o usuário vier de uma versão antiga
-      if (parsed.featuredVideos && parsed.featuredVideos.length < 6) {
-        const extra = Array.from({ length: 6 - parsed.featuredVideos.length }).map((_, i) => ({
-          id: `f${parsed.featuredVideos.length + i + 1}`,
-          title: "PROJECT_NAME",
-          url: "",
-          customVideoUrl: "",
-          views: "0 VIEWS",
-          editTime: "0H",
-          deliveryTime: "0H"
-        }));
-        parsed.featuredVideos = [...parsed.featuredVideos, ...extra];
-      }
-      return parsed;
-    }
-    return defaultConfig;
-  });
+  const [config, setConfig] = useState<ConfigData>(defaultConfig);
+  const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
 
+  // Auth Listener
   useEffect(() => {
-    localStorage.setItem('pixel-site-config-v2', JSON.stringify(config));
-    document.body.style.backgroundColor = config.backgroundColor;
-  }, [config]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-  const updateConfig = (newConfig: Partial<ConfigData>) => {
-    setConfig(prev => ({ ...prev, ...newConfig }));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch Config from DB
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('portfolio_config')
+          .select('*')
+          .limit(1)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setConfig({
+            id: data.id,
+            profileName: data.profile_name || defaultConfig.profileName,
+            description: data.description || defaultConfig.description,
+            profileImage: data.profile_image || defaultConfig.profileImage,
+            primaryColor: data.primary_color || defaultConfig.primaryColor,
+            secondaryColor: data.secondary_color || defaultConfig.secondaryColor,
+            backgroundColor: data.background_color || defaultConfig.backgroundColor,
+            cardColor: data.card_color || defaultConfig.cardColor,
+            twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
+            discordUrl: data.discord_url || defaultConfig.discordUrl,
+            email: data.email || defaultConfig.email,
+            clients: (data.clients as unknown as Client[]) || [],
+            featuredVideos: (data.featured_videos as unknown as VideoData[]) || defaultFeatured,
+            shortsVideos: (data.shorts_videos as unknown as VideoData[]) || defaultShorts,
+          });
+          document.body.style.backgroundColor = data.background_color || defaultConfig.backgroundColor;
+        }
+      } catch (error) {
+        console.error('Error fetching config:', error);
+        // Fallback to local if needed, but for now stick to defaults
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+
+  const updateConfig = async (newConfig: Partial<ConfigData>) => {
+    // Optimistic update
+    const updatedState = { ...config, ...newConfig };
+    setConfig(updatedState);
+    document.body.style.backgroundColor = updatedState.backgroundColor;
+
+    if (!session) {
+      toast.error("You must be logged in to save changes permanently.");
+      return;
+    }
+
+    try {
+      const dbPayload = {
+        profile_name: updatedState.profileName,
+        description: updatedState.description,
+        profile_image: updatedState.profileImage,
+        primary_color: updatedState.primaryColor,
+        secondary_color: updatedState.secondaryColor,
+        background_color: updatedState.backgroundColor,
+        card_color: updatedState.cardColor,
+        twitter_url: updatedState.twitterUrl,
+        discord_url: updatedState.discordUrl,
+        email: updatedState.email,
+        clients: updatedState.clients,
+        featured_videos: updatedState.featuredVideos,
+        shorts_videos: updatedState.shortsVideos,
+      };
+
+      const { error } = await supabase
+        .from('portfolio_config')
+        .update(dbPayload)
+        .eq('id', config.id || ''); // We need the ID from the fetch
+
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error('Error saving config:', error);
+      toast.error("Failed to save changes to the server.");
+    }
   };
 
   const resetConfig = () => {
     setConfig(defaultConfig);
+    // Would need to save this to DB too if desired
   };
 
   return (
-    <ConfigContext.Provider value={{ config, updateConfig, resetConfig }}>
+    <ConfigContext.Provider value={{ 
+      config, 
+      updateConfig, 
+      resetConfig, 
+      isLoading,
+      isAdmin: !!session,
+      session
+    }}>
       {children}
     </ConfigContext.Provider>
   );

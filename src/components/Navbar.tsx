@@ -6,7 +6,7 @@ import { useConfig } from '@/context/ConfigContext';
 import { Settings } from 'lucide-react';
 
 const Navbar = () => {
-  const { config } = useConfig();
+  const { config, isAdmin } = useConfig();
 
   return (
     <nav className="fixed top-8 left-0 w-full z-50 px-6 flex justify-center">
@@ -32,9 +32,11 @@ const Navbar = () => {
             </div>
           </Link>
 
-          <Link to="/settings" className="p-2.5 text-white/20 hover:text-white transition-colors">
-            <Settings className="w-5 h-5" />
-          </Link>
+          {isAdmin && (
+            <Link to="/settings" className="p-2.5 text-white/20 hover:text-white transition-colors" title="Admin Settings">
+              <Settings className="w-5 h-5" />
+            </Link>
+          )}
         </div>
 
         <a 

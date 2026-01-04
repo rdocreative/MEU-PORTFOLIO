@@ -1,20 +1,32 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft, Upload, Video, Zap, Trash2 } from 'lucide-react';
+import { Save, RotateCcw, ArrowLeft, Upload, Video, Zap, Trash2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { showSuccess, showError } from '@/utils/toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Settings = () => {
-  const { config, updateConfig, resetConfig } = useConfig();
+  const { config, updateConfig, resetConfig, isAdmin, isLoading } = useConfig();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      navigate('/login');
+    }
+  }, [isAdmin, isLoading, navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -31,8 +43,8 @@ const Settings = () => {
   const handleVideoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit for localStorage
-        showError("VÍDEO MUITO GRANDE! LIMITE DE 5MB PARA O NAVEGADOR.");
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit placeholder
+        showError("VÍDEO MUITO GRANDE! LIMITE DE 5MB.");
         return;
       }
 
@@ -41,7 +53,7 @@ const Settings = () => {
         const newList = [...config.featuredVideos];
         newList[index] = { ...newList[index], customVideoUrl: event.target?.result as string };
         updateConfig({ featuredVideos: newList });
-        showSuccess("VÍDEO OTIMIZADO CARREGADO!");
+        showSuccess("VÍDEO CARREGADO! CLIQUE EM SALVAR.");
       };
       reader.readAsDataURL(file);
     }
@@ -66,6 +78,8 @@ const Settings = () => {
     }
   };
 
+  if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-['Press_Start_2P']">LOADING...</div>;
+
   return (
     <div className="min-h-screen bg-black text-white p-8 font-['Press_Start_2P'] pb-24">
       <div className="max-w-6xl mx-auto space-y-10">
@@ -73,8 +87,10 @@ const Settings = () => {
           <button onClick={() => navigate('/')} className="hover:opacity-50 transition-opacity">
             <ArrowLeft className="w-10 h-10" />
           </button>
-          <h1 className="text-lg">TERMINAL_CONFIG_V3</h1>
-          <div className="w-10"></div>
+          <h1 className="text-lg">ADMIN_TERMINAL</h1>
+          <button onClick={handleLogout} className="text-red-500 hover:text-red-400 text-[10px] flex items-center gap-2">
+            <LogOut className="w-4 h-4" /> LOGOUT
+          </button>
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[40px]">
@@ -93,12 +109,30 @@ const Settings = () => {
               </div>
           </div>
 
+          {/* Configs de Cores e Links */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t-2 border-zinc-900 pt-6">
+             <div className="space-y-2">
+                <Label className="text-[10px]">COR DE FUNDO</Label>
+                <div className="flex gap-2">
+                  <div className="w-10 h-10 rounded border" style={{background: config.backgroundColor}}></div>
+                  <Input name="backgroundColor" value={config.backgroundColor} onChange={handleChange} className="bg-black border-zinc-800" />
+                </div>
+             </div>
+             <div className="space-y-2">
+                <Label className="text-[10px]">COR PRIMÁRIA (TEXTOS/BORDAS)</Label>
+                <div className="flex gap-2">
+                  <div className="w-10 h-10 rounded border" style={{background: config.primaryColor}}></div>
+                  <Input name="primaryColor" value={config.primaryColor} onChange={handleChange} className="bg-black border-zinc-800" />
+                </div>
+             </div>
+          </div>
+
           {/* Featured Videos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
             <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
               <Video className="w-5 h-5" /> Featured_Content (6 Slots)
             </h2>
-            <p className="text-[8px] text-zinc-500 uppercase">Dica: Passe o mouse no vídeo na home para ver a prévia de 15s.</p>
+            <p className="text-[8px] text-zinc-500 uppercase">Use links do YouTube ou faça upload de vídeos curtos (max 5MB) para preview.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => (
                 <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
@@ -119,7 +153,7 @@ const Settings = () => {
                       onClick={() => videoInputRefs.current[index]?.click()} 
                       className="bg-zinc-800 hover:bg-zinc-700 text-[7px] flex-1 h-10 rounded-xl"
                     >
-                      {video.customVideoUrl ? "VIDEO_UPLOADED" : "UPLOAD_OPTIMIZED_PREVIEW"}
+                      {video.customVideoUrl ? "VIDEO_UPLOADED" : "UPLOAD_PREVIEW"}
                     </Button>
                     <input 
                       type="file" 
@@ -156,11 +190,8 @@ const Settings = () => {
         </div>
 
         <div className="flex gap-6">
-          <Button onClick={() => { showSuccess("CONFIG_SAVED!"); navigate('/'); }} className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400">
+          <Button onClick={() => { showSuccess("CONFIG_SAVED_TO_CLOUD!"); navigate('/'); }} className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400">
             <Save className="mr-3 w-5 h-5" /> SAVE_CHANGES
-          </Button>
-          <Button onClick={resetConfig} className="bg-zinc-900 text-white hover:bg-zinc-800 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-black">
-            <RotateCcw className="mr-3 w-5 h-5" /> FACTORY_RESET
           </Button>
         </div>
       </div>
