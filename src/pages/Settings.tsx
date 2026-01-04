@@ -1,27 +1,24 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft, Upload, Video, Zap, Trash2, LogOut } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { showSuccess, showError } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
 
 const Settings = () => {
-  const { config, updateConfig, resetConfig, isAdmin, isLoading } = useConfig();
+  const { config, updateConfig, isAdmin, isLoading } = useConfig();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      navigate('/login');
-    }
-  }, [isAdmin, isLoading, navigate]);
+  const [authView, setAuthView] = useState<'sign_in' | 'sign_up'>('sign_in');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -43,11 +40,10 @@ const Settings = () => {
   const handleVideoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit placeholder
+      if (file.size > 5 * 1024 * 1024) { 
         showError("VÍDEO MUITO GRANDE! LIMITE DE 5MB.");
         return;
       }
-
       const reader = new FileReader();
       reader.onload = (event) => {
         const newList = [...config.featuredVideos];
@@ -80,6 +76,52 @@ const Settings = () => {
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-['Press_Start_2P']">LOADING...</div>;
 
+  // LOGIN SCREEN (Inside Settings)
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black p-4 font-['Press_Start_2P']">
+        <div className="w-full max-w-md bg-[#111] border-2 border-white p-8 rounded-2xl shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]">
+          <h1 className="text-white text-center mb-8 text-xl">RESTRICTED_AREA</h1>
+          <p className="text-zinc-500 text-[10px] text-center mb-6">AUTHORIZED_PERSONNEL_ONLY</p>
+          <div className="font-sans">
+            <Auth
+              supabaseClient={supabase}
+              view={authView}
+              appearance={{
+                theme: ThemeSupa,
+                variables: {
+                  default: {
+                    colors: {
+                      brand: '#ffffff',
+                      brandAccent: '#a1a1aa',
+                      inputBackground: '#000000',
+                      inputText: '#ffffff',
+                      inputBorder: '#333333',
+                    },
+                  },
+                },
+              }}
+              providers={[]}
+              theme="dark"
+              showLinks={false}
+            />
+          </div>
+          <div className="mt-4 flex justify-center gap-4 text-[10px]">
+             <button onClick={() => setAuthView('sign_in')} className={`hover:text-white ${authView === 'sign_in' ? 'text-white underline' : 'text-zinc-500'}`}>LOGIN</button>
+             <span className="text-zinc-700">|</span>
+             <button onClick={() => setAuthView('sign_up')} className={`hover:text-white ${authView === 'sign_up' ? 'text-white underline' : 'text-zinc-500'}`}>REGISTER</button>
+          </div>
+          <div className="mt-6 text-center">
+            <button onClick={() => navigate('/')} className="text-[10px] text-zinc-500 hover:text-white transition-colors">
+              ← ABORT
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ADMIN DASHBOARD
   return (
     <div className="min-h-screen bg-black text-white p-8 font-['Press_Start_2P'] pb-24">
       <div className="max-w-6xl mx-auto space-y-10">
