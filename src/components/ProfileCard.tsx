@@ -4,11 +4,7 @@ import React from 'react';
 import { Twitter, Mail, MessageSquare, ChevronRight } from 'lucide-react';
 import { useConfig } from '@/context/ConfigContext';
 
-interface ProfileCardProps {
-  onLongFormClick?: () => void;
-}
-
-const ProfileCard = ({ onLongFormClick }: ProfileCardProps) => {
+const ProfileCard = () => {
   const { config } = useConfig();
 
   const primaryStyle = { borderColor: config.primaryColor };
@@ -60,18 +56,15 @@ const ProfileCard = ({ onLongFormClick }: ProfileCardProps) => {
 
       {/* Action Sections */}
       <div className="grid grid-cols-1 gap-5 w-full px-4">
-        {/* Botão de Long Form - Agora funciona como troca de aba */}
-        <button 
-          onClick={(e) => {
-            e.preventDefault();
-            onLongFormClick?.();
-          }}
+        {/* Botão de Long Form - Agora rola para a seção #videos */}
+        <a 
+          href="#videos"
           style={{ 
             backgroundColor: `${config.cardColor}cc`, 
             borderColor: config.primaryColor,
             boxShadow: `8px 8px 0px 0px ${config.primaryColor}33`
           }}
-          className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none w-full text-left"
+          className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none w-full"
         >
           <span className="text-white group-hover:text-black text-[12px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-all uppercase">
             {config.longFormText}
@@ -79,7 +72,7 @@ const ProfileCard = ({ onLongFormClick }: ProfileCardProps) => {
           <div style={{ backgroundColor: config.secondaryColor }} className="p-1.5 rounded-full group-hover:bg-black">
             <ChevronRight className="w-5 h-5 text-black group-hover:text-white" />
           </div>
-        </button>
+        </a>
 
         {/* Short Form / Outros links externos */}
         <a 
