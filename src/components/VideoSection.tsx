@@ -84,6 +84,10 @@ const VideoSection = () => {
                             src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
                             alt={video.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                            }}
                           />
                         )}
                     </div>
@@ -102,7 +106,7 @@ const VideoSection = () => {
                           <iframe
                             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
                             className="w-full h-full"
-                            allow="autoplay; encrypted-media"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           ></iframe>
                         )}
@@ -134,9 +138,9 @@ const VideoSection = () => {
                               // Removido loading="lazy" para carregar IMEDIATAMENTE.
                               // playlist=${videoId}&loop=1 garante o loop infinito.
                               // vq=small mantém leve.
-                              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&start=10&end=25&modestbranding=1&rel=0&iv_load_policy=3&playlist=${videoId}&loop=1&vq=small`}
+                              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playlist=${videoId}&loop=1&playsinline=1&enablejsapi=1`}
                               className="w-full h-full scale-[1.35]"
-                              allow="autoplay"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               tabIndex={-1}
                             ></iframe>
                           )}
