@@ -35,17 +35,13 @@ const VideoCard = ({
   const [imgSrc, setImgSrc] = useState(
     videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : ''
   );
-  const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Tenta forçar o play do vídeo de prévia assim que ele estiver pronto
+  // Força o play quando o componente monta
   useEffect(() => {
-    const videoElement = previewVideoRef.current;
-    if (video.customVideoUrl && videoElement && !isPlaying) {
-      videoElement.muted = true; // Garante que esteja mudo para autoplay
-      videoElement.play().catch(e => {
-        // console.log("Autoplay blocked or failed for preview:", e);
-        // Ignora erros comuns de autoplay bloqueado, pois o navegador pode tentar novamente
-      });
+    if (video.customVideoUrl && videoRef.current && !isPlaying) {
+      videoRef.current.muted = true; // Garante mute via JS
+      videoRef.current.play().catch(e => console.log("Autoplay blocked:", e));
     }
   }, [video.customVideoUrl, isPlaying]);
 
@@ -61,20 +57,18 @@ const VideoCard = ({
     <div className="group relative flex flex-col gap-4 p-1">
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
         
-        {/* Camada de Fundo (Preview) - Z-INDEX 0, sem interatividade */}
-        <div className="absolute inset-0 z-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
+        {/* Camada de Fundo (Preview) */}
+        <div className="absolute inset-0 z-0 bg-zinc-900 flex items-center justify-center">
             {video.customVideoUrl ? (
               <video 
-                key={video.customVideoUrl} // Força a recriação do elemento se a URL mudar
-                ref={previewVideoRef}
+                ref={videoRef}
                 src={video.customVideoUrl} 
                 className="w-full h-full object-cover" 
-                muted // Essencial para autoplay
-                loop // Repete o vídeo
-                playsInline // Essencial para autoplay em iOS
-                autoPlay // Tenta autoplay
-                preload="auto" // Carrega o vídeo o mais rápido possível
-                controls={false} // Garante que não há controles nativos
+                muted
+                loop
+                playsInline
+                autoPlay
+                preload="auto"
               />
             ) : !imgError && videoId ? (
               <img 
@@ -91,12 +85,11 @@ const VideoCard = ({
             )}
         </div>
 
-        {/* Camada Interativa / Player Full - Z-INDEX maior */}
+        {/* Camada Interativa / Player Full */}
         {isPlaying ? (
           <div className="absolute inset-0 z-30 bg-black animate-in fade-in duration-300">
             {video.customVideoUrl ? (
               <video 
-                key={`${video.customVideoUrl}-player`}
                 src={video.customVideoUrl} 
                 className="w-full h-full object-cover" 
                 controls 
@@ -122,16 +115,9 @@ const VideoCard = ({
             onClick={onPlay}
             className="w-full h-full relative z-10 block overflow-hidden bg-transparent"
           >
-            {/* Hover Preview Animado (Apenas para YouTube) */}
-            <div className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-              {!video.customVideoUrl && videoId && (
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playlist=${videoId}&loop=1&playsinline=1&enablejsapi=1`}
-                  className="w-full h-full scale-[1.35]"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                ></iframe>
-              )}
-            </div>
+            {/* O vídeo de preview já está rodando no fundo (z-0). 
+                Não precisamos renderizar outro vídeo aqui para hover, 
+                apenas mostrar a sobreposição de play. */}
             
             <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-1 pointer-events-none">
               <div className="flex items-center gap-2 text-white bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
