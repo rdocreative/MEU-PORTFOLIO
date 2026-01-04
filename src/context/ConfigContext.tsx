@@ -12,6 +12,7 @@ export interface VideoData {
   id: string;
   title: string;
   url: string;
+  customVideoUrl?: string; // Para vídeos upados diretamente
   views?: string;
   editTime?: string;
   deliveryTime?: string;
@@ -33,10 +34,11 @@ interface ConfigData {
   shortsVideos: VideoData[];
 }
 
-const defaultFeatured: VideoData[] = Array.from({ length: 3 }).map((_, i) => ({
+const defaultFeatured: VideoData[] = Array.from({ length: 6 }).map((_, i) => ({
   id: `f${i + 1}`,
   title: "PROJECT_NAME",
   url: "",
+  customVideoUrl: "",
   views: "1.2M VIEWS",
   editTime: "12H EDIT",
   deliveryTime: "24H DELIVERY"
@@ -75,7 +77,24 @@ const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [config, setConfig] = useState<ConfigData>(() => {
     const saved = localStorage.getItem('pixel-site-config-v2');
-    return saved ? JSON.parse(saved) : defaultConfig;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Garante que existam 6 slots se o usuário vier de uma versão antiga
+      if (parsed.featuredVideos && parsed.featuredVideos.length < 6) {
+        const extra = Array.from({ length: 6 - parsed.featuredVideos.length }).map((_, i) => ({
+          id: `f${parsed.featuredVideos.length + i + 1}`,
+          title: "PROJECT_NAME",
+          url: "",
+          customVideoUrl: "",
+          views: "0 VIEWS",
+          editTime: "0H",
+          deliveryTime: "0H"
+        }));
+        parsed.featuredVideos = [...parsed.featuredVideos, ...extra];
+      }
+      return parsed;
+    }
+    return defaultConfig;
   });
 
   useEffect(() => {

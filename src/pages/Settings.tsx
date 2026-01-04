@@ -3,17 +3,18 @@
 import React, { useRef } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft, Upload, Video, Zap } from 'lucide-react';
+import { Save, RotateCcw, ArrowLeft, Upload, Video, Zap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { showSuccess } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 
 const Settings = () => {
   const { config, updateConfig, resetConfig } = useConfig();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -25,6 +26,32 @@ const Settings = () => {
     const newList = [...config[listKey]];
     newList[index] = { ...newList[index], [field]: value };
     updateConfig({ [listKey]: newList });
+  };
+
+  const handleVideoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit for localStorage
+        showError("VÍDEO MUITO GRANDE! LIMITE DE 5MB PARA O NAVEGADOR.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newList = [...config.featuredVideos];
+        newList[index] = { ...newList[index], customVideoUrl: event.target?.result as string };
+        updateConfig({ featuredVideos: newList });
+        showSuccess("VÍDEO OTIMIZADO CARREGADO!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeCustomVideo = (index: number) => {
+    const newList = [...config.featuredVideos];
+    newList[index] = { ...newList[index], customVideoUrl: "" };
+    updateConfig({ featuredVideos: newList });
+    showSuccess("VÍDEO REMOVIDO!");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,12 +68,12 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-['Press_Start_2P'] pb-24">
-      <div className="max-w-5xl mx-auto space-y-10">
+      <div className="max-w-6xl mx-auto space-y-10">
         <div className="flex items-center justify-between border-b-4 border-white pb-6">
           <button onClick={() => navigate('/')} className="hover:opacity-50 transition-opacity">
             <ArrowLeft className="w-10 h-10" />
           </button>
-          <h1 className="text-lg">TERMINAL_CONFIG_V2</h1>
+          <h1 className="text-lg">TERMINAL_CONFIG_V3</h1>
           <div className="w-10"></div>
         </div>
 
@@ -69,14 +96,40 @@ const Settings = () => {
           {/* Featured Videos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
             <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
-              <Video className="w-5 h-5" /> Featured_Content (3 Slots)
+              <Video className="w-5 h-5" /> Featured_Content (6 Slots)
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <p className="text-[8px] text-zinc-500 uppercase">Dica: Passe o mouse no vídeo na home para ver a prévia de 15s.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => (
                 <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
-                  <Label className="text-[8px] text-zinc-500 uppercase">Video #{index + 1}</Label>
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[8px] text-zinc-500 uppercase">Video #{index + 1}</Label>
+                    {video.customVideoUrl && (
+                      <button onClick={() => removeCustomVideo(index)} className="text-red-500 hover:text-red-400">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  
                   <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px] h-10" placeholder="TITLE" />
                   <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px] h-10" placeholder="YOUTUBE URL" />
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => videoInputRefs.current[index]?.click()} 
+                      className="bg-zinc-800 hover:bg-zinc-700 text-[7px] flex-1 h-10 rounded-xl"
+                    >
+                      {video.customVideoUrl ? "VIDEO_UPLOADED" : "UPLOAD_OPTIMIZED_PREVIEW"}
+                    </Button>
+                    <input 
+                      type="file" 
+                      ref={el => videoInputRefs.current[index] = el} 
+                      onChange={(e) => handleVideoUpload(index, e)} 
+                      accept="video/*" 
+                      className="hidden" 
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <Input value={video.views} onChange={(e) => handleVideoChange(index, 'views', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px]" placeholder="VIEWS" />
                     <Input value={video.editTime} onChange={(e) => handleVideoChange(index, 'editTime', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px]" placeholder="EDIT TIME" />
