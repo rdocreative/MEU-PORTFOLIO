@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef } from 'react';
-import { useConfig } from '@/context/ConfigContext';
+import { useConfig, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft, Upload } from 'lucide-react';
+import { Save, RotateCcw, ArrowLeft, Upload, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,7 @@ const Settings = () => {
   const { config, updateConfig, resetConfig } = useConfig();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const clientInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -29,9 +30,29 @@ const Settings = () => {
         showSuccess("FOTO CARREGADA!");
       };
       reader.readAsDataURL(file);
-    } else {
-      showError("SELECIONE UMA IMAGEM.");
     }
+  };
+
+  const handleAddClient = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newClient: Client = {
+          id: Date.now().toString(),
+          name: 'New Client',
+          image: event.target?.result as string
+        };
+        updateConfig({ clients: [...(config.clients || []), newClient] });
+        showSuccess("CLIENTE ADICIONADO!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeClient = (id: string) => {
+    updateConfig({ clients: config.clients.filter(c => c.id !== id) });
+    showSuccess("CLIENTE REMOVIDO.");
   };
 
   return (
@@ -46,6 +67,7 @@ const Settings = () => {
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[30px]">
+          {/* Profile Section */}
           <div className="space-y-6">
             <h2 className="text-zinc-500 text-[12px] uppercase">Profile_Info</h2>
             <div className="flex flex-col items-center gap-6 p-6 border-2 border-dashed border-zinc-700 rounded-2xl">
@@ -57,14 +79,39 @@ const Settings = () => {
             </div>
             <div className="space-y-4">
               <Label className="text-[10px] uppercase">Profile Name</Label>
-              <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" placeholder="NAME" />
-            </div>
-            <div className="space-y-4">
-              <Label className="text-[10px] uppercase">Bio Description</Label>
-              <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] min-h-[120px]" placeholder="BIO" />
+              <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" />
             </div>
           </div>
 
+          {/* Clients Section */}
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
+            <h2 className="text-zinc-500 text-[12px] uppercase">Clients_Section</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {config.clients?.map((client) => (
+                <div key={client.id} className="relative group">
+                  <div className="w-full aspect-square bg-zinc-900 border-2 border-zinc-800 rounded-xl flex items-center justify-center p-4">
+                    <img src={client.image} alt={client.name} className="max-w-full max-h-full object-contain" />
+                  </div>
+                  <button 
+                    onClick={() => removeClient(client.id)}
+                    className="absolute -top-2 -right-2 bg-red-600 p-1.5 rounded-full hover:bg-red-700 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              ))}
+              <button 
+                onClick={() => clientInputRef.current?.click()}
+                className="aspect-square bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-zinc-800 transition-all text-zinc-500 hover:text-white"
+              >
+                <Plus className="w-6 h-6" />
+                <span className="text-[8px]">ADD_NEW</span>
+              </button>
+              <input type="file" ref={clientInputRef} onChange={handleAddClient} accept="image/*" className="hidden" />
+            </div>
+          </div>
+
+          {/* Style Section */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
             <h2 className="text-zinc-500 text-[12px] uppercase">Style_Palette</h2>
             <div className="grid grid-cols-2 gap-6">
@@ -74,15 +121,6 @@ const Settings = () => {
                   <Input type="color" name={key} value={(config as any)[key]} onChange={handleChange} className="h-14 bg-black border-zinc-800" />
                 </div>
               ))}
-            </div>
-          </div>
-
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
-            <h2 className="text-zinc-500 text-[12px] uppercase">Action_Links</h2>
-            <div className="space-y-4">
-              <Input name="longFormText" value={config.longFormText} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" />
-              <Input name="shortFormText" value={config.shortFormText} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" />
-              <Input name="email" value={config.email} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" />
             </div>
           </div>
         </div>

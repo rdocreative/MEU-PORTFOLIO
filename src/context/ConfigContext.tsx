@@ -2,6 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+export interface Client {
+  id: string;
+  image: string;
+  name: string;
+}
+
 interface ConfigData {
   profileName: string;
   description: string;
@@ -15,21 +21,26 @@ interface ConfigData {
   email: string;
   longFormText: string;
   shortFormText: string;
+  clients: Client[];
 }
 
 const defaultConfig: ConfigData = {
   profileName: "PIXEL OBSERVER",
   description: "lost in the digital void. searching for bits and stars.",
   profileImage: "https://api.dicebear.com/7.x/pixel-art/svg?seed=void",
-  primaryColor: "#ffffff", // Branco
-  secondaryColor: "#a1a1aa", // Cinza
-  backgroundColor: "#000000", // Preto Puro
-  cardColor: "#0a0a0a", // Preto muito escuro
+  primaryColor: "#ffffff", 
+  secondaryColor: "#a1a1aa", 
+  backgroundColor: "#000000", 
+  cardColor: "#0a0a0a", 
   twitterUrl: "#",
   discordUrl: "#",
   email: "void@example.com",
   longFormText: "LOG_ENTRY",
   shortFormText: "SIGNAL_LOST",
+  clients: [
+    { id: '1', name: 'Client 1', image: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=1' },
+    { id: '2', name: 'Client 2', image: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=2' },
+  ],
 };
 
 interface ConfigContextType {
