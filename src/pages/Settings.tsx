@@ -1,21 +1,72 @@
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Save, RotateCcw, ArrowLeft, Upload, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { showSuccess, showError } from '@/utils/toast';
 
 const Settings = () => {
   const { config, updateConfig, resetConfig } = useConfig();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     updateConfig({ [name]: value });
+  };
+
+  const optimizeAndUploadImage = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 400; // Tamanho máximo otimizado
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Converte para base64 com qualidade reduzida para otimização
+        const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        updateConfig({ profileImage: optimizedBase64 });
+        showSuccess("Foto otimizada e carregada!");
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => showError("Erro ao ler o arquivo.");
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        showError("Por favor, selecione uma imagem válida.");
+        return;
+      }
+      optimizeAndUploadImage(file);
+    }
   };
 
   return (
@@ -33,14 +84,47 @@ const Settings = () => {
           {/* Perfil */}
           <div className="space-y-4">
             <h2 className="text-[#ff4d4d] text-[10px]">Informações Básicas</h2>
+            
+            <div className="space-y-4">
+              <Label className="text-[8px]">Foto de Perfil</Label>
+              <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed border-[#4d4dff] rounded-xl bg-[#0f0f1a]">
+                <img 
+                  src={config.profileImage} 
+                  alt="Preview" 
+                  className="w-20 h-20 rounded-full border-2 border-[#ff4d4d] object-cover"
+                />
+                <div className="flex gap-2 w-full">
+                  <Button 
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 bg-[#4d4dff] hover:bg-[#3d3dff] text-[8px] h-10 border-b-2 border-r-2 border-[#2d2dbf]"
+                  >
+                    <Upload className="mr-2 w-4 h-4" /> UPLOAD FOTO
+                  </Button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    accept="image/*" 
+                    className="hidden" 
+                  />
+                </div>
+                <p className="text-[6px] text-gray-500 uppercase">Ou cole uma URL abaixo:</p>
+                <Input 
+                  name="profileImage" 
+                  placeholder="URL da imagem..."
+                  value={config.profileImage.startsWith('data:') ? '' : config.profileImage} 
+                  onChange={handleChange} 
+                  className="bg-[#0f0f1a] border-[#4d4dff] text-[10px]" 
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-[8px]">Nome do Perfil</Label>
               <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-[#0f0f1a] border-[#4d4dff] text-[10px]" />
             </div>
-            <div className="space-y-2">
-              <Label className="text-[8px]">Foto de Perfil (URL)</Label>
-              <Input name="profileImage" value={config.profileImage} onChange={handleChange} className="bg-[#0f0f1a] border-[#4d4dff] text-[10px]" />
-            </div>
+            
             <div className="space-y-2">
               <Label className="text-[8px]">Descrição</Label>
               <Textarea name="description" value={config.description} onChange={handleChange} className="bg-[#0f0f1a] border-[#4d4dff] text-[10px] min-h-[100px]" />
