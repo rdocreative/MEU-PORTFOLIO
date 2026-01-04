@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { Play, Eye } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
@@ -15,6 +15,8 @@ import {
 const VideoSection = () => {
   const { config } = useConfig();
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [isSectionVisible, setIsSectionVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const plugin = useRef(
     AutoScroll({ 
@@ -24,6 +26,30 @@ const VideoSection = () => {
       startDelay: 0,
     })
   );
+
+  // Otimização: Detecta se a seção está visível na tela
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsSectionVisible(entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: '100px', // Carrega um pouco antes de entrar na tela
+        threshold: 0.1, // 10% visível
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -42,7 +68,7 @@ const VideoSection = () => {
   }
 
   return (
-    <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
+    <section ref={sectionRef} className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
       <Carousel
         plugins={[plugin.current]}
         opts={{
@@ -73,7 +99,6 @@ const VideoSection = () => {
             return (
               <CarouselItem key={video.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                 <div className="group relative flex flex-col gap-4 p-1">
-                  {/* Updated to border-4 and rounded-[40px] */}
                   <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
                     {isPlaying ? (
                       <div className="absolute inset-0 z-30">
@@ -90,6 +115,7 @@ const VideoSection = () => {
                             className="w-full h-full"
                             allow="autoplay; encrypted-media"
                             allowFullScreen
+                            loading="lazy"
                           ></iframe>
                         )}
                         <button 
@@ -104,34 +130,40 @@ const VideoSection = () => {
                         onClick={() => setPlayingId(video.id)}
                         className="w-full h-full relative block overflow-hidden"
                       >
-                        {/* Always playing preview */}
+                        {/* Always playing preview IF visible on screen */}
                         <div className="absolute inset-0 z-10 pointer-events-none">
-                          {video.customVideoUrl ? (
-                            <video 
-                              src={video.customVideoUrl} 
-                              className="w-full h-full object-cover" 
-                              autoPlay 
-                              muted 
-                              loop 
-                              playsInline
-                            />
-                          ) : (
-                            <iframe
-                              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&start=10&end=25&modestbranding=1&rel=0&iv_load_policy=3&playlist=${videoId}&loop=1`}
-                              className="w-full h-full scale-[1.35]"
-                              allow="autoplay"
-                              tabIndex={-1}
-                            ></iframe>
-                          )}
+                          {isSectionVisible ? (
+                            video.customVideoUrl ? (
+                              <video 
+                                src={video.customVideoUrl} 
+                                className="w-full h-full object-cover" 
+                                autoPlay 
+                                muted 
+                                loop 
+                                playsInline
+                              />
+                            ) : (
+                              <iframe
+                                // vq=small -> Low quality for preview (optimization)
+                                // loading=lazy -> Native browser lazy load
+                                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&start=10&end=25&modestbranding=1&rel=0&iv_load_policy=3&playlist=${videoId}&loop=1&vq=small`}
+                                className="w-full h-full scale-[1.35]"
+                                allow="autoplay"
+                                tabIndex={-1}
+                                loading="lazy"
+                              ></iframe>
+                            )
+                          ) : null}
                         </div>
                         
-                        {/* Fallback image */}
+                        {/* Fallback image (shown when !isSectionVisible or behind iframe) */}
                         <div className="absolute inset-0 z-0">
                            {videoId && (
                               <img 
                                 src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
                                 alt={video.title}
                                 className="w-full h-full object-cover"
+                                loading="lazy"
                               />
                            )}
                         </div>
