@@ -9,21 +9,20 @@ const Navbar = () => {
   const { config } = useConfig();
 
   return (
-    <nav className="fixed top-6 left-0 w-full z-50 px-4 flex justify-center">
+    <nav className="fixed top-8 left-0 w-full z-50 px-6 flex justify-center">
       <div 
         style={{ 
           backgroundColor: `${config.cardColor}e6`, 
           borderColor: config.primaryColor,
-          boxShadow: `0px 4px 0px 0px ${config.primaryColor}4d`
+          boxShadow: `0px 5px 0px 0px ${config.primaryColor}4d`
         }}
-        className="w-full max-w-2xl backdrop-blur-md border-4 flex items-center justify-between p-3 rounded-full"
+        className="w-full max-w-3xl backdrop-blur-md border-4 flex items-center justify-between p-4 rounded-full"
       >
-        <div className="flex items-center gap-2">
-          {/* Logo/Profile Image Link */}
-          <Link to="/" className="flex items-center gap-3 group ml-2">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-4 group ml-3">
             <div 
               style={{ borderColor: config.secondaryColor }}
-              className="relative w-10 h-10 overflow-hidden border-2 rounded-full group-hover:scale-105 transition-transform"
+              className="relative w-12 h-12 overflow-hidden border-2 rounded-full group-hover:scale-105 transition-transform"
             >
               <img 
                 src={config.profileImage} 
@@ -33,20 +32,18 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Botão invisível/discreto para configurações */}
-          <Link to="/settings" className="p-2 text-white/20 hover:text-white transition-colors">
-            <Settings className="w-4 h-4" />
+          <Link to="/settings" className="p-2.5 text-white/20 hover:text-white transition-colors">
+            <Settings className="w-5 h-5" />
           </Link>
         </div>
 
-        {/* Contact Link */}
         <a 
           href={`mailto:${config.email}`}
           style={{ 
             backgroundColor: config.secondaryColor,
             borderColor: `${config.secondaryColor}99`
           }}
-          className="text-white text-[8px] px-6 py-2 border-b-4 border-r-4 rounded-full active:border-0 active:translate-y-[2px] active:translate-x-[2px] transition-all uppercase hover:brightness-110 mr-2"
+          className="text-white text-[10px] px-8 py-3 border-b-4 border-r-4 rounded-full active:border-0 active:translate-y-[2px] active:translate-x-[2px] transition-all uppercase hover:brightness-110 mr-3"
         >
           Contact
         </a>
