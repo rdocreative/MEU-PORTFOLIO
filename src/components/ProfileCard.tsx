@@ -4,7 +4,11 @@ import React from 'react';
 import { Twitter, Mail, MessageSquare, ChevronRight } from 'lucide-react';
 import { useConfig } from '@/context/ConfigContext';
 
-const ProfileCard = () => {
+interface ProfileCardProps {
+  onLongFormClick?: () => void;
+}
+
+const ProfileCard = ({ onLongFormClick }: ProfileCardProps) => {
   const { config } = useConfig();
 
   const primaryStyle = { borderColor: config.primaryColor };
@@ -14,14 +18,7 @@ const ProfileCard = () => {
     boxShadow: `10px 10px 0px 0px ${config.primaryColor}4d`
   };
 
-  // Verificação de segurança para evitar erro 'startsWith' em valores undefined
-  const longUrl = config.longFormUrl || "";
-  const shortUrl = config.shortFormUrl || "";
-
-  const actions = [
-    { text: config.longFormText, url: longUrl, isInternal: longUrl.startsWith('#') },
-    { text: config.shortFormText, url: shortUrl, isInternal: shortUrl.startsWith('#') }
-  ];
+  const shortUrl = config.shortFormUrl || "#";
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-lg">
@@ -63,27 +60,46 @@ const ProfileCard = () => {
 
       {/* Action Sections */}
       <div className="grid grid-cols-1 gap-5 w-full px-4">
-        {actions.map((action, i) => (
-          <a 
-            key={i}
-            href={action.url}
-            target={action.isInternal ? undefined : "_blank"}
-            rel={action.isInternal ? undefined : "noopener"}
-            style={{ 
-              backgroundColor: `${config.cardColor}cc`, 
-              borderColor: config.primaryColor,
-              boxShadow: `8px 8px 0px 0px ${config.primaryColor}33`
-            }}
-            className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none"
-          >
-            <span className="text-white group-hover:text-black text-[12px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-all uppercase">
-              {action.text}
-            </span>
-            <div style={{ backgroundColor: config.secondaryColor }} className="p-1.5 rounded-full group-hover:bg-black">
-              <ChevronRight className="w-5 h-5 text-black group-hover:text-white" />
-            </div>
-          </a>
-        ))}
+        {/* Botão de Long Form - Agora funciona como troca de aba */}
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            onLongFormClick?.();
+          }}
+          style={{ 
+            backgroundColor: `${config.cardColor}cc`, 
+            borderColor: config.primaryColor,
+            boxShadow: `8px 8px 0px 0px ${config.primaryColor}33`
+          }}
+          className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none w-full text-left"
+        >
+          <span className="text-white group-hover:text-black text-[12px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-all uppercase">
+            {config.longFormText}
+          </span>
+          <div style={{ backgroundColor: config.secondaryColor }} className="p-1.5 rounded-full group-hover:bg-black">
+            <ChevronRight className="w-5 h-5 text-black group-hover:text-white" />
+          </div>
+        </button>
+
+        {/* Short Form / Outros links externos */}
+        <a 
+          href={shortUrl}
+          target="_blank"
+          rel="noopener"
+          style={{ 
+            backgroundColor: `${config.cardColor}cc`, 
+            borderColor: config.primaryColor,
+            boxShadow: `8px 8px 0px 0px ${config.primaryColor}33`
+          }}
+          className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none"
+        >
+          <span className="text-white group-hover:text-black text-[12px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-all uppercase">
+            {config.shortFormText}
+          </span>
+          <div style={{ backgroundColor: config.secondaryColor }} className="p-1.5 rounded-full group-hover:bg-black">
+            <ChevronRight className="w-5 h-5 text-black group-hover:text-white" />
+          </div>
+        </a>
       </div>
     </div>
   );

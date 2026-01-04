@@ -16,17 +16,16 @@ const VideoSection = () => {
 
   const videos = config.videos.filter(v => v.url);
 
-  if (videos.length === 0) return null;
+  if (videos.length === 0) {
+    return (
+      <div className="text-center py-20 opacity-20 text-[10px] uppercase">
+        NO_SIGNAL_FOUND_IN_DATABASE
+      </div>
+    );
+  }
 
   return (
-    <section id="videos" className="w-full max-w-4xl mt-20 px-4 flex flex-col items-center gap-10">
-      <div className="flex flex-col items-center gap-2">
-        <h2 style={{ color: config.primaryColor }} className="text-xl font-['Press_Start_2P'] uppercase tracking-tighter">
-          Long_Form_Content
-        </h2>
-        <div style={{ backgroundColor: config.secondaryColor }} className="w-24 h-1 opacity-50"></div>
-      </div>
-
+    <section className="w-full max-w-4xl px-4 flex flex-col items-center">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
         {videos.map((video) => {
           const videoId = getYouTubeId(video.url);
