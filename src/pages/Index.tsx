@@ -1,17 +1,27 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+"use client";
 
+import React from 'react';
+import Navbar from '@/components/Navbar';
+import Hero from '@/components/Hero';
+import Projects from '@/components/Projects';
+import Skills from '@/components/Skills';
+import Contact from '@/components/Contact';
 import { MadeWithDyad } from "@/components/made-with-dyad";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">
-          Start building your amazing project here!
-        </p>
-      </div>
-      <MadeWithDyad />
+    <div className="min-h-screen bg-background selection:bg-primary/10">
+      <Navbar />
+      <main>
+        <Hero />
+        <Projects />
+        <Skills />
+        <Contact />
+      </main>
+      <footer className="py-12 border-t text-center text-muted-foreground text-sm">
+        <p>© {new Date().getFullYear()} Seu Nome. Todos os direitos reservados.</p>
+        <MadeWithDyad />
+      </footer>
     </div>
   );
 };
