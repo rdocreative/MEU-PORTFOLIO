@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef } from 'react';
-import { useConfig, Client } from '@/context/ConfigContext';
+import { useConfig, Client, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, RotateCcw, ArrowLeft, Upload, Plus, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Save, RotateCcw, ArrowLeft, Upload, Plus, Trash2, Link as LinkIcon, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,12 @@ const Settings = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     updateConfig({ [name]: value });
+  };
+
+  const handleVideoChange = (index: number, field: keyof VideoData, value: string) => {
+    const newVideos = [...config.videos];
+    newVideos[index] = { ...newVideos[index], [field]: value };
+    updateConfig({ videos: newVideos });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +63,7 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-['Press_Start_2P'] pb-24">
-      <div className="max-w-3xl mx-auto space-y-10">
+      <div className="max-w-4xl mx-auto space-y-10">
         <div className="flex items-center justify-between border-b-4 border-white pb-6">
           <button onClick={() => navigate('/')} className="hover:opacity-50 transition-opacity">
             <ArrowLeft className="w-10 h-10" />
@@ -67,93 +73,67 @@ const Settings = () => {
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[30px]">
-          {/* Profile Info */}
+          {/* Profile Section */}
           <div className="space-y-6">
             <h2 className="text-zinc-500 text-[12px] uppercase flex items-center gap-2">
               <div className="w-2 h-2 bg-white animate-pulse"></div> Profile_Info
             </h2>
-            <div className="flex flex-col items-center gap-6 p-6 border-2 border-dashed border-zinc-700 rounded-2xl bg-black/50">
-              <img src={config.profileImage} className="w-28 h-28 rounded-full border-2 border-white object-cover" alt="Preview" />
-              <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black hover:bg-zinc-300 text-[10px] w-full h-12">
-                <Upload className="mr-3 w-5 h-5" /> UPLOAD_IMAGE
-              </Button>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] h-14" placeholder="NAME" />
-              <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 text-[12px] min-h-[100px]" placeholder="DESCRIPTION" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex flex-col items-center gap-6 p-6 border-2 border-dashed border-zinc-700 rounded-2xl bg-black/50">
+                <img src={config.profileImage} className="w-24 h-24 rounded-full border-2 border-white object-cover" alt="Preview" />
+                <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black hover:bg-zinc-300 text-[8px] w-full h-10">
+                  <Upload className="mr-2 w-4 h-4" /> UPLOAD_IMAGE
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+              </div>
+              <div className="space-y-4">
+                <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" placeholder="NAME" />
+                <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] min-h-[80px]" placeholder="DESCRIPTION" />
+              </div>
             </div>
           </div>
 
-          {/* Action Links */}
+          {/* Videos Section */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
             <h2 className="text-zinc-500 text-[12px] uppercase flex items-center gap-2">
-              <LinkIcon className="w-4 h-4" /> Action_Buttons
+              <Video className="w-4 h-4" /> Long_Form_Videos (6 Slots)
             </h2>
-            <div className="space-y-8">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[8px] uppercase">Button 1 Text</Label>
-                  <Input name="longFormText" value={config.longFormText} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {config.videos.map((video, index) => (
+                <div key={video.id} className="p-5 border-2 border-zinc-800 rounded-2xl space-y-3 bg-black/30">
+                  <Label className="text-[8px] text-zinc-500 uppercase">Video #{index + 1}</Label>
+                  <Input 
+                    value={video.title} 
+                    onChange={(e) => handleVideoChange(index, 'title', e.target.value)}
+                    className="bg-black border-zinc-800 text-[10px]" 
+                    placeholder="VIDEO TITLE" 
+                  />
+                  <Input 
+                    value={video.url} 
+                    onChange={(e) => handleVideoChange(index, 'url', e.target.value)}
+                    className="bg-black border-zinc-800 text-[10px]" 
+                    placeholder="YOUTUBE URL" 
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[8px] uppercase">Button 1 URL</Label>
-                  <Input name="longFormUrl" value={config.longFormUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[8px] uppercase">Button 2 Text</Label>
-                  <Input name="shortFormText" value={config.shortFormText} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[8px] uppercase">Button 2 URL</Label>
-                  <Input name="shortFormUrl" value={config.shortFormUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px] h-12" />
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Socials */}
+          {/* Rest of the settings... */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
-            <h2 className="text-zinc-500 text-[12px] uppercase">Social_Matrix</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[8px] uppercase">Twitter URL</Label>
-                <Input name="twitterUrl" value={config.twitterUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[8px] uppercase">Discord URL</Label>
-                <Input name="discordUrl" value={config.discordUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[8px] uppercase">Email</Label>
-                <Input name="email" value={config.email} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" />
-              </div>
-            </div>
-          </div>
-
-          {/* Clients Section */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-8">
-            <h2 className="text-zinc-500 text-[12px] uppercase">Clients_Logos</h2>
+            <h2 className="text-zinc-500 text-[12px] uppercase">Client_Logos</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {config.clients?.map((client) => (
                 <div key={client.id} className="relative group">
                   <div className="w-full aspect-square bg-zinc-900 border-2 border-zinc-800 rounded-xl flex items-center justify-center p-4">
                     <img src={client.image} alt={client.name} className="max-w-full max-h-full object-contain" />
                   </div>
-                  <button 
-                    onClick={() => removeClient(client.id)}
-                    className="absolute -top-2 -right-2 bg-red-600 p-1.5 rounded-full hover:bg-red-700 transition-colors"
-                  >
+                  <button onClick={() => removeClient(client.id)} className="absolute -top-2 -right-2 bg-red-600 p-1.5 rounded-full hover:bg-red-700 transition-colors">
                     <Trash2 className="w-4 h-4 text-white" />
                   </button>
                 </div>
               ))}
-              <button 
-                onClick={() => clientInputRef.current?.click()}
-                className="aspect-square bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-zinc-800 transition-all text-zinc-500 hover:text-white"
-              >
+              <button onClick={() => clientInputRef.current?.click()} className="aspect-square bg-zinc-900 border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-zinc-800 transition-all text-zinc-500 hover:text-white">
                 <Plus className="w-6 h-6" />
                 <span className="text-[8px]">ADD_NEW</span>
               </button>

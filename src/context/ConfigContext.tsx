@@ -8,6 +8,12 @@ export interface Client {
   name: string;
 }
 
+export interface VideoData {
+  id: string;
+  title: string;
+  url: string;
+}
+
 interface ConfigData {
   profileName: string;
   description: string;
@@ -24,7 +30,14 @@ interface ConfigData {
   shortFormText: string;
   shortFormUrl: string;
   clients: Client[];
+  videos: VideoData[];
 }
+
+const defaultVideos: VideoData[] = Array.from({ length: 6 }).map((_, i) => ({
+  id: `${i + 1}`,
+  title: `VIDEO_SIGNAL_0${i + 1}`,
+  url: ""
+}));
 
 const defaultConfig: ConfigData = {
   profileName: "PIXEL OBSERVER",
@@ -38,13 +51,11 @@ const defaultConfig: ConfigData = {
   discordUrl: "https://discord.com",
   email: "void@example.com",
   longFormText: "PORTFOLIO",
-  longFormUrl: "#",
+  longFormUrl: "#videos",
   shortFormText: "COMMISSIONS",
   shortFormUrl: "#",
-  clients: [
-    { id: '1', name: 'Client 1', image: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=1' },
-    { id: '2', name: 'Client 2', image: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=2' },
-  ],
+  clients: [],
+  videos: defaultVideos,
 };
 
 interface ConfigContextType {
@@ -58,7 +69,10 @@ const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [config, setConfig] = useState<ConfigData>(() => {
     const saved = localStorage.getItem('pixel-site-config');
-    return saved ? JSON.parse(saved) : defaultConfig;
+    const parsed = saved ? JSON.parse(saved) : defaultConfig;
+    // Garante que sempre existam 6 slots de vídeo
+    if (parsed.videos?.length !== 6) parsed.videos = defaultVideos;
+    return parsed;
   });
 
   useEffect(() => {
