@@ -27,20 +27,27 @@ const ShortsSection = () => {
           return (
             <div 
               key={`${short.id}-${idx}`}
-              className="flex-shrink-0 w-64 aspect-video bg-zinc-900 rounded-3xl overflow-hidden border-2 border-white/5 relative group cursor-pointer"
+              style={{ borderColor: `${config.primaryColor}22` }}
+              className="flex-shrink-0 w-48 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform hover:scale-105"
               onClick={() => window.open(short.url, '_blank')}
             >
               {videoId ? (
                 <img 
-                  src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
+                  src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
                   alt=""
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
               )}
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="p-3 bg-black/40 backdrop-blur-sm rounded-full border border-white/20 scale-75 group-hover:scale-100 transition-transform">
+                <div className="p-4 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-300">
                   <Play className="w-6 h-6 text-white fill-white" />
                 </div>
               </div>
