@@ -12,6 +12,9 @@ export interface VideoData {
   id: string;
   title: string;
   url: string;
+  views?: string;
+  editTime?: string;
+  deliveryTime?: string;
 }
 
 interface ConfigData {
@@ -25,17 +28,23 @@ interface ConfigData {
   twitterUrl: string;
   discordUrl: string;
   email: string;
-  longFormText: string;
-  longFormUrl: string;
-  shortFormText: string;
-  shortFormUrl: string;
   clients: Client[];
-  videos: VideoData[];
+  featuredVideos: VideoData[];
+  shortsVideos: VideoData[];
 }
 
-const defaultVideos: VideoData[] = Array.from({ length: 6 }).map((_, i) => ({
-  id: `${i + 1}`,
-  title: `VIDEO_SIGNAL_0${i + 1}`,
+const defaultFeatured: VideoData[] = Array.from({ length: 3 }).map((_, i) => ({
+  id: `f${i + 1}`,
+  title: "PROJECT_NAME",
+  url: "",
+  views: "1.2M VIEWS",
+  editTime: "12H EDIT",
+  deliveryTime: "24H DELIVERY"
+}));
+
+const defaultShorts: VideoData[] = Array.from({ length: 6 }).map((_, i) => ({
+  id: `s${i + 1}`,
+  title: "",
   url: ""
 }));
 
@@ -45,17 +54,14 @@ const defaultConfig: ConfigData = {
   profileImage: "https://api.dicebear.com/7.x/pixel-art/svg?seed=void",
   primaryColor: "#ffffff", 
   secondaryColor: "#a1a1aa", 
-  backgroundColor: "#000000", 
-  cardColor: "#0a0a0a", 
+  backgroundColor: "#0a0a0a", 
+  cardColor: "#111111", 
   twitterUrl: "https://twitter.com",
   discordUrl: "https://discord.com",
   email: "void@example.com",
-  longFormText: "LONG-FORM",
-  longFormUrl: "#videos",
-  shortFormText: "COMMISSIONS",
-  shortFormUrl: "#",
   clients: [],
-  videos: defaultVideos,
+  featuredVideos: defaultFeatured,
+  shortsVideos: defaultShorts,
 };
 
 interface ConfigContextType {
@@ -68,14 +74,12 @@ const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [config, setConfig] = useState<ConfigData>(() => {
-    const saved = localStorage.getItem('pixel-site-config');
-    const parsed = saved ? JSON.parse(saved) : defaultConfig;
-    if (parsed.videos?.length !== 6) parsed.videos = defaultVideos;
-    return parsed;
+    const saved = localStorage.getItem('pixel-site-config-v2');
+    return saved ? JSON.parse(saved) : defaultConfig;
   });
 
   useEffect(() => {
-    localStorage.setItem('pixel-site-config', JSON.stringify(config));
+    localStorage.setItem('pixel-site-config-v2', JSON.stringify(config));
     document.body.style.backgroundColor = config.backgroundColor;
   }, [config]);
 

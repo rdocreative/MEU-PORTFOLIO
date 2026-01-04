@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
-import { Play } from 'lucide-react';
+import { Play, Eye } from 'lucide-react';
 
 const VideoSection = () => {
   const { config } = useConfig();
@@ -14,19 +14,19 @@ const VideoSection = () => {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const videos = config.videos.filter(v => v.url);
+  const videos = config.featuredVideos.filter(v => v.url);
 
   if (videos.length === 0) {
     return (
-      <div className="text-center py-20 opacity-20 text-[10px] uppercase">
-        NO_SIGNAL_FOUND_IN_DATABASE
+      <div className="text-center py-10 opacity-20 text-[8px] uppercase">
+        WAITING_FOR_FEATURED_CONTENT
       </div>
     );
   }
 
   return (
-    <section className="w-full max-w-4xl px-4 flex flex-col items-center">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+    <section className="w-full max-w-7xl px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {videos.map((video) => {
           const videoId = getYouTubeId(video.url);
           const isPlaying = playingId === video.id;
@@ -34,14 +34,9 @@ const VideoSection = () => {
           return (
             <div 
               key={video.id}
-              style={{ 
-                backgroundColor: config.cardColor,
-                borderColor: config.primaryColor,
-                boxShadow: `6px 6px 0px 0px ${config.primaryColor}33`
-              }}
-              className="group relative border-4 rounded-2xl overflow-hidden flex flex-col transition-all hover:-translate-y-1"
+              className="group relative flex flex-col gap-4"
             >
-              <div className="aspect-video relative bg-black flex items-center justify-center">
+              <div className="aspect-video relative bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-white/5 transition-transform hover:scale-[1.02] duration-500">
                 {isPlaying && videoId ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
@@ -52,19 +47,31 @@ const VideoSection = () => {
                 ) : (
                   <button 
                     onClick={() => setPlayingId(video.id)}
-                    className="w-full h-full relative group/thumb"
+                    className="w-full h-full relative"
                   >
                     {videoId ? (
                       <img 
-                        src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                        src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
                         alt={video.title}
-                        className="w-full h-full object-cover opacity-60 group-hover/thumb:opacity-80 transition-opacity"
+                        className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[8px] opacity-30">NO_SIGNAL</div>
+                      <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="p-4 bg-white/10 backdrop-blur-sm rounded-full border-2 border-white/50 group-hover/thumb:scale-110 transition-transform">
+                    
+                    {/* Metadados Estilo Imagem */}
+                    <div className="absolute bottom-6 left-6 flex flex-col items-start gap-1">
+                      <div className="flex items-center gap-2 text-cyan-400">
+                        <Eye className="w-4 h-4 fill-cyan-400/20" />
+                        <span className="text-[10px] font-bold">{video.views || "0 VIEWS"}</span>
+                      </div>
+                      <div className="text-[8px] text-white/40 font-bold tracking-tighter">
+                        {video.editTime} • {video.deliveryTime}
+                      </div>
+                    </div>
+
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="p-4 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
                         <Play className="w-8 h-8 text-white fill-white" />
                       </div>
                     </div>
@@ -72,11 +79,9 @@ const VideoSection = () => {
                 )}
               </div>
               
-              <div className="p-5 border-t-2 border-white/5">
-                <h3 className="text-[10px] text-white/90 line-clamp-1 uppercase leading-relaxed">
-                  {video.title}
-                </h3>
-              </div>
+              <h3 className="text-[11px] text-center text-white/90 uppercase tracking-widest font-bold">
+                {video.title}
+              </h3>
             </div>
           );
         })}

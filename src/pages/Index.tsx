@@ -5,6 +5,7 @@ import ProfileCard from "@/components/ProfileCard";
 import Navbar from "@/components/Navbar";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
+import ShortsSection from "@/components/ShortsSection";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
 
@@ -14,31 +15,25 @@ const Index = () => {
   return (
     <div 
       style={{ backgroundColor: config.backgroundColor }}
-      className="min-h-screen flex flex-col items-center p-4 font-['Press_Start_2P'] relative overflow-hidden transition-colors duration-500"
+      className="min-h-screen flex flex-col items-center font-['Press_Start_2P'] relative overflow-hidden transition-colors duration-500"
     >
-      {/* Estrelas de Fundo */}
       <StarsBackground />
-
-      {/* Navbar */}
       <Navbar />
 
-      {/* Main Content */}
-      <main className="z-10 w-full flex flex-col items-center mt-32 mb-20 max-w-4xl">
-        {/* Profile Section */}
-        <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 mb-16">
+      <main className="z-10 w-full flex flex-col items-center mt-32 mb-20 max-w-7xl">
+        {/* Profile */}
+        <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 mb-20">
           <ProfileCard />
         </div>
 
-        {/* Video Section */}
-        <div id="videos" className="w-full flex flex-col items-center pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="w-full flex flex-col items-center gap-4 mb-16">
-            <h2 style={{ color: config.primaryColor }} className="text-[14px] md:text-[18px] uppercase tracking-widest">
-              LONG_FORM_CONTENT
-            </h2>
-            <div style={{ backgroundColor: config.secondaryColor }} className="w-24 h-[3px] opacity-40"></div>
-          </div>
-
+        {/* Featured Content (The 3 big ones) */}
+        <div className="w-full mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <VideoSection />
+        </div>
+
+        {/* Shorts Content (The marquee) */}
+        <div className="w-full animate-in fade-in slide-in-from-bottom-12 duration-1000">
+          <ShortsSection />
         </div>
       </main>
 
