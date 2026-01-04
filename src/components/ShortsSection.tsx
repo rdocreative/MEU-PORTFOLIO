@@ -1,17 +1,28 @@
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { Play } from 'lucide-react';
+import AutoScroll from "embla-carousel-auto-scroll";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 const ShortsSection = () => {
   const { config } = useConfig();
   const shorts = config.shortsVideos.filter(v => v.url);
 
-  if (shorts.length === 0) return null;
+  const plugin = useRef(
+    AutoScroll({ 
+      speed: 1,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+    })
+  );
 
-  // Duplicamos apenas 1 vez para o efeito infinito (mais limpo que 3x)
-  const displayShorts = [...shorts, ...shorts];
+  if (shorts.length === 0) return null;
 
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -20,41 +31,52 @@ const ShortsSection = () => {
   };
 
   return (
-    <div className="w-full overflow-hidden py-10 relative">
-      <div className="flex animate-marquee hover:pause whitespace-nowrap gap-6 px-6">
-        {displayShorts.map((short, idx) => {
-          const videoId = getYouTubeId(short.url);
-          return (
-            <div 
-              key={`${short.id}-${idx}`}
-              style={{ borderColor: `${config.primaryColor}22` }}
-              className="flex-shrink-0 w-48 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform hover:scale-105"
-              onClick={() => window.open(short.url, '_blank')}
-            >
-              {videoId ? (
-                <img 
-                  src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
-                  className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
-                  alt=""
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
-              )}
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="p-4 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-300">
-                  <Play className="w-6 h-6 text-white fill-white" />
+    <div className="w-full py-10">
+      <Carousel
+        plugins={[plugin.current]}
+        opts={{
+          align: "start",
+          loop: true,
+          dragFree: true,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-6">
+          {shorts.map((short, idx) => {
+            const videoId = getYouTubeId(short.url);
+            return (
+              <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
+                <div 
+                  style={{ borderColor: `${config.primaryColor}22` }}
+                  className="w-48 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform hover:scale-105"
+                  onClick={() => window.open(short.url, '_blank')}
+                >
+                  {videoId ? (
+                    <img 
+                      src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                      alt=""
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
+                  )}
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="p-4 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-300">
+                      <Play className="w-6 h-6 text-white fill-white" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+      </Carousel>
     </div>
   );
 };
