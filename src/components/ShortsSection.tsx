@@ -51,8 +51,12 @@ const ShortsSection = () => {
             return (
               <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
                 <div 
-                  style={{ borderColor: `${config.primaryColor}22` }}
-                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform duration-300 hover:scale-110 hover:z-10"
+                  style={{ 
+                    borderColor: `${config.primaryColor}22`,
+                    // Correção técnica (hack) para forçar o navegador a respeitar o border-radius durante animações
+                    WebkitMaskImage: "-webkit-radial-gradient(white, black)"
+                  }}
+                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform duration-300 hover:scale-110 hover:z-10 transform-gpu"
                   onClick={() => window.open(short.url, '_blank')}
                 >
                   {videoId ? (
