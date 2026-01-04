@@ -12,7 +12,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-// Componente robusto para garantir autoplay
+// Componente AutoPlayVideo Reforçado
 const AutoPlayVideo = ({ 
   src, 
   className, 
@@ -27,19 +27,14 @@ const AutoPlayVideo = ({
   useEffect(() => {
     const video = videoRef.current;
     if (video && !controls) {
-      // Garante que está mudo para autoplay funcionar
       video.muted = true;
       video.defaultMuted = true;
-      
-      const playVideo = async () => {
-        try {
-          await video.play();
-        } catch (err) {
-          console.warn("Autoplay falhou, tentando novamente ao interagir:", err);
+      video.play().catch(err => {
+        // Ignora erros de abortError que são comuns quando o componente desmonta rápido
+        if (err.name !== 'AbortError') {
+          console.warn("Autoplay attempt failed:", err);
         }
-      };
-      
-      playVideo();
+      });
     }
   }, [src, controls]);
 
@@ -48,12 +43,19 @@ const AutoPlayVideo = ({
       ref={videoRef}
       src={src} 
       className={className} 
+      // Atributos cruciais para autoplay em navegadores modernos
       muted={!controls}
       loop 
       playsInline 
-      controls={controls}
-      // autoPlay é mantido como fallback
       autoPlay={!controls}
+      controls={controls}
+      preload="auto"
+      // Evento de backup para garantir o play assim que carregar
+      onLoadedData={(e) => {
+        if (!controls) {
+          e.currentTarget.play().catch(() => {});
+        }
+      }}
     />
   );
 };
@@ -94,10 +96,11 @@ const VideoCard = ({
     <div className="group relative flex flex-col gap-4 p-1">
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
         
-        {/* Fundo: Thumbnail ou Vídeo Manual */}
-        <div className="absolute inset-0 z-0 bg-zinc-900 flex items-center justify-center">
+        {/* Fundo: Thumbnail ou Vídeo Manual - Z-INDEX 0 */}
+        <div className="absolute inset-0 z-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <AutoPlayVideo 
+                key={video.customVideoUrl} // Força recriar se URL mudar
                 src={video.customVideoUrl} 
                 className="w-full h-full object-cover" 
               />
@@ -116,10 +119,12 @@ const VideoCard = ({
             )}
         </div>
 
+        {/* Camada de Player ou Botão Transparente - Z-INDEX maior */}
         {isPlaying ? (
           <div className="absolute inset-0 z-30 bg-black animate-in fade-in duration-300">
             {video.customVideoUrl ? (
               <AutoPlayVideo 
+                key={`${video.customVideoUrl}-player`}
                 src={video.customVideoUrl} 
                 className="w-full h-full object-cover" 
                 controls={true}
@@ -142,9 +147,9 @@ const VideoCard = ({
         ) : (
           <button 
             onClick={onPlay}
-            className="w-full h-full relative block overflow-hidden"
+            className="w-full h-full relative z-10 block overflow-hidden"
           >
-            {/* Hover Preview Animado (Apenas para YouTube, pois vídeo custom já toca no fundo) */}
+            {/* Hover Preview Animado (Apenas para YouTube) */}
             <div className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
               {!video.customVideoUrl && videoId && (
                 <iframe
