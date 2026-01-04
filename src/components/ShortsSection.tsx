@@ -2,7 +2,6 @@
 
 import React, { useRef, useEffect } from 'react';
 import { useConfig } from '@/context/ConfigContext';
-import { Play } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
   Carousel,
@@ -18,7 +17,9 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
     if (video) {
       video.muted = true;
       video.defaultMuted = true;
-      video.play().catch(e => console.warn("Autoplay short failed:", e));
+      video.play().catch(e => {
+        // Ignora erros de autoplay silencioso
+      });
     }
   }, [src]);
 
@@ -26,11 +27,12 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
     <video 
       ref={videoRef}
       src={src} 
-      className={className} 
+      className={`${className} pointer-events-none select-none`}
       muted 
       loop 
       playsInline 
       autoPlay
+      controls={false}
     />
   );
 };
@@ -43,7 +45,7 @@ const ShortsSection = () => {
     AutoScroll({ 
       speed: 1,
       stopOnInteraction: false,
-      stopOnMouseEnter: true,
+      stopOnMouseEnter: false, // Continua rodando mesmo com o mouse em cima
     })
   );
 
@@ -56,7 +58,7 @@ const ShortsSection = () => {
   };
 
   return (
-    <div className="w-full py-12 overflow-hidden">
+    <div className="w-full py-12 overflow-hidden pointer-events-none"> {/* pointer-events-none no container pai */}
       <Carousel
         plugins={[plugin.current]}
         opts={{
@@ -76,18 +78,17 @@ const ShortsSection = () => {
                     borderColor: `${config.primaryColor}22`,
                     WebkitMaskImage: "-webkit-radial-gradient(white, black)"
                   }}
-                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative group cursor-pointer shadow-2xl transition-transform duration-300 hover:scale-110 hover:z-10 transform-gpu"
-                  onClick={() => window.open(short.customVideoUrl || short.url, '_blank')}
+                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300 hover:scale-105"
                 >
                   {short.customVideoUrl ? (
                     <AutoPlayVideo 
                       src={short.customVideoUrl} 
-                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                      className="w-full h-full object-cover opacity-80"
                     />
                   ) : videoId ? (
                     <img 
                       src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
-                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                      className="w-full h-full object-cover opacity-80"
                       alt=""
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
@@ -97,13 +98,8 @@ const ShortsSection = () => {
                     <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
                   )}
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="p-4 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 scale-75 group-hover:scale-100 transition-transform duration-300">
-                      <Play className="w-6 h-6 text-white fill-white" />
-                    </div>
-                  </div>
+                  {/* Gradiente sutil para acabamento, sem ícones */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>
               </CarouselItem>
             );

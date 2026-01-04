@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ShortsSection from "@/components/ShortsSection";
+import ClientsSection from "@/components/ClientsSection";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
 
@@ -24,6 +25,11 @@ const Index = () => {
         {/* Profile */}
         <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 mb-20">
           <ProfileCard />
+        </div>
+
+        {/* Clients / Trust Section */}
+        <div className="w-full flex justify-center mb-20 animate-in fade-in slide-in-from-bottom-6 duration-700">
+          <ClientsSection />
         </div>
 
         {/* Featured Content (The 3 big ones) */}
