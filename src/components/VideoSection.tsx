@@ -17,10 +17,9 @@ const VideoSection = () => {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [hoveringId, setHoveringId] = useState<string | null>(null);
 
-  // Plugin de AutoScroll para rolagem contínua suave
   const plugin = useRef(
     AutoScroll({ 
-      speed: 0.8, // Velocidade baixa para suavidade
+      speed: 0.8,
       stopOnInteraction: false,
       stopOnMouseEnter: true,
       startDelay: 0,
@@ -44,16 +43,20 @@ const VideoSection = () => {
   }
 
   return (
-    <section className="w-full max-w-6xl px-4 mx-auto group/carousel relative">
+    <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
       <Carousel
         plugins={[plugin.current]}
         opts={{
           align: "start",
           loop: true,
-          dragFree: true, // Permite arrastar livremente sem "travar" no slide
+          dragFree: true,
         }}
-        className="w-full"
+        className="w-full relative"
       >
+        {/* Gradientes Laterais */}
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black/80 to-transparent z-20 pointer-events-none hidden md:block" />
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black/80 to-transparent z-20 pointer-events-none hidden md:block" />
+
         <CarouselContent className="-ml-4">
           {videos.map((video) => {
             const videoId = getYouTubeId(video.url);
@@ -97,7 +100,6 @@ const VideoSection = () => {
                         onClick={() => setPlayingId(video.id)}
                         className="w-full h-full relative block"
                       >
-                        {/* Preview Automática no Hover */}
                         {isHovering ? (
                           <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
                             {video.customVideoUrl ? (
@@ -138,7 +140,6 @@ const VideoSection = () => {
                           </div>
                         )}
                         
-                        {/* Overlay de Info */}
                         <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-1 pointer-events-none">
                           <div className="flex items-center gap-2 text-white bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
                             <Eye className="w-3 h-3 text-cyan-400" />
@@ -169,10 +170,9 @@ const VideoSection = () => {
           })}
         </CarouselContent>
         
-        {/* Controles de Navegação */}
-        <div className="flex justify-center gap-4 mt-8 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-0 lg:justify-between pointer-events-none">
-          <CarouselPrevious className="relative lg:absolute lg:-left-6 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md" />
-          <CarouselNext className="relative lg:absolute lg:-right-6 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md" />
+        <div className="flex justify-center gap-4 mt-8 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
+          <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md" />
+          <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md" />
         </div>
       </Carousel>
     </section>
