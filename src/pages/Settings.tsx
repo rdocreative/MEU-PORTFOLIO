@@ -1,21 +1,60 @@
 "use client";
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Zap, Trash2, Loader2 } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 const Settings = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
   const [isSaving, setIsSaving] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const ffmpegRef = useRef(new FFmpeg());
+  const messageRef = useRef<HTMLParagraphElement | null>(null);
+
+  // Carrega o FFmpeg ao iniciar a página
+  useEffect(() => {
+    load();
+  }, []);
+
+  const load = async () => {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    const ffmpeg = ffmpegRef.current;
+    
+    // Check if already loaded
+    if (ffmpeg.loaded) return;
+
+    try {
+      ffmpeg.on('log', ({ message }) => {
+        if (messageRef.current) messageRef.current.innerHTML = message;
+        console.log(message);
+      });
+
+      ffmpeg.on('progress', ({ progress }) => {
+        setProcessingProgress(Math.round(progress * 100));
+      });
+
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+      });
+    } catch (error) {
+      console.error("FFmpeg load error:", error);
+      // Não mostramos erro para o usuário aqui, apenas falha silenciosa
+      // Se falhar, o upload funcionará sem otimização ou falhará no processamento
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -29,21 +68,100 @@ const Settings = () => {
     updateLocalConfig({ [listKey]: newList });
   };
 
-  const handleVideoUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { 
-        showError("VÍDEO MUITO GRANDE! LIMITE DE 5MB.");
-        return;
+  const processVideo = async (file: File): Promise<string | null> => {
+    const ffmpeg = ffmpegRef.current;
+    
+    if (!ffmpeg.loaded) {
+      await load(); // Tenta carregar novamente se não estiver pronto
+      if (!ffmpeg.loaded) {
+         showError("ERRO: MOTOR DE VÍDEO NÃO CARREGOU.");
+         return null;
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
+    }
+
+    try {
+      const inputName = 'input.mp4';
+      const outputName = 'output.mp4';
+
+      await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+      // COMANDO FFmpeg OTIMIZADO:
+      // -t 15: Corta em 15 segundos
+      // -vf scale=-2:360: Redimensiona altura para 360p (mantém aspect ratio)
+      // -r 15: Reduz para 15 quadros por segundo (estilo GIF leve)
+      // -an: Remove áudio (remove peso drasticamente)
+      // -c:v libx264: Codec padrão
+      // -crf 32: Compressão agressiva (menor qualidade, menor arquivo)
+      // -preset ultrafast: Processamento rápido
+      await ffmpeg.exec([
+        '-i', inputName,
+        '-t', '15',
+        '-vf', 'scale=-2:360',
+        '-r', '15',
+        '-c:v', 'libx264',
+        '-crf', '32',
+        '-preset', 'ultrafast',
+        '-an',
+        outputName
+      ]);
+
+      const data = await ffmpeg.readFile(outputName);
+      
+      // Limpeza
+      await ffmpeg.deleteFile(inputName);
+      await ffmpeg.deleteFile(outputName);
+
+      // Converte para Base64
+      const blob = new Blob([data], { type: 'video/mp4' });
+      
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+
+    } catch (error) {
+      console.error("Transcode error:", error);
+      showError("FALHA AO PROCESSAR VÍDEO");
+      return null;
+    }
+  };
+
+  const handleVideoUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Limite removido, mas avisamos se for absurdo
+    if (file.size > 200 * 1024 * 1024) {
+      showError("ARQUIVO GIGANTE! NAVEGADOR PODE TRAVAR.");
+    }
+
+    setIsProcessing(true);
+    setProcessingProgress(0);
+    const toastId = showLoading("OTIMIZANDO VÍDEO (15s)...");
+
+    try {
+      const processedVideoDataUrl = await processVideo(file);
+
+      if (processedVideoDataUrl) {
         const newList = [...config.featuredVideos];
-        newList[index] = { ...newList[index], customVideoUrl: event.target?.result as string };
+        newList[index] = { ...newList[index], customVideoUrl: processedVideoDataUrl };
         updateLocalConfig({ featuredVideos: newList });
-        showSuccess("VÍDEO CARREGADO!");
-      };
-      reader.readAsDataURL(file);
+        dismissToast(toastId);
+        showSuccess("VÍDEO COMPRIMIDO & CARREGADO!");
+      } else {
+        dismissToast(toastId);
+      }
+    } catch (err) {
+      dismissToast(toastId);
+      showError("ERRO DESCONHECIDO");
+    } finally {
+      setIsProcessing(false);
+      setProcessingProgress(0);
+      // Limpa o input para permitir re-upload do mesmo arquivo
+      if (videoInputRefs.current[index]) {
+        videoInputRefs.current[index]!.value = '';
+      }
     }
   };
 
@@ -89,6 +207,7 @@ const Settings = () => {
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[40px]">
+          {/* Header Profile Info */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
              <div className="flex flex-col items-center gap-6 p-8 border-2 border-dashed border-zinc-800 rounded-[30px] bg-black/50">
                 <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" alt="Preview" />
@@ -141,10 +260,22 @@ const Settings = () => {
                   
                   <div className="flex gap-2">
                     <Button 
+                      disabled={isProcessing}
                       onClick={() => videoInputRefs.current[index]?.click()} 
-                      className="bg-zinc-800 hover:bg-zinc-700 text-[7px] flex-1 h-10 rounded-xl"
+                      className={`text-[7px] flex-1 h-10 rounded-xl transition-all ${
+                        video.customVideoUrl 
+                          ? "bg-green-900 text-green-100 hover:bg-green-800" 
+                          : "bg-zinc-800 hover:bg-zinc-700"
+                      }`}
                     >
-                      {video.customVideoUrl ? "VIDEO_UPLOADED" : "UPLOAD_PREVIEW"}
+                      {isProcessing ? (
+                        <div className="flex items-center gap-2">
+                          <Wand2 className="w-3 h-3 animate-pulse" />
+                          <span>OTIMIZANDO... {processingProgress}%</span>
+                        </div>
+                      ) : (
+                        video.customVideoUrl ? "PREVIEW_ACTIVE" : "UPLOAD_AUTO_OPTIMIZE"
+                      )}
                     </Button>
                     <input 
                       type="file" 
@@ -154,6 +285,9 @@ const Settings = () => {
                       className="hidden" 
                     />
                   </div>
+                  <p className="text-[7px] text-zinc-600 text-center">
+                    *Automático: Trim 15s, No Audio, 360p
+                  </p>
                 </div>
               ))}
             </div>
@@ -176,7 +310,7 @@ const Settings = () => {
 
         <div className="flex gap-6">
           <Button 
-            disabled={isSaving}
+            disabled={isSaving || isProcessing}
             onClick={handleSave} 
             className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400 disabled:opacity-50"
           >
