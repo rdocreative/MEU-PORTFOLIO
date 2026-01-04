@@ -16,7 +16,6 @@ const Settings = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
   const [isSaving, setIsSaving] = useState(false);
   
-  // Alterado de booleano global para armazenar o índice específico (number | null)
   const [processingIndex, setProcessingIndex] = useState<number | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
   
@@ -24,35 +23,41 @@ const Settings = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const ffmpegRef = useRef(new FFmpeg());
-  const messageRef = useRef<HTMLParagraphElement | null>(null);
+  
+  // Ref para controlar se já tentamos carregar
+  const isLoadedRef = useRef(false);
 
-  // Carrega o FFmpeg ao iniciar a página
   useEffect(() => {
     load();
   }, []);
 
   const load = async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-    const ffmpeg = ffmpegRef.current;
+    if (isLoadedRef.current) return;
     
-    if (ffmpeg.loaded) return;
-
+    const ffmpeg = ffmpegRef.current;
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    
     try {
       ffmpeg.on('log', ({ message }) => {
-        if (messageRef.current) messageRef.current.innerHTML = message;
-        console.log(message);
+        console.log("FFmpeg Log:", message);
       });
 
       ffmpeg.on('progress', ({ progress }) => {
-        setProcessingProgress(Math.round(progress * 100));
+        const p = Math.round(progress * 100);
+        setProcessingProgress(p);
       });
 
+      console.log("Loading FFmpeg...");
       await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
       });
+      
+      console.log("FFmpeg Loaded successfully");
+      isLoadedRef.current = true;
     } catch (error) {
-      console.error("FFmpeg load error:", error);
+      console.error("FFmpeg load failed:", error);
+      // Não mostramos erro intrusivo aqui, pois pode ser que o usuário nem vá usar vídeo
     }
   };
 
@@ -71,10 +76,12 @@ const Settings = () => {
   const processVideo = async (file: File): Promise<string | null> => {
     const ffmpeg = ffmpegRef.current;
     
+    // Tentativa de recarregar se necessário
     if (!ffmpeg.loaded) {
+      console.log("FFmpeg not loaded, trying again...");
       await load();
       if (!ffmpeg.loaded) {
-         showError("ERRO: MOTOR DE VÍDEO NÃO CARREGOU.");
+         showError("ERRO CRÍTICO: O motor de vídeo não carregou. Tente recarregar a página.");
          return null;
       }
     }
@@ -83,31 +90,31 @@ const Settings = () => {
       const inputName = 'input.mp4';
       const outputName = 'output.mp4';
 
+      console.log("Writing file to memory...");
       await ffmpeg.writeFile(inputName, await fetchFile(file));
 
-      // --- COMANDO OTIMIZADO PARA VELOCIDADE EXTREMA ---
-      // scale=-2:240 -> 240p é suficiente para preview (muito mais rápido que 360p)
-      // -r 12 -> 12fps (menos quadros para processar)
-      // -crf 35 -> Mais compressão = arquivo menor e encode mais rápido
+      console.log("Starting transcoding...");
+      // COMANDO OTIMIZADO - 240p, 12fps, Ultrafast
       await ffmpeg.exec([
         '-i', inputName,
-        '-t', '15',           // Limite de 15s
-        '-vf', 'scale=-2:240', // Downscale agressivo para 240p
-        '-r', '12',           // Baixo framerate (estilo GIF)
+        '-t', '15',
+        '-vf', 'scale=-2:240',
+        '-r', '12',
         '-c:v', 'libx264',
-        '-crf', '35',         // Alta compressão
-        '-preset', 'ultrafast', // Preset mais rápido possível
-        '-an',                // Remove áudio
+        '-crf', '35',
+        '-preset', 'ultrafast',
+        '-an',
         outputName
       ]);
 
+      console.log("Reading output file...");
       const data = await ffmpeg.readFile(outputName);
       
+      // Cleanup
       await ffmpeg.deleteFile(inputName);
       await ffmpeg.deleteFile(outputName);
 
       const blob = new Blob([data], { type: 'video/mp4' });
-      
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
@@ -115,8 +122,8 @@ const Settings = () => {
       });
 
     } catch (error) {
-      console.error("Transcode error:", error);
-      showError("FALHA AO PROCESSAR VÍDEO");
+      console.error("Transcode error detailed:", error);
+      showError("FALHA NO PROCESSAMENTO. Tente um arquivo menor.");
       return null;
     }
   };
@@ -125,28 +132,39 @@ const Settings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Define qual índice está sendo processado
     setProcessingIndex(index);
     setProcessingProgress(0);
-    const toastId = showLoading("OTIMIZANDO (AGUARDE)...");
+    const toastId = showLoading("INICIANDO MOTOR DE VÍDEO...");
 
     try {
-      const processedVideoDataUrl = await processVideo(file);
+      // Timeout de segurança: se não terminar em 60s, assume erro
+      const timeoutPromise = new Promise<null>((_, reject) => 
+        setTimeout(() => reject(new Error("TIMEOUT")), 60000)
+      );
+
+      const processedVideoDataUrl = await Promise.race([
+        processVideo(file),
+        timeoutPromise
+      ]);
 
       if (processedVideoDataUrl) {
         const newList = [...config.featuredVideos];
         newList[index] = { ...newList[index], customVideoUrl: processedVideoDataUrl };
         updateLocalConfig({ featuredVideos: newList });
         dismissToast(toastId);
-        showSuccess("PRONTO! VÍDEO OTIMIZADO.");
+        showSuccess("SUCESSO! VÍDEO COMPRIMIDO.");
       } else {
         dismissToast(toastId);
       }
     } catch (err) {
       dismissToast(toastId);
-      showError("ERRO DESCONHECIDO");
+      console.error(err);
+      if ((err as Error).message === "TIMEOUT") {
+        showError("DEMOROU DEMAIS. TENTE UM VÍDEO MENOR.");
+      } else {
+        showError("ERRO NO PROCESSAMENTO.");
+      }
     } finally {
-      // Reseta o estado
       setProcessingIndex(null);
       setProcessingProgress(0);
       if (videoInputRefs.current[index]) {
