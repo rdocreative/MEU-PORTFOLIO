@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2, AlertTriangle } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,14 +29,18 @@ const Settings = () => {
   // Verifica compatibilidade ao carregar
   useEffect(() => {
     if (!window.crossOriginIsolated) {
-      console.warn("SharedArrayBuffer is not available. Video processing might fail or be slow.");
-      // Não bloqueamos totalmente, pois alguns navegadores podem ter polyfills ou comportamentos diferentes
+      console.warn("SharedArrayBuffer is not available. Video optimization will be skipped.");
     }
   }, []);
 
   const load = async () => {
     if (isLoadedRef.current) return true;
     
+    // Se não tiver suporte a SharedArrayBuffer, nem tenta carregar o FFmpeg para evitar erro
+    if (!window.crossOriginIsolated) {
+      return false;
+    }
+
     const ffmpeg = ffmpegRef.current;
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     
@@ -54,11 +58,7 @@ const Settings = () => {
       return true;
     } catch (error) {
       console.error("FFmpeg load failed:", error);
-      const msg = !window.crossOriginIsolated 
-        ? "Erro de segurança do navegador (CORS/SharedArrayBuffer). Tente usar o Chrome/Edge desktop." 
-        : "Falha ao carregar motor de vídeo.";
-      setFfmpegError(msg);
-      showError(msg);
+      // Não mostra erro fatal, apenas loga. O fallback cuidará do resto.
       return false;
     }
   };
@@ -78,7 +78,6 @@ const Settings = () => {
   const processVideo = async (file: File): Promise<string | null> => {
     const ffmpeg = ffmpegRef.current;
     
-    // Tenta carregar sob demanda se não estiver carregado
     if (!ffmpeg.loaded) {
       const loaded = await load();
       if (!loaded) return null;
@@ -88,27 +87,22 @@ const Settings = () => {
       const inputName = 'input.mp4';
       const outputName = 'output.mp4';
 
-      // Escreve o arquivo na memória virtual
       await ffmpeg.writeFile(inputName, await fetchFile(file));
 
-      // Executa o comando de otimização
-      // -vf scale=-2:240 (Mantém aspect ratio, altura 240px, largura par)
       await ffmpeg.exec([
         '-i', inputName,
         '-t', '15',
         '-vf', 'scale=-2:240',
         '-r', '12',
         '-c:v', 'libx264',
-        '-b:v', '400k', // Bitrate fixo baixo para garantir tamanho pequeno
+        '-b:v', '400k', 
         '-preset', 'ultrafast',
         '-an',
         outputName
       ]);
 
-      // Lê o resultado
       const data = await ffmpeg.readFile(outputName);
       
-      // Limpeza
       try {
         await ffmpeg.deleteFile(inputName);
         await ffmpeg.deleteFile(outputName);
@@ -116,11 +110,9 @@ const Settings = () => {
         // Ignora erro de limpeza
       }
 
-      // Cria Blob de forma segura (verificando se data é Uint8Array)
       const buffer = data instanceof Uint8Array ? data : new Uint8Array(data as any);
       const blob = new Blob([buffer], { type: 'video/mp4' });
 
-      // Converte para Base64 para salvar no JSON/LocalStorage
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
@@ -129,7 +121,6 @@ const Settings = () => {
 
     } catch (error) {
       console.error("Transcode error:", error);
-      showError("Erro ao processar. Tente um vídeo mais curto/leve.");
       return null;
     }
   };
@@ -138,43 +129,76 @@ const Settings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Limite de 50MB geral
     if (file.size > 50 * 1024 * 1024) {
-      showError("Arquivo muito grande! Máximo 50MB para otimização no navegador.");
+      showError("Arquivo muito grande! Máximo 50MB.");
       return;
     }
 
     setProcessingIndex(index);
     setProcessingProgress(0);
-    const toastId = showLoading("OTIMIZANDO (AGUARDE)...");
+    const toastId = showLoading("PROCESSANDO VÍDEO...");
 
     try {
-      // Timeout aumentado para 2 minutos
-      const timeoutPromise = new Promise<null>((_, reject) => 
-        setTimeout(() => reject(new Error("TIMEOUT")), 120000)
-      );
+      let resultDataUrl: string | null = null;
+      let usedOptimization = false;
 
-      const processedVideoDataUrl = await Promise.race([
-        processVideo(file),
-        timeoutPromise
-      ]);
+      // Tenta otimizar se o ambiente suportar
+      if (window.crossOriginIsolated) {
+        try {
+          // Timeout de 60s para otimização
+          const timeoutPromise = new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error("TIMEOUT")), 60000)
+          );
 
-      if (processedVideoDataUrl) {
-        const newList = [...config.featuredVideos];
-        newList[index] = { ...newList[index], customVideoUrl: processedVideoDataUrl };
-        updateLocalConfig({ featuredVideos: newList });
-        dismissToast(toastId);
-        showSuccess("SUCESSO! VÍDEO COMPRIMIDO.");
-      } else {
-        dismissToast(toastId);
+          resultDataUrl = await Promise.race([
+            processVideo(file),
+            timeoutPromise
+          ]);
+          
+          if (resultDataUrl) usedOptimization = true;
+        } catch (err) {
+          console.warn("Optimization failed or timed out, skipping...", err);
+        }
       }
+
+      // FALLBACK: Se não otimizou (por erro ou falta de suporte), usa o arquivo original
+      if (!resultDataUrl) {
+        // Limite mais rigoroso para arquivo bruto (15MB) para não quebrar o LocalStorage/DB
+        if (file.size > 15 * 1024 * 1024) {
+          dismissToast(toastId);
+          showError("Otimização indisponível e arquivo > 15MB. Use um arquivo menor.");
+          setProcessingIndex(null);
+          return;
+        }
+
+        dismissToast(toastId);
+        showLoading("Otimização indisponível. Usando original...");
+        
+        resultDataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (resultDataUrl) {
+        const newList = [...config.featuredVideos];
+        newList[index] = { ...newList[index], customVideoUrl: resultDataUrl };
+        updateLocalConfig({ featuredVideos: newList });
+        
+        dismissToast(toastId); // Limpa loadings anteriores
+        if (usedOptimization) {
+          showSuccess("SUCESSO! VÍDEO COMPRIMIDO.");
+        } else {
+          showSuccess("VÍDEO CARREGADO (ORIGINAL)");
+        }
+      }
+      
     } catch (err) {
       dismissToast(toastId);
       console.error(err);
-      if ((err as Error).message === "TIMEOUT") {
-        showError("O processamento demorou demais.");
-      } else {
-        showError("Erro no processamento.");
-      }
+      showError("Erro fatal no upload.");
     } finally {
       setProcessingIndex(null);
       setProcessingProgress(0);
@@ -225,10 +249,10 @@ const Settings = () => {
             </button>
             <h1 className="text-lg">ADMIN_TERMINAL</h1>
           </div>
-          {ffmpegError && (
-            <div className="text-[8px] text-red-400 flex items-center gap-2 border border-red-500 p-2 rounded max-w-md">
+          {!window.crossOriginIsolated && (
+            <div className="text-[8px] text-yellow-400 flex items-center gap-2 border border-yellow-500 p-2 rounded max-w-md bg-yellow-900/20">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              {ffmpegError}
+              Modo de Compatibilidade: Otimização de vídeo desativada.
             </div>
           )}
         </div>
@@ -301,7 +325,16 @@ const Settings = () => {
                           <span>{processingProgress}%</span>
                         </div>
                       ) : (
-                        video.customVideoUrl ? "PREVIEW_ACTIVE" : "UPLOAD_AUTO_OPTIMIZE"
+                        video.customVideoUrl ? (
+                          <div className="flex items-center gap-2">
+                             <span>PREVIEW_ACTIVE</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                             {window.crossOriginIsolated ? <Wand2 className="w-3 h-3" /> : <UploadCloud className="w-3 h-3" />}
+                             <span>{window.crossOriginIsolated ? "UPLOAD_OPTIMIZED" : "UPLOAD_RAW"}</span>
+                          </div>
+                        )
                       )}
                     </Button>
                     <input 
@@ -313,7 +346,7 @@ const Settings = () => {
                     />
                   </div>
                   <p className="text-[7px] text-zinc-600 text-center">
-                    *Auto: 15s, No Audio, 240p
+                    {window.crossOriginIsolated ? "*Auto: 15s, Mute, 240p" : "*Modo direto (Max 15MB)"}
                   </p>
                 </div>
               ))}
