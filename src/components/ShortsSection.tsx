@@ -31,7 +31,9 @@ const ShortsSection = () => {
   };
 
   return (
-    <div className="w-full py-10">
+    // Container externo com overflow-hidden para não criar barra de rolagem na página,
+    // mas com padding vertical para permitir o zoom dos cards.
+    <div className="w-full py-12 overflow-hidden">
       <Carousel
         plugins={[plugin.current]}
         opts={{
@@ -39,7 +41,9 @@ const ShortsSection = () => {
           loop: true,
           dragFree: true,
         }}
-        className="w-full max-w-5xl mx-auto"
+        // w-fit + mx-auto centraliza o bloco de cards se houver poucos itens.
+        // [&>div]:overflow-visible permite que o card "saia" do container ao dar zoom.
+        className="w-fit max-w-[1400px] mx-auto [&>div]:overflow-visible"
       >
         <CarouselContent className="-ml-6 items-center">
           {shorts.map((short, idx) => {
@@ -48,7 +52,7 @@ const ShortsSection = () => {
               <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
                 <div 
                   style={{ borderColor: `${config.primaryColor}22` }}
-                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform hover:scale-105"
+                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[32px] overflow-hidden border-2 relative group cursor-pointer shadow-2xl transition-transform duration-300 hover:scale-110 hover:z-10"
                   onClick={() => window.open(short.url, '_blank')}
                 >
                   {videoId ? (
