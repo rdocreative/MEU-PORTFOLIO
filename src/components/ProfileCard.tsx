@@ -15,8 +15,8 @@ const ProfileCard = () => {
   };
 
   const actions = [
-    { text: config.longFormText, url: config.longFormUrl },
-    { text: config.shortFormText, url: config.shortFormUrl }
+    { text: config.longFormText, url: config.longFormUrl, isInternal: config.longFormUrl.startsWith('#') },
+    { text: config.shortFormText, url: config.shortFormUrl, isInternal: config.shortFormUrl.startsWith('#') }
   ];
 
   return (
@@ -63,8 +63,8 @@ const ProfileCard = () => {
           <a 
             key={i}
             href={action.url}
-            target="_blank"
-            rel="noopener"
+            target={action.isInternal ? undefined : "_blank"}
+            rel={action.isInternal ? undefined : "noopener"}
             style={{ 
               backgroundColor: `${config.cardColor}cc`, 
               borderColor: config.primaryColor,

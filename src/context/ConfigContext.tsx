@@ -50,7 +50,7 @@ const defaultConfig: ConfigData = {
   twitterUrl: "https://twitter.com",
   discordUrl: "https://discord.com",
   email: "void@example.com",
-  longFormText: "PORTFOLIO",
+  longFormText: "LONG-FORM",
   longFormUrl: "#videos",
   shortFormText: "COMMISSIONS",
   shortFormUrl: "#",
@@ -70,7 +70,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [config, setConfig] = useState<ConfigData>(() => {
     const saved = localStorage.getItem('pixel-site-config');
     const parsed = saved ? JSON.parse(saved) : defaultConfig;
-    // Garante que sempre existam 6 slots de vídeo
     if (parsed.videos?.length !== 6) parsed.videos = defaultVideos;
     return parsed;
   });

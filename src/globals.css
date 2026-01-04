@@ -14,6 +14,10 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer utilities {
   .scanline {
     width: 100%;
