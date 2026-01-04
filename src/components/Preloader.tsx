@@ -9,15 +9,23 @@ const Preloader = () => {
   const { config } = useConfig();
 
   useEffect(() => {
-    // Simula o carregamento e cache dos recursos
+    // Verifica se já carregou nesta sessão
+    const hasLoaded = sessionStorage.getItem('pixel_profile_loaded');
+    
+    if (hasLoaded) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Se não carregou, roda a animação
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(() => setIsVisible(false), 500); // Delay para sair suavemente
+          sessionStorage.setItem('pixel_profile_loaded', 'true'); // Marca como carregado
+          setTimeout(() => setIsVisible(false), 500);
           return 100;
         }
-        // Incremento randômico para parecer carregamento real de rede
         return prev + Math.floor(Math.random() * 10) + 1;
       });
     }, 150);
