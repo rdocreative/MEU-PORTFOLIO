@@ -14,9 +14,13 @@ const ProfileCard = () => {
     boxShadow: `10px 10px 0px 0px ${config.primaryColor}4d`
   };
 
+  // Verificação de segurança para evitar erro 'startsWith' em valores undefined
+  const longUrl = config.longFormUrl || "";
+  const shortUrl = config.shortFormUrl || "";
+
   const actions = [
-    { text: config.longFormText, url: config.longFormUrl, isInternal: config.longFormUrl.startsWith('#') },
-    { text: config.shortFormText, url: config.shortFormUrl, isInternal: config.shortFormUrl.startsWith('#') }
+    { text: config.longFormText, url: longUrl, isInternal: longUrl.startsWith('#') },
+    { text: config.shortFormText, url: shortUrl, isInternal: shortUrl.startsWith('#') }
   ];
 
   return (
