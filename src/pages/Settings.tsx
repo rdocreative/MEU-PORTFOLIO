@@ -15,8 +15,11 @@ import { fetchFile, toBlobURL } from '@ffmpeg/util';
 const Settings = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
   const [isSaving, setIsSaving] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Alterado de booleano global para armazenar o índice específico (number | null)
+  const [processingIndex, setProcessingIndex] = useState<number | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
+  
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -32,7 +35,6 @@ const Settings = () => {
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     const ffmpeg = ffmpegRef.current;
     
-    // Check if already loaded
     if (ffmpeg.loaded) return;
 
     try {
@@ -51,8 +53,6 @@ const Settings = () => {
       });
     } catch (error) {
       console.error("FFmpeg load error:", error);
-      // Não mostramos erro para o usuário aqui, apenas falha silenciosa
-      // Se falhar, o upload funcionará sem otimização ou falhará no processamento
     }
   };
 
@@ -72,7 +72,7 @@ const Settings = () => {
     const ffmpeg = ffmpegRef.current;
     
     if (!ffmpeg.loaded) {
-      await load(); // Tenta carregar novamente se não estiver pronto
+      await load();
       if (!ffmpeg.loaded) {
          showError("ERRO: MOTOR DE VÍDEO NÃO CARREGOU.");
          return null;
@@ -85,33 +85,27 @@ const Settings = () => {
 
       await ffmpeg.writeFile(inputName, await fetchFile(file));
 
-      // COMANDO FFmpeg OTIMIZADO:
-      // -t 15: Corta em 15 segundos
-      // -vf scale=-2:360: Redimensiona altura para 360p (mantém aspect ratio)
-      // -r 15: Reduz para 15 quadros por segundo (estilo GIF leve)
-      // -an: Remove áudio (remove peso drasticamente)
-      // -c:v libx264: Codec padrão
-      // -crf 32: Compressão agressiva (menor qualidade, menor arquivo)
-      // -preset ultrafast: Processamento rápido
+      // --- COMANDO OTIMIZADO PARA VELOCIDADE EXTREMA ---
+      // scale=-2:240 -> 240p é suficiente para preview (muito mais rápido que 360p)
+      // -r 12 -> 12fps (menos quadros para processar)
+      // -crf 35 -> Mais compressão = arquivo menor e encode mais rápido
       await ffmpeg.exec([
         '-i', inputName,
-        '-t', '15',
-        '-vf', 'scale=-2:360',
-        '-r', '15',
+        '-t', '15',           // Limite de 15s
+        '-vf', 'scale=-2:240', // Downscale agressivo para 240p
+        '-r', '12',           // Baixo framerate (estilo GIF)
         '-c:v', 'libx264',
-        '-crf', '32',
-        '-preset', 'ultrafast',
-        '-an',
+        '-crf', '35',         // Alta compressão
+        '-preset', 'ultrafast', // Preset mais rápido possível
+        '-an',                // Remove áudio
         outputName
       ]);
 
       const data = await ffmpeg.readFile(outputName);
       
-      // Limpeza
       await ffmpeg.deleteFile(inputName);
       await ffmpeg.deleteFile(outputName);
 
-      // Converte para Base64
       const blob = new Blob([data], { type: 'video/mp4' });
       
       return new Promise((resolve) => {
@@ -131,14 +125,10 @@ const Settings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limite removido, mas avisamos se for absurdo
-    if (file.size > 200 * 1024 * 1024) {
-      showError("ARQUIVO GIGANTE! NAVEGADOR PODE TRAVAR.");
-    }
-
-    setIsProcessing(true);
+    // Define qual índice está sendo processado
+    setProcessingIndex(index);
     setProcessingProgress(0);
-    const toastId = showLoading("OTIMIZANDO VÍDEO (15s)...");
+    const toastId = showLoading("OTIMIZANDO (AGUARDE)...");
 
     try {
       const processedVideoDataUrl = await processVideo(file);
@@ -148,7 +138,7 @@ const Settings = () => {
         newList[index] = { ...newList[index], customVideoUrl: processedVideoDataUrl };
         updateLocalConfig({ featuredVideos: newList });
         dismissToast(toastId);
-        showSuccess("VÍDEO COMPRIMIDO & CARREGADO!");
+        showSuccess("PRONTO! VÍDEO OTIMIZADO.");
       } else {
         dismissToast(toastId);
       }
@@ -156,9 +146,9 @@ const Settings = () => {
       dismissToast(toastId);
       showError("ERRO DESCONHECIDO");
     } finally {
-      setIsProcessing(false);
+      // Reseta o estado
+      setProcessingIndex(null);
       setProcessingProgress(0);
-      // Limpa o input para permitir re-upload do mesmo arquivo
       if (videoInputRefs.current[index]) {
         videoInputRefs.current[index]!.value = '';
       }
@@ -260,7 +250,7 @@ const Settings = () => {
                   
                   <div className="flex gap-2">
                     <Button 
-                      disabled={isProcessing}
+                      disabled={processingIndex !== null} // Desabilita todos se algum estiver processando
                       onClick={() => videoInputRefs.current[index]?.click()} 
                       className={`text-[7px] flex-1 h-10 rounded-xl transition-all ${
                         video.customVideoUrl 
@@ -268,10 +258,10 @@ const Settings = () => {
                           : "bg-zinc-800 hover:bg-zinc-700"
                       }`}
                     >
-                      {isProcessing ? (
+                      {processingIndex === index ? ( // Mostra progresso SÓ no botão clicado
                         <div className="flex items-center gap-2">
                           <Wand2 className="w-3 h-3 animate-pulse" />
-                          <span>OTIMIZANDO... {processingProgress}%</span>
+                          <span>{processingProgress}%</span>
                         </div>
                       ) : (
                         video.customVideoUrl ? "PREVIEW_ACTIVE" : "UPLOAD_AUTO_OPTIMIZE"
@@ -286,7 +276,7 @@ const Settings = () => {
                     />
                   </div>
                   <p className="text-[7px] text-zinc-600 text-center">
-                    *Automático: Trim 15s, No Audio, 360p
+                    *Auto: 15s, No Audio, 240p
                   </p>
                 </div>
               ))}
@@ -310,7 +300,7 @@ const Settings = () => {
 
         <div className="flex gap-6">
           <Button 
-            disabled={isSaving || isProcessing}
+            disabled={isSaving || processingIndex !== null}
             onClick={handleSave} 
             className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400 disabled:opacity-50"
           >
