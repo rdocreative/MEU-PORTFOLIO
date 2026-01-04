@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Twitter, Mail, MessageSquare, ChevronRight } from 'lucide-react';
+import { Twitter, Mail, MessageSquare } from 'lucide-react';
 import { useConfig } from '@/context/ConfigContext';
 
 const ProfileCard = () => {
@@ -13,8 +13,6 @@ const ProfileCard = () => {
     borderColor: config.primaryColor,
     boxShadow: `10px 10px 0px 0px ${config.primaryColor}4d`
   };
-
-  const shortUrl = config.shortFormUrl || "#";
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-lg">
@@ -52,47 +50,6 @@ const ProfileCard = () => {
             <Mail className="w-6 h-6" />
           </a>
         </div>
-      </div>
-
-      {/* Action Sections */}
-      <div className="grid grid-cols-1 gap-5 w-full px-4">
-        {/* Botão de Long Form - Agora rola para a seção #videos */}
-        <a 
-          href="#videos"
-          style={{ 
-            backgroundColor: `${config.cardColor}cc`, 
-            borderColor: config.primaryColor,
-            boxShadow: `8px 8px 0px 0px ${config.primaryColor}33`
-          }}
-          className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none w-full"
-        >
-          <span className="text-white group-hover:text-black text-[12px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-all uppercase">
-            {config.longFormText}
-          </span>
-          <div style={{ backgroundColor: config.secondaryColor }} className="p-1.5 rounded-full group-hover:bg-black">
-            <ChevronRight className="w-5 h-5 text-black group-hover:text-white" />
-          </div>
-        </a>
-
-        {/* Short Form / Outros links externos */}
-        <a 
-          href={shortUrl}
-          target="_blank"
-          rel="noopener"
-          style={{ 
-            backgroundColor: `${config.cardColor}cc`, 
-            borderColor: config.primaryColor,
-            boxShadow: `8px 8px 0px 0px ${config.primaryColor}33`
-          }}
-          className="flex items-center justify-between border-4 py-6 px-10 rounded-full group hover:bg-white transition-all active:translate-y-1 active:shadow-none"
-        >
-          <span className="text-white group-hover:text-black text-[12px] font-['Press_Start_2P'] group-hover:translate-x-1 transition-all uppercase">
-            {config.shortFormText}
-          </span>
-          <div style={{ backgroundColor: config.secondaryColor }} className="p-1.5 rounded-full group-hover:bg-black">
-            <ChevronRight className="w-5 h-5 text-black group-hover:text-white" />
-          </div>
-        </a>
       </div>
     </div>
   );
