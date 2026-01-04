@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { Play, Eye, AlertTriangle } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
@@ -11,6 +11,52 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+
+// Componente robusto para garantir autoplay
+const AutoPlayVideo = ({ 
+  src, 
+  className, 
+  controls = false 
+}: { 
+  src: string, 
+  className?: string, 
+  controls?: boolean 
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && !controls) {
+      // Garante que está mudo para autoplay funcionar
+      video.muted = true;
+      video.defaultMuted = true;
+      
+      const playVideo = async () => {
+        try {
+          await video.play();
+        } catch (err) {
+          console.warn("Autoplay falhou, tentando novamente ao interagir:", err);
+        }
+      };
+      
+      playVideo();
+    }
+  }, [src, controls]);
+
+  return (
+    <video 
+      ref={videoRef}
+      src={src} 
+      className={className} 
+      muted={!controls}
+      loop 
+      playsInline 
+      controls={controls}
+      // autoPlay é mantido como fallback
+      autoPlay={!controls}
+    />
+  );
+};
 
 const getYouTubeId = (url: string) => {
   if (!url) return null;
@@ -51,13 +97,9 @@ const VideoCard = ({
         {/* Fundo: Thumbnail ou Vídeo Manual */}
         <div className="absolute inset-0 z-0 bg-zinc-900 flex items-center justify-center">
             {video.customVideoUrl ? (
-              <video 
+              <AutoPlayVideo 
                 src={video.customVideoUrl} 
                 className="w-full h-full object-cover" 
-                muted 
-                loop 
-                autoPlay 
-                playsInline 
               />
             ) : !imgError && videoId ? (
               <img 
@@ -77,11 +119,10 @@ const VideoCard = ({
         {isPlaying ? (
           <div className="absolute inset-0 z-30 bg-black animate-in fade-in duration-300">
             {video.customVideoUrl ? (
-              <video 
+              <AutoPlayVideo 
                 src={video.customVideoUrl} 
                 className="w-full h-full object-cover" 
-                controls 
-                autoPlay 
+                controls={true}
               />
             ) : videoId ? (
               <iframe
@@ -103,18 +144,9 @@ const VideoCard = ({
             onClick={onPlay}
             className="w-full h-full relative block overflow-hidden"
           >
-            {/* Hover Preview Animado */}
+            {/* Hover Preview Animado (Apenas para YouTube, pois vídeo custom já toca no fundo) */}
             <div className="absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-              {video.customVideoUrl ? (
-                <video 
-                  src={video.customVideoUrl} 
-                  className="w-full h-full object-cover" 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline
-                />
-              ) : videoId && (
+              {!video.customVideoUrl && videoId && (
                 <iframe
                   src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playlist=${videoId}&loop=1&playsinline=1&enablejsapi=1`}
                   className="w-full h-full scale-[1.35]"

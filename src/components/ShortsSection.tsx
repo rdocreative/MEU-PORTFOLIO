@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { Play } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
@@ -9,6 +9,31 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+
+const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.play().catch(e => console.warn("Autoplay short failed:", e));
+    }
+  }, [src]);
+
+  return (
+    <video 
+      ref={videoRef}
+      src={src} 
+      className={className} 
+      muted 
+      loop 
+      playsInline 
+      autoPlay
+    />
+  );
+};
 
 const ShortsSection = () => {
   const { config } = useConfig();
@@ -55,13 +80,9 @@ const ShortsSection = () => {
                   onClick={() => window.open(short.customVideoUrl || short.url, '_blank')}
                 >
                   {short.customVideoUrl ? (
-                    <video 
+                    <AutoPlayVideo 
                       src={short.customVideoUrl} 
-                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" 
-                      muted 
-                      loop 
-                      autoPlay 
-                      playsInline 
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
                     />
                   ) : videoId ? (
                     <img 
