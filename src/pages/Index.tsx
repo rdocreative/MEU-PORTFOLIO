@@ -24,20 +24,20 @@ const Index = () => {
       <Navbar />
 
       {/* Main Content */}
-      <main className="z-10 w-full flex flex-col items-center mt-32 mb-20 max-w-4xl space-y-24">
+      <main className="z-10 w-full flex flex-col items-center mt-32 mb-20 max-w-4xl">
         {/* Profile Section */}
-        <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-500 mb-16">
           <ProfileCard />
           <ClientsSection />
         </div>
 
-        {/* Video Section */}
-        <div id="videos" className="w-full flex flex-col items-center pt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="w-full flex flex-col items-center gap-4 mb-12">
-            <h2 style={{ color: config.primaryColor }} className="text-xl uppercase tracking-tighter">
-              Long_Form_Content
+        {/* Video Section - Agora mais próximo do perfil */}
+        <div id="videos" className="w-full flex flex-col items-center pt-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="w-full flex flex-col items-center gap-4 mb-16">
+            <h2 style={{ color: config.primaryColor }} className="text-[14px] md:text-[18px] uppercase tracking-widest">
+              LONG_FORM_CONTENT
             </h2>
-            <div style={{ backgroundColor: config.secondaryColor }} className="w-20 h-1 opacity-30"></div>
+            <div style={{ backgroundColor: config.secondaryColor }} className="w-24 h-[3px] opacity-40"></div>
           </div>
 
           <VideoSection />
