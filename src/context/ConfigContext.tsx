@@ -86,13 +86,15 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     const fetchConfig = async () => {
       try {
+        // Buscamos o registro mais recente para garantir persistência global
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
+          .order('updated_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error) throw error;
 
         if (data) {
           const loadedConfig = {
@@ -143,13 +145,14 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         primary_color: config.primaryColor,
         secondary_color: config.secondaryColor,
         background_color: config.backgroundColor,
-        card_color: config.cardColor,
+        card_color: config.card_color || config.cardColor || '#111111',
         twitter_url: config.twitterUrl,
         discord_url: config.discordUrl,
         email: config.email,
         clients: config.clients,
         featured_videos: config.featuredVideos,
         shorts_videos: config.shortsVideos,
+        updated_at: new Date().toISOString()
       };
 
       if (config.id) {

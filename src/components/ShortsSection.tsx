@@ -10,8 +10,8 @@ const ShortsSection = () => {
 
   if (shorts.length === 0) return null;
 
-  // Duplicamos a lista para criar o efeito infinito
-  const displayShorts = [...shorts, ...shorts, ...shorts];
+  // Duplicamos apenas 1 vez para o efeito infinito (mais limpo que 3x)
+  const displayShorts = [...shorts, ...shorts];
 
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
