@@ -12,7 +12,7 @@ import {
 
 const ShortsSection = () => {
   const { config } = useConfig();
-  const shorts = config.shortsVideos.filter(v => v.url);
+  const shorts = config.shortsVideos.filter(v => v.url || v.customVideoUrl);
 
   const plugin = useRef(
     AutoScroll({ 
@@ -31,8 +31,6 @@ const ShortsSection = () => {
   };
 
   return (
-    // Container externo com overflow-hidden para não criar barra de rolagem na página,
-    // mas com padding vertical para permitir o zoom dos cards.
     <div className="w-full py-12 overflow-hidden">
       <Carousel
         plugins={[plugin.current]}
@@ -41,8 +39,6 @@ const ShortsSection = () => {
           loop: true,
           dragFree: true,
         }}
-        // w-fit + mx-auto centraliza o bloco de cards se houver poucos itens.
-        // [&>div]:overflow-visible permite que o card "saia" do container ao dar zoom.
         className="w-fit max-w-[1400px] mx-auto [&>div]:overflow-visible"
       >
         <CarouselContent className="-ml-6 items-center">
@@ -53,14 +49,21 @@ const ShortsSection = () => {
                 <div 
                   style={{ 
                     borderColor: `${config.primaryColor}22`,
-                    // Correção técnica (hack) para forçar o navegador a respeitar o border-radius durante animações
                     WebkitMaskImage: "-webkit-radial-gradient(white, black)"
                   }}
-                  // Updated to border-4 and rounded-[40px]
                   className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative group cursor-pointer shadow-2xl transition-transform duration-300 hover:scale-110 hover:z-10 transform-gpu"
-                  onClick={() => window.open(short.url, '_blank')}
+                  onClick={() => window.open(short.customVideoUrl || short.url, '_blank')}
                 >
-                  {videoId ? (
+                  {short.customVideoUrl ? (
+                    <video 
+                      src={short.customVideoUrl} 
+                      className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" 
+                      muted 
+                      loop 
+                      autoPlay 
+                      playsInline 
+                    />
+                  ) : videoId ? (
                     <img 
                       src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
                       className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
