@@ -27,12 +27,24 @@ const Index = () => {
         </div>
 
         {/* Featured Content (The 3 big ones) */}
-        <div className="w-full mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="w-full flex flex-col items-center mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <h2 
+            style={{ color: config.primaryColor }} 
+            className="text-[10px] md:text-xs mb-8 tracking-[0.2em] uppercase opacity-70"
+          >
+            LONG-FORM
+          </h2>
           <VideoSection />
         </div>
 
         {/* Shorts Content (The marquee) */}
-        <div className="w-full animate-in fade-in slide-in-from-bottom-12 duration-1000">
+        <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-12 duration-1000">
+          <h2 
+            style={{ color: config.primaryColor }} 
+            className="text-[10px] md:text-xs mb-0 tracking-[0.2em] uppercase opacity-70"
+          >
+            SHORTS
+          </h2>
           <ShortsSection />
         </div>
       </main>
