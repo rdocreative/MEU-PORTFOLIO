@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
 export interface Client {
@@ -75,8 +74,6 @@ interface ConfigContextType {
   updateConfig: (newConfig: Partial<ConfigData>) => Promise<void>;
   resetConfig: () => void;
   isLoading: boolean;
-  isAdmin: boolean;
-  session: Session | null;
 }
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -84,22 +81,6 @@ const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [config, setConfig] = useState<ConfigData>(defaultConfig);
   const [isLoading, setIsLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
-
-  // Auth Listener
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Fetch Config from DB
   useEffect(() => {
@@ -134,7 +115,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       } catch (error) {
         console.error('Error fetching config:', error);
-        // Fallback to local if needed, but for now stick to defaults
       } finally {
         setIsLoading(false);
       }
@@ -144,15 +124,9 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   const updateConfig = async (newConfig: Partial<ConfigData>) => {
-    // Optimistic update
     const updatedState = { ...config, ...newConfig };
     setConfig(updatedState);
     document.body.style.backgroundColor = updatedState.backgroundColor;
-
-    if (!session) {
-      toast.error("You must be logged in to save changes permanently.");
-      return;
-    }
 
     try {
       const dbPayload = {
@@ -167,14 +141,14 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         discord_url: updatedState.discordUrl,
         email: updatedState.email,
         clients: updatedState.clients,
-        featured_videos: updatedState.featuredVideos,
-        shorts_videos: updatedState.shortsVideos,
+        featured_videos: updatedState.featured_videos,
+        shorts_videos: updatedState.shorts_videos,
       };
 
       const { error } = await supabase
         .from('portfolio_config')
         .update(dbPayload)
-        .eq('id', config.id || ''); // We need the ID from the fetch
+        .eq('id', config.id || '');
 
       if (error) throw error;
       
@@ -186,7 +160,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const resetConfig = () => {
     setConfig(defaultConfig);
-    // Would need to save this to DB too if desired
   };
 
   return (
@@ -194,9 +167,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       config, 
       updateConfig, 
       resetConfig, 
-      isLoading,
-      isAdmin: !!session,
-      session
+      isLoading
     }}>
       {children}
     </ConfigContext.Provider>

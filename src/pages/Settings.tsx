@@ -1,29 +1,20 @@
 "use client";
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Zap, Trash2, LogOut } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { showSuccess, showError } from '@/utils/toast';
-import { supabase } from '@/integrations/supabase/client';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
 
 const Settings = () => {
-  const { config, updateConfig, isAdmin, isLoading } = useConfig();
+  const { config, updateConfig, isLoading } = useConfig();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [authView, setAuthView] = useState<'sign_in' | 'sign_up'>('sign_in');
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -76,52 +67,6 @@ const Settings = () => {
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-['Press_Start_2P']">LOADING...</div>;
 
-  // LOGIN SCREEN (Inside Settings)
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-4 font-['Press_Start_2P']">
-        <div className="w-full max-w-md bg-[#111] border-2 border-white p-8 rounded-2xl shadow-[8px_8px_0px_0px_rgba(255,255,255,0.2)]">
-          <h1 className="text-white text-center mb-8 text-xl">RESTRICTED_AREA</h1>
-          <p className="text-zinc-500 text-[10px] text-center mb-6">AUTHORIZED_PERSONNEL_ONLY</p>
-          <div className="font-sans">
-            <Auth
-              supabaseClient={supabase}
-              view={authView}
-              appearance={{
-                theme: ThemeSupa,
-                variables: {
-                  default: {
-                    colors: {
-                      brand: '#ffffff',
-                      brandAccent: '#a1a1aa',
-                      inputBackground: '#000000',
-                      inputText: '#ffffff',
-                      inputBorder: '#333333',
-                    },
-                  },
-                },
-              }}
-              providers={[]}
-              theme="dark"
-              showLinks={false}
-            />
-          </div>
-          <div className="mt-4 flex justify-center gap-4 text-[10px]">
-             <button onClick={() => setAuthView('sign_in')} className={`hover:text-white ${authView === 'sign_in' ? 'text-white underline' : 'text-zinc-500'}`}>LOGIN</button>
-             <span className="text-zinc-700">|</span>
-             <button onClick={() => setAuthView('sign_up')} className={`hover:text-white ${authView === 'sign_up' ? 'text-white underline' : 'text-zinc-500'}`}>REGISTER</button>
-          </div>
-          <div className="mt-6 text-center">
-            <button onClick={() => navigate('/')} className="text-[10px] text-zinc-500 hover:text-white transition-colors">
-              ← ABORT
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ADMIN DASHBOARD
   return (
     <div className="min-h-screen bg-black text-white p-8 font-['Press_Start_2P'] pb-24">
       <div className="max-w-6xl mx-auto space-y-10">
@@ -130,13 +75,9 @@ const Settings = () => {
             <ArrowLeft className="w-10 h-10" />
           </button>
           <h1 className="text-lg">ADMIN_TERMINAL</h1>
-          <button onClick={handleLogout} className="text-red-500 hover:text-red-400 text-[10px] flex items-center gap-2">
-            <LogOut className="w-4 h-4" /> LOGOUT
-          </button>
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[40px]">
-          {/* Profile Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
              <div className="flex flex-col items-center gap-6 p-8 border-2 border-dashed border-zinc-800 rounded-[30px] bg-black/50">
                 <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" alt="Preview" />
@@ -151,7 +92,6 @@ const Settings = () => {
               </div>
           </div>
 
-          {/* Configs de Cores e Links */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t-2 border-zinc-900 pt-6">
              <div className="space-y-2">
                 <Label className="text-[10px]">COR DE FUNDO</Label>
@@ -161,7 +101,7 @@ const Settings = () => {
                 </div>
              </div>
              <div className="space-y-2">
-                <Label className="text-[10px]">COR PRIMÁRIA (TEXTOS/BORDAS)</Label>
+                <Label className="text-[10px]">COR PRIMÁRIA</Label>
                 <div className="flex gap-2">
                   <div className="w-10 h-10 rounded border" style={{background: config.primaryColor}}></div>
                   <Input name="primaryColor" value={config.primaryColor} onChange={handleChange} className="bg-black border-zinc-800" />
@@ -169,12 +109,10 @@ const Settings = () => {
              </div>
           </div>
 
-          {/* Featured Videos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
             <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
               <Video className="w-5 h-5" /> Featured_Content (6 Slots)
             </h2>
-            <p className="text-[8px] text-zinc-500 uppercase">Use links do YouTube ou faça upload de vídeos curtos (max 5MB) para preview.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => (
                 <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
@@ -205,17 +143,11 @@ const Settings = () => {
                       className="hidden" 
                     />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input value={video.views} onChange={(e) => handleVideoChange(index, 'views', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px]" placeholder="VIEWS" />
-                    <Input value={video.editTime} onChange={(e) => handleVideoChange(index, 'editTime', e.target.value, 'featured')} className="bg-black border-zinc-800 text-[8px]" placeholder="EDIT TIME" />
-                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Shorts Videos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
             <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
               <Zap className="w-5 h-5 fill-yellow-400 text-yellow-400" /> Shorts_Marquee
@@ -232,7 +164,7 @@ const Settings = () => {
         </div>
 
         <div className="flex gap-6">
-          <Button onClick={() => { showSuccess("CONFIG_SAVED_TO_CLOUD!"); navigate('/'); }} className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400">
+          <Button onClick={() => { showSuccess("CONFIG_SAVED!"); navigate('/'); }} className="flex-1 bg-white text-black hover:bg-zinc-300 text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400">
             <Save className="mr-3 w-5 h-5" /> SAVE_CHANGES
           </Button>
         </div>
