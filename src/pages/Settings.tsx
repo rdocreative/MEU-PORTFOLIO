@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2 } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,46 +18,48 @@ const Settings = () => {
   
   const [processingIndex, setProcessingIndex] = useState<number | null>(null);
   const [processingProgress, setProcessingProgress] = useState(0);
+  const [ffmpegError, setFfmpegError] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const ffmpegRef = useRef(new FFmpeg());
-  
-  // Ref para controlar se já tentamos carregar
   const isLoadedRef = useRef(false);
 
+  // Verifica compatibilidade ao carregar
   useEffect(() => {
-    load();
+    if (!window.crossOriginIsolated) {
+      console.warn("SharedArrayBuffer is not available. Video processing might fail or be slow.");
+      // Não bloqueamos totalmente, pois alguns navegadores podem ter polyfills ou comportamentos diferentes
+    }
   }, []);
 
   const load = async () => {
-    if (isLoadedRef.current) return;
+    if (isLoadedRef.current) return true;
     
     const ffmpeg = ffmpegRef.current;
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     
     try {
-      ffmpeg.on('log', ({ message }) => {
-        console.log("FFmpeg Log:", message);
-      });
+      ffmpeg.on('log', ({ message }) => console.log("[FFmpeg]", message));
+      ffmpeg.on('progress', ({ progress }) => setProcessingProgress(Math.round(progress * 100)));
 
-      ffmpeg.on('progress', ({ progress }) => {
-        const p = Math.round(progress * 100);
-        setProcessingProgress(p);
-      });
-
-      console.log("Loading FFmpeg...");
       await ffmpeg.load({
         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
         wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
       });
       
-      console.log("FFmpeg Loaded successfully");
       isLoadedRef.current = true;
+      setFfmpegError(null);
+      return true;
     } catch (error) {
       console.error("FFmpeg load failed:", error);
-      // Não mostramos erro intrusivo aqui, pois pode ser que o usuário nem vá usar vídeo
+      const msg = !window.crossOriginIsolated 
+        ? "Erro de segurança do navegador (CORS/SharedArrayBuffer). Tente usar o Chrome/Edge desktop." 
+        : "Falha ao carregar motor de vídeo.";
+      setFfmpegError(msg);
+      showError(msg);
+      return false;
     }
   };
 
@@ -76,45 +78,49 @@ const Settings = () => {
   const processVideo = async (file: File): Promise<string | null> => {
     const ffmpeg = ffmpegRef.current;
     
-    // Tentativa de recarregar se necessário
+    // Tenta carregar sob demanda se não estiver carregado
     if (!ffmpeg.loaded) {
-      console.log("FFmpeg not loaded, trying again...");
-      await load();
-      if (!ffmpeg.loaded) {
-         showError("ERRO CRÍTICO: O motor de vídeo não carregou. Tente recarregar a página.");
-         return null;
-      }
+      const loaded = await load();
+      if (!loaded) return null;
     }
 
     try {
       const inputName = 'input.mp4';
       const outputName = 'output.mp4';
 
-      console.log("Writing file to memory...");
+      // Escreve o arquivo na memória virtual
       await ffmpeg.writeFile(inputName, await fetchFile(file));
 
-      console.log("Starting transcoding...");
-      // COMANDO OTIMIZADO - 240p, 12fps, Ultrafast
+      // Executa o comando de otimização
+      // -vf scale=-2:240 (Mantém aspect ratio, altura 240px, largura par)
       await ffmpeg.exec([
         '-i', inputName,
         '-t', '15',
         '-vf', 'scale=-2:240',
         '-r', '12',
         '-c:v', 'libx264',
-        '-crf', '35',
+        '-b:v', '400k', // Bitrate fixo baixo para garantir tamanho pequeno
         '-preset', 'ultrafast',
         '-an',
         outputName
       ]);
 
-      console.log("Reading output file...");
+      // Lê o resultado
       const data = await ffmpeg.readFile(outputName);
       
-      // Cleanup
-      await ffmpeg.deleteFile(inputName);
-      await ffmpeg.deleteFile(outputName);
+      // Limpeza
+      try {
+        await ffmpeg.deleteFile(inputName);
+        await ffmpeg.deleteFile(outputName);
+      } catch (e) {
+        // Ignora erro de limpeza
+      }
 
-      const blob = new Blob([data], { type: 'video/mp4' });
+      // Cria Blob de forma segura (verificando se data é Uint8Array)
+      const buffer = data instanceof Uint8Array ? data : new Uint8Array(data as any);
+      const blob = new Blob([buffer], { type: 'video/mp4' });
+
+      // Converte para Base64 para salvar no JSON/LocalStorage
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
@@ -122,8 +128,8 @@ const Settings = () => {
       });
 
     } catch (error) {
-      console.error("Transcode error detailed:", error);
-      showError("FALHA NO PROCESSAMENTO. Tente um arquivo menor.");
+      console.error("Transcode error:", error);
+      showError("Erro ao processar. Tente um vídeo mais curto/leve.");
       return null;
     }
   };
@@ -132,14 +138,19 @@ const Settings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 50 * 1024 * 1024) {
+      showError("Arquivo muito grande! Máximo 50MB para otimização no navegador.");
+      return;
+    }
+
     setProcessingIndex(index);
     setProcessingProgress(0);
-    const toastId = showLoading("INICIANDO MOTOR DE VÍDEO...");
+    const toastId = showLoading("OTIMIZANDO (AGUARDE)...");
 
     try {
-      // Timeout de segurança: se não terminar em 60s, assume erro
+      // Timeout aumentado para 2 minutos
       const timeoutPromise = new Promise<null>((_, reject) => 
-        setTimeout(() => reject(new Error("TIMEOUT")), 60000)
+        setTimeout(() => reject(new Error("TIMEOUT")), 120000)
       );
 
       const processedVideoDataUrl = await Promise.race([
@@ -160,9 +171,9 @@ const Settings = () => {
       dismissToast(toastId);
       console.error(err);
       if ((err as Error).message === "TIMEOUT") {
-        showError("DEMOROU DEMAIS. TENTE UM VÍDEO MENOR.");
+        showError("O processamento demorou demais.");
       } else {
-        showError("ERRO NO PROCESSAMENTO.");
+        showError("Erro no processamento.");
       }
     } finally {
       setProcessingIndex(null);
@@ -208,10 +219,18 @@ const Settings = () => {
     <div className="min-h-screen bg-black text-white p-8 font-['Press_Start_2P'] pb-24">
       <div className="max-w-6xl mx-auto space-y-10">
         <div className="flex items-center justify-between border-b-4 border-white pb-6">
-          <button onClick={() => navigate('/')} className="hover:opacity-50 transition-opacity">
-            <ArrowLeft className="w-10 h-10" />
-          </button>
-          <h1 className="text-lg">ADMIN_TERMINAL</h1>
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/')} className="hover:opacity-50 transition-opacity">
+              <ArrowLeft className="w-10 h-10" />
+            </button>
+            <h1 className="text-lg">ADMIN_TERMINAL</h1>
+          </div>
+          {ffmpegError && (
+            <div className="text-[8px] text-red-400 flex items-center gap-2 border border-red-500 p-2 rounded max-w-md">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              {ffmpegError}
+            </div>
+          )}
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[40px]">
@@ -268,7 +287,7 @@ const Settings = () => {
                   
                   <div className="flex gap-2">
                     <Button 
-                      disabled={processingIndex !== null} // Desabilita todos se algum estiver processando
+                      disabled={processingIndex !== null} 
                       onClick={() => videoInputRefs.current[index]?.click()} 
                       className={`text-[7px] flex-1 h-10 rounded-xl transition-all ${
                         video.customVideoUrl 
@@ -276,7 +295,7 @@ const Settings = () => {
                           : "bg-zinc-800 hover:bg-zinc-700"
                       }`}
                     >
-                      {processingIndex === index ? ( // Mostra progresso SÓ no botão clicado
+                      {processingIndex === index ? (
                         <div className="flex items-center gap-2">
                           <Wand2 className="w-3 h-3 animate-pulse" />
                           <span>{processingProgress}%</span>
