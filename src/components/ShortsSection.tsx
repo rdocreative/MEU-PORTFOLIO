@@ -14,18 +14,30 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
 
   useEffect(() => {
     const video = videoRef.current;
-    if (video) {
-      video.muted = true;
-      video.defaultMuted = true;
-      video.play().catch(e => {
-        // Ignora erros de autoplay silencioso
-      });
-    }
+    if (!video) return;
+
+    // Força mudo e play via JS
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    const startPlay = async () => {
+      try {
+        await video.play();
+      } catch (err) {
+        console.warn("Autoplay shorts falhou, tentando novamente:", err);
+        video.muted = true;
+        video.play().catch(e => console.error("Autoplay shorts erro final:", e));
+      }
+    };
+    
+    startPlay();
   }, [src]);
 
   return (
     <video 
       ref={videoRef}
+      key={src} // Importante para resetar se a URL mudar
       src={src} 
       className={`${className} pointer-events-none select-none`}
       muted 
@@ -45,7 +57,7 @@ const ShortsSection = () => {
     AutoScroll({ 
       speed: 1,
       stopOnInteraction: false,
-      stopOnMouseEnter: false, // Continua rodando mesmo com o mouse em cima
+      stopOnMouseEnter: false, 
     })
   );
 
@@ -58,7 +70,7 @@ const ShortsSection = () => {
   };
 
   return (
-    <div className="w-full py-12 overflow-hidden pointer-events-none"> {/* pointer-events-none no container pai */}
+    <div className="w-full py-12 overflow-hidden pointer-events-none">
       <Carousel
         plugins={[plugin.current]}
         opts={{
@@ -98,7 +110,6 @@ const ShortsSection = () => {
                     <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
                   )}
                   
-                  {/* Gradiente sutil para acabamento, sem ícones */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>
               </CarouselItem>

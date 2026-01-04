@@ -25,18 +25,36 @@ const VideoLoop = ({ src }: { src: string }) => {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (video) {
-      video.muted = true;
-      video.defaultMuted = true;
-      video.play().catch(() => {
-        // Ignora erros de autoplay (comum se o usuário não interagiu com a página ainda)
-      });
-    }
+    if (!video) return;
+
+    // Força atributos críticos via JS para garantir compatibilidade
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    
+    const startPlay = async () => {
+      try {
+        await video.play();
+      } catch (err) {
+        // Se falhar (comum em alguns browsers que bloqueiam autoplay sem interação prévia),
+        // reforçamos o mudo e tentamos novamente.
+        console.warn("Autoplay inicial falhou, tentando novamente mudo:", err);
+        video.muted = true;
+        try {
+          await video.play();
+        } catch (e) {
+          console.error("Autoplay falhou definitivamente:", e);
+        }
+      }
+    };
+
+    startPlay();
   }, [src]);
 
   return (
     <video 
       ref={videoRef}
+      key={src} // CRUCIAL: Força o React a recriar o elemento DOM se a URL mudar
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
       muted
@@ -75,8 +93,7 @@ const VideoCard = ({ video }: { video: VideoData }) => {
               // Se tiver vídeo upado, roda o loop
               <VideoLoop src={video.customVideoUrl} />
             ) : !imgError && videoId ? (
-              // Se for YouTube, mostra Thumbnail (poderíamos usar iframe mudo aqui, mas thumb é mais performático para vitrine estática)
-              // Adicionamos um efeito de "glitch" ou scale no hover para indicar que está "vivo"
+              // Se for YouTube, mostra Thumbnail
               <div className="relative w-full h-full">
                  <img 
                   src={imgSrc}
@@ -84,11 +101,10 @@ const VideoCard = ({ video }: { video: VideoData }) => {
                   className="w-full h-full object-cover"
                   onError={handleImgError}
                 />
-                {/* Opcional: Overlay para dar um estilo mais 'tech' */}
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
               </div>
             ) : (
-              // Fallback se não tiver nada
+              // Fallback
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
                 <AlertTriangle className="w-8 h-8" />
                 <span className="text-[8px] uppercase tracking-widest">No Signal</span>
@@ -143,7 +159,6 @@ const VideoSection = () => {
           ))}
         </CarouselContent>
         
-        {/* Mantivemos a navegação caso o usuário queira rodar o carrossel manualmente, mas o player em si sumiu */}
         <div className="flex justify-center gap-4 mt-8 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
           <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer" />
           <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer" />
