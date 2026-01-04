@@ -53,9 +53,19 @@ const VideoSection = () => {
         }}
         className="w-full relative"
       >
-        {/* Gradientes Laterais */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black/80 to-transparent z-20 pointer-events-none hidden md:block" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black/80 to-transparent z-20 pointer-events-none hidden md:block" />
+        {/* Gradientes Laterais Corrigidos (Usando a cor de fundo dinâmica) */}
+        <div 
+          style={{ 
+            background: `linear-gradient(to right, ${config.backgroundColor} 0%, ${config.backgroundColor}66 50%, transparent 100%)` 
+          }}
+          className="absolute left-0 inset-y-0 w-48 z-20 pointer-events-none hidden md:block" 
+        />
+        <div 
+          style={{ 
+            background: `linear-gradient(to left, ${config.backgroundColor} 0%, ${config.backgroundColor}66 50%, transparent 100%)` 
+          }}
+          className="absolute right-0 inset-y-0 w-48 z-20 pointer-events-none hidden md:block" 
+        />
 
         <CarouselContent className="-ml-4">
           {videos.map((video) => {
