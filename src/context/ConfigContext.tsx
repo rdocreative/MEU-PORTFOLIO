@@ -79,14 +79,24 @@ interface ConfigContextType {
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
+const LOCAL_STORAGE_KEY = 'pixel_profile_draft';
+
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfig] = useState<ConfigData>(defaultConfig);
+  // Inicializa com o que estiver no LocalStorage ou o default
+  const [config, setConfig] = useState<ConfigData>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : defaultConfig;
+    }
+    return defaultConfig;
+  });
+  
   const [isLoading, setIsLoading] = useState(true);
 
+  // Busca do Supabase apenas uma vez no carregamento
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        // Buscamos o registro mais recente para garantir persistência global
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
@@ -113,7 +123,9 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             featuredVideos: (data.featured_videos as unknown as VideoData[]) || defaultFeatured,
             shortsVideos: (data.shorts_videos as unknown as VideoData[]) || defaultShorts,
           };
+          
           setConfig(loadedConfig);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadedConfig));
           document.body.style.backgroundColor = loadedConfig.backgroundColor;
         }
       } catch (error) {
@@ -126,14 +138,16 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     fetchConfig();
   }, []);
 
+  // Sincroniza LocalStorage sempre que o config local mudar
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
+    if (config.backgroundColor) {
+      document.body.style.backgroundColor = config.backgroundColor;
+    }
+  }, [config]);
+
   const updateLocalConfig = (newConfig: Partial<ConfigData>) => {
-    setConfig(prev => {
-      const updated = { ...prev, ...newConfig };
-      if (newConfig.backgroundColor) {
-        document.body.style.backgroundColor = newConfig.backgroundColor;
-      }
-      return updated;
-    });
+    setConfig(prev => ({ ...prev, ...newConfig }));
   };
 
   const saveConfigToDb = async () => {
@@ -145,7 +159,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         primary_color: config.primaryColor,
         secondary_color: config.secondaryColor,
         background_color: config.backgroundColor,
-        card_color: config.card_color || config.cardColor || '#111111',
+        card_color: config.cardColor || '#111111',
         twitter_url: config.twitterUrl,
         discord_url: config.discordUrl,
         email: config.email,
@@ -155,32 +169,38 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         updated_at: new Date().toISOString()
       };
 
+      let result;
       if (config.id) {
-        const { error } = await supabase
+        result = await supabase
           .from('portfolio_config')
           .update(dbPayload)
           .eq('id', config.id);
-        if (error) throw error;
       } else {
-        const { data, error } = await supabase
+        result = await supabase
           .from('portfolio_config')
           .insert([dbPayload])
           .select()
           .single();
-        if (error) throw error;
-        if (data) setConfig(prev => ({ ...prev, id: data.id }));
+      }
+
+      if (result.error) throw result.error;
+      
+      if (!config.id && 'data' in result && result.data) {
+        setConfig(prev => ({ ...prev, id: result.data.id }));
       }
       
+      toast.success("CONFIG_SAVED_GLOBALLY");
       return true;
     } catch (error) {
       console.error('Error saving config:', error);
-      toast.error("ERROR_SAVING_TO_DATABASE");
+      toast.error("DATABASE_SYNC_FAILED");
       return false;
     }
   };
 
   const resetConfig = () => {
     setConfig(defaultConfig);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
   };
 
   return (
