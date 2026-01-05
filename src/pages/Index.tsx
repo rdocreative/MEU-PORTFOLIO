@@ -23,33 +23,33 @@ const Index = () => {
     >
       <StarsBackground />
 
-      {/* Container Principal com gap-24 (96px) entre as grandes seções */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-24 pb-32 gap-24">
+      {/* Container Principal */}
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-12 pb-32 gap-20">
+        
+        {/* Frase de Destaque - TOPO */}
+        <div className="w-full max-w-6xl text-center px-4 py-12 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
+          <h1 
+            className="text-xl md:text-4xl lg:text-5xl leading-normal md:leading-relaxed uppercase tracking-widest font-bold flex flex-col gap-4"
+          >
+            <span style={{ color: config.secondaryColor }} className="opacity-90">
+              Receive the value
+            </span>
+            <span 
+              className="relative inline-block scale-110"
+              style={{ 
+                color: config.primaryColor,
+                textShadow: `0 0 30px ${config.primaryColor}80, 0 0 60px ${config.primaryColor}40`
+              }}
+            >
+              your content deserves
+            </span>
+          </h1>
+        </div>
         
         {/* Seção 1: Perfil + Clientes */}
         <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
           <ProfileCard />
           <ClientsSection />
-        </div>
-
-        {/* Frase de Destaque */}
-        <div className="w-full max-w-4xl text-center px-4 animate-in slide-in-from-bottom-12 fade-in duration-1000 delay-600 fill-mode-backwards">
-          <h2 
-            className="text-sm md:text-xl leading-relaxed uppercase tracking-wider"
-            style={{ color: config.secondaryColor }}
-          >
-            "Receive the value <br className="md:hidden" />
-            <span 
-              className="text-white inline-block mt-2 md:mt-0 md:ml-2 relative"
-              style={{ 
-                color: config.primaryColor,
-                textShadow: `0 0 15px ${config.primaryColor}66`
-              }}
-            >
-              your content deserves
-              <div className="absolute -bottom-2 left-0 w-full h-[2px] opacity-50" style={{ backgroundColor: config.primaryColor }} />
-            </span>"
-          </h2>
         </div>
 
         {/* Seção 2: Long Form */}
