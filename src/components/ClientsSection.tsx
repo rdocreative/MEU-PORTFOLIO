@@ -19,10 +19,9 @@ const ClientsSection = () => {
           <div 
             key={client.id}
             style={{ 
-              backgroundColor: `${config.cardColor}cc`,
-              borderColor: config.primaryColor 
+              backgroundColor: `${config.cardColor}cc`
             }}
-            className="w-32 h-32 md:w-40 md:h-40 border-4 rounded-3xl flex items-center justify-center p-6 transition-all hover:scale-110 hover:bg-white/5 bg-black/40"
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center p-6 transition-all hover:scale-110 hover:bg-white/5 bg-black/40"
             title={client.name}
           >
             <img 
