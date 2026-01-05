@@ -69,12 +69,11 @@ const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: stri
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Pequeno delay para não travar o scroll inicial
-          const timer = setTimeout(() => setShouldLoad(true), 500);
-          return () => clearTimeout(timer);
+          // Carrega imediatamente ao entrar na margem de visualização
+          setShouldLoad(true);
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '200px' } // Margem aumentada para carregar antes de aparecer
     );
 
     if (containerRef.current) observer.observe(containerRef.current);
@@ -92,13 +91,13 @@ const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: stri
       
       {shouldLoad && (
         <iframe
-          // vq=tiny força a menor qualidade possível para carregamento instantâneo
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1&vq=tiny`}
+          // Removido start/end para evitar reload no loop.
+          // Mantido vq=tiny para performance.
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&playsinline=1&vq=tiny`}
           className="absolute inset-0 w-full h-full pointer-events-none" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           tabIndex={-1}
           style={{ border: 0 }}
-          loading="lazy"
           title={title}
         />
       )}
