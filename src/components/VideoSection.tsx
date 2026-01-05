@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useState, useMemo, memo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
-import { AlertTriangle, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Reveal } from './Reveal';
 
@@ -15,8 +15,11 @@ const getYouTubeId = (url: string) => {
 
 // --- Componente de Vídeo (Custom) ---
 const VideoLoop = memo(({ src }: { src: string }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   return (
     <video 
+      ref={videoRef}
       src={src} 
       className="w-full h-full object-contain bg-black pointer-events-none select-none"
       muted loop playsInline
@@ -55,9 +58,9 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
   return (
     <div 
       onClick={onClick}
-      className="flex-shrink-0 w-[80vw] md:w-[450px] snap-center group relative flex flex-col gap-4 p-2 cursor-pointer transition-transform duration-300 hover:scale-[1.01]"
+      className="flex-shrink-0 w-[300px] md:w-[450px] group relative flex flex-col gap-4 p-1 cursor-pointer"
     >
-      <div className="aspect-video relative bg-black rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl">
+      <div className="aspect-video relative bg-black rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -89,85 +92,60 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
 
 VideoCard.displayName = 'VideoCard';
 
-// --- Seção Principal (Slider Controlável) ---
+// --- Seção Principal com Marquee CSS ---
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const activeVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
     [config.featuredVideos]
   );
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const { current } = scrollContainerRef;
-      const scrollAmount = current.clientWidth < 768 ? current.clientWidth : 450; // Scroll 1 slide at a time
-      
-      current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   if (activeVideos.length === 0) return null;
+
+  // Duplicamos a lista para criar o efeito infinito visual no CSS
+  const marqueeItems = [...activeVideos, ...activeVideos, ...activeVideos];
 
   return (
     <>
       <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
+        @keyframes marquee-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.33%); }
         }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        .animate-marquee-infinite {
+          display: flex;
+          width: fit-content;
+          animation: marquee-scroll 40s linear infinite;
+        }
+        .animate-marquee-infinite:hover {
+          animation-play-state: paused;
         }
       `}</style>
 
-      <Reveal width="100%" delay={0.2} className="w-full relative py-10 group/section">
-        
-        {/* Container Scrollável */}
+      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-10 relative">
+        {/* Gradientes laterais para suavizar as bordas */}
         <div 
-          ref={scrollContainerRef}
-          className="flex overflow-x-auto gap-4 px-4 md:px-12 pb-8 hide-scrollbar snap-x snap-mandatory scroll-smooth"
-        >
-          {/* Espaçador inicial para centralizar se necessário ou dar respiro */}
-          <div className="w-2 md:w-12 flex-shrink-0" />
-          
-          {activeVideos.map((video, idx) => (
+          className="absolute left-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
+          style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
+        />
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
+          style={{ background: `linear-gradient(to left, ${config.backgroundColor}, transparent)` }}
+        />
+
+        <div className="animate-marquee-infinite gap-8 px-4">
+          {marqueeItems.map((video, idx) => (
             <VideoCard 
               key={`${video.id}-${idx}`} 
               video={video} 
               onClick={() => setSelectedVideo(video)} 
             />
           ))}
-
-          <div className="w-2 md:w-12 flex-shrink-0" />
-        </div>
-
-        {/* Setas de Navegação */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-between px-2 md:px-8 z-30">
-          <button 
-            onClick={() => scroll('left')}
-            className="pointer-events-auto w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all hover:scale-110 active:scale-95 disabled:opacity-0"
-            aria-label="Previous videos"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-
-          <button 
-            onClick={() => scroll('right')}
-            className="pointer-events-auto w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all hover:scale-110 active:scale-95"
-            aria-label="Next videos"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
         </div>
       </Reveal>
 
-      {/* Modal de Vídeo */}
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="max-w-5xl w-[95vw] aspect-video p-0 bg-black border-none overflow-hidden outline-none">
            <div className="relative w-full h-full bg-black group/modal">
