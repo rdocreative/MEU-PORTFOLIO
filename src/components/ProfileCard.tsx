@@ -117,7 +117,7 @@ const ProfileCard = () => {
         {/* Botão CTA Destacado */}
         <a 
           href={`mailto:${config.email}`}
-          className="px-8 py-3 rounded-full font-bold text-black text-sm uppercase tracking-wider transition-all hover:scale-105 active:scale-95 mb-4 flex items-center justify-center z-20"
+          className="px-8 py-3 rounded-full font-bold text-black text-sm uppercase tracking-wider transition-all hover:scale-105 active:scale-95 mb-6 flex items-center justify-center z-20"
           style={{
             backgroundColor: config.primaryColor,
             boxShadow: `0 0 20px ${config.primaryColor}66`,
@@ -126,6 +126,32 @@ const ProfileCard = () => {
         >
           Work With Me
         </a>
+
+        {/* Trusted By Section */}
+        {config.clients && config.clients.length > 0 && (
+          <div 
+            className="flex items-center gap-3 z-20 transition-transform duration-300"
+            style={{ transform: isHovering ? 'translateZ(15px)' : 'translateZ(0)' }}
+          >
+            <div className="flex -space-x-3">
+              {config.clients.slice(0, 4).map((client: any, index: number) => (
+                <div 
+                  key={index} 
+                  className="w-8 h-8 rounded-full border-2 border-black/50 overflow-hidden bg-zinc-800"
+                >
+                  <img 
+                    src={client.image} 
+                    alt={`Client ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs font-medium text-white/70">
+              Trusted by <span style={{ color: config.primaryColor }}>15+</span> creators
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
