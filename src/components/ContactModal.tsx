@@ -33,11 +33,11 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      {/* Removi '[&>button]:hidden' para permitir botões e adicionei o botão de fechar manual */}
-      <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)] duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
+      {/* Re-adicionado '[&>button]:hidden' para esconder o botão padrão do componente Dialog */}
+      <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)] [&>button]:hidden duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
         <button 
           onClick={onClose}
-          className="absolute right-5 top-5 p-2 text-zinc-500 hover:text-white transition-colors rounded-full hover:bg-zinc-900"
+          className="absolute right-6 top-6 p-2 text-zinc-500 hover:text-white transition-colors rounded-full hover:bg-zinc-900 z-50"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
