@@ -24,21 +24,21 @@ const Index = () => {
       <StarsBackground />
 
       {/* Container Principal */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-12 pb-32 gap-20">
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-12 pb-32 gap-16">
         
         {/* Frase de Destaque - TOPO */}
-        <div className="w-full max-w-6xl text-center px-4 py-12 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
+        <div className="w-full max-w-4xl text-center px-4 py-4 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
           <h1 
-            className="text-xl md:text-4xl lg:text-5xl leading-normal md:leading-relaxed uppercase tracking-widest font-bold flex flex-col gap-4"
+            className="text-xs md:text-lg lg:text-xl leading-relaxed uppercase tracking-widest font-bold flex flex-col gap-3"
           >
             <span style={{ color: config.secondaryColor }} className="opacity-90">
               Receive the value
             </span>
             <span 
-              className="relative inline-block scale-110"
+              className="relative inline-block"
               style={{ 
                 color: config.primaryColor,
-                textShadow: `0 0 30px ${config.primaryColor}80, 0 0 60px ${config.primaryColor}40`
+                textShadow: `0 0 20px ${config.primaryColor}60`
               }}
             >
               your content deserves
