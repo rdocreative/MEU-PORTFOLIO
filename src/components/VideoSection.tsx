@@ -27,7 +27,7 @@ const VideoLoop = ({ src }: { src: string }) => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Força atributos críticos via JS para garantir compatibilidade
+    // Força atributos críticos via JS
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
@@ -36,8 +36,6 @@ const VideoLoop = ({ src }: { src: string }) => {
       try {
         await video.play();
       } catch (err) {
-        // Se falhar (comum em alguns browsers que bloqueiam autoplay sem interação prévia),
-        // reforçamos o mudo e tentamos novamente.
         console.warn("Autoplay inicial falhou, tentando novamente mudo:", err);
         video.muted = true;
         try {
@@ -54,7 +52,7 @@ const VideoLoop = ({ src }: { src: string }) => {
   return (
     <video 
       ref={videoRef}
-      key={src} // CRUCIAL: Força o React a recriar o elemento DOM se a URL mudar
+      key={src}
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
       muted
@@ -62,6 +60,7 @@ const VideoLoop = ({ src }: { src: string }) => {
       playsInline 
       autoPlay
       preload="auto"
+      crossOrigin="anonymous" // Ajuda no carregamento de recursos externos
       controls={false}
     />
   );
@@ -84,7 +83,7 @@ const VideoCard = ({ video }: { video: VideoData }) => {
 
   return (
     <div className="group relative flex flex-col gap-4 p-1">
-      {/* Container Visual do Card - Sem funcionalidade de clique */}
+      {/* Container Visual do Card */}
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
         
         {/* Conteúdo Visual */}
@@ -138,7 +137,8 @@ const VideoSection = () => {
     })
   );
 
-  const videos = config.featuredVideos.filter(v => v.url || v.customVideoUrl);
+  // Filtra vídeos que tenham URL (Youtube) OU customVideoUrl (Upload)
+  const videos = config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== ""));
 
   return (
     <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">

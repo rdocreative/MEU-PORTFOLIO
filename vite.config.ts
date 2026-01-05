@@ -7,10 +7,8 @@ export default defineConfig(() => ({
   server: {
     host: "::",
     port: 8080,
-    headers: {
-      "Cross-Origin-Embedder-Policy": "require-corp",
-      "Cross-Origin-Opener-Policy": "same-origin",
-    },
+    // Headers de isolamento removidos para permitir carregamento de mídia externa (Supabase/YouTube)
+    // Isso coloca o FFmpeg em modo de compatibilidade (upload direto)
   },
   plugins: [dyadComponentTagger(), react()],
   resolve: {
