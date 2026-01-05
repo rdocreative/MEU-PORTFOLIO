@@ -18,16 +18,13 @@ const ClientsSection = () => {
         {config.clients.map((client) => (
           <div 
             key={client.id}
-            style={{ 
-              backgroundColor: `${config.cardColor}cc`
-            }}
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center p-6 transition-all hover:scale-110 hover:bg-white/5 bg-black/40"
+            className="relative group w-24 h-24 md:w-32 md:h-32 transition-transform hover:scale-110"
             title={client.name}
           >
             <img 
               src={client.image} 
               alt={client.name} 
-              className="w-full h-full object-contain drop-shadow-lg"
+              className="w-full h-full object-cover rounded-full"
             />
           </div>
         ))}
