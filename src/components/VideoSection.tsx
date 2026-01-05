@@ -97,10 +97,10 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
               <div className="relative w-full h-full bg-black overflow-hidden">
-                 {/* Scale aumentado para 1.35 para ocultar o título e controles do YouTube */}
+                 {/* Zoom removido. Escala 1.01 apenas para evitar gaps de pixels nas bordas arredondadas */}
                  <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1`}
-                    className="w-full h-full object-cover pointer-events-none scale-[1.35] origin-center" 
+                    className="w-full h-full object-cover pointer-events-none scale-[1.01] origin-center" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
