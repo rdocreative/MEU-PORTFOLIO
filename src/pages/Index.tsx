@@ -1,21 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ProfileCard from "@/components/ProfileCard";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ShortsSection from "@/components/ShortsSection";
 import ClientsSection from "@/components/ClientsSection";
-import IntroAnimation from "@/components/IntroAnimation";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
-  const [showIntro, setShowIntro] = useState(true);
 
   if (isLoading) {
-    // Mostra uma tela vazia com a cor de fundo enquanto os dados carregam
     return <div style={{ backgroundColor: config.backgroundColor }} className="min-h-screen" />;
   }
 
@@ -24,19 +21,10 @@ const Index = () => {
       style={{ backgroundColor: config.backgroundColor }}
       className="min-h-screen flex flex-col font-['Press_Start_2P'] relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
-      {/* A intro só é renderizada se `showIntro` for verdadeiro */}
-      {showIntro && (
-        <IntroAnimation onComplete={() => setShowIntro(false)} />
-      )}
-
       <StarsBackground />
 
-      {/* Container Principal - A transição de opacidade cria o efeito de crossfade */}
-      <main 
-        className={`flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20 transition-opacity duration-1000 ease-out ${
-            showIntro ? 'opacity-0' : 'opacity-100'
-        }`}
-      >
+      {/* Container Principal */}
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20">
         
         {/* Frase de Destaque - TOPO */}
         <div className="w-full max-w-5xl text-center px-4">
@@ -97,7 +85,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className={`z-10 pb-8 transition-opacity duration-1000 ${showIntro ? 'opacity-0' : 'opacity-100'}`}>
+      <footer className="z-10 pb-8">
         <MadeWithDyad />
       </footer>
     </div>
