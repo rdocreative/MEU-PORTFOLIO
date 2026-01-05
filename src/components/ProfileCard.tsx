@@ -1,57 +1,24 @@
 "use client";
 
-import React, { useRef, useState, memo } from 'react';
+import React, { useState, memo } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import ContactModal from './ContactModal';
 import { Reveal } from './Reveal';
 
 const ProfileCard = memo(() => {
   const { config } = useConfig();
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
-
-  // Throttling do evento de mouse para performance (opcional, mas mantendo simples para não alterar comportamento)
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-
-    // requestAnimationFrame para suavizar a atualização visual na GPU
-    requestAnimationFrame(() => {
-        if (!cardRef.current) return;
-        const rect = cardRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        const rotateX = ((y - centerY) / centerY) * -5;
-        const rotateY = ((x - centerX) / centerX) * 5;
-
-        setRotation({ x: rotateX, y: rotateY });
-    });
-  };
-
-  const resetRotation = () => {
-    setIsHovering(false);
-    setRotation({ x: 0, y: 0 });
-  };
 
   const cardStyle = { 
     backgroundColor: `${config.cardColor}cc`, 
     borderColor: config.primaryColor,
-    transform: isHovering 
-      ? `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1.01, 1.01, 1.01)` 
-      : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
-    transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out'
   };
 
   const displayedClients = config.clients ? [...config.clients].reverse().slice(0, 4) : [];
 
   return (
     <>
-      <Reveal width="100%" className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000 z-20">
+      <Reveal width="100%" className="flex flex-col items-center gap-8 w-full max-w-xl z-20">
         <style>{`
           @keyframes shimmer {
             0% { transform: translateX(-200%) skewX(-20deg); }
@@ -61,21 +28,10 @@ const ProfileCard = memo(() => {
         `}</style>
 
         <div 
-          ref={cardRef}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={resetRotation}
           style={cardStyle} 
-          className="relative overflow-hidden backdrop-blur-md border-4 p-12 rounded-[40px] w-full flex flex-col items-center group/card will-change-transform"
+          className="relative overflow-hidden backdrop-blur-md border-4 p-12 rounded-[40px] w-full flex flex-col items-center"
         >
-          <div 
-              className="absolute inset-0 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 mix-blend-overlay z-10"
-              style={{
-                  background: `linear-gradient(${115 + rotation.x * 2}deg, transparent 30%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 55%, transparent 70%)`,
-                  transform: `translateX(${rotation.y * 2}px) translateY(${rotation.x * 2}px)`
-              }}
-          />
-
+          {/* Efeito de brilho (Shimmer) passando - Mantido */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[40px] z-10">
               <div 
                 style={{ animation: 'shimmer 6s infinite linear' }}
@@ -85,10 +41,7 @@ const ProfileCard = memo(() => {
 
           <div className="scanline z-0"></div>
           
-          <div 
-            className="relative w-32 h-32 mb-6 transition-transform duration-500 z-20"
-            style={{ transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)' }}
-          >
+          <div className="relative w-32 h-32 mb-6 z-20">
             <div style={{ borderColor: config.secondaryColor }} className="absolute inset-0 border-4 rounded-full animate-pulse"></div>
             {/* Otimização: fetchPriority="high" pois é a imagem principal (LCP) */}
             <img 
@@ -102,22 +55,16 @@ const ProfileCard = memo(() => {
           </div>
           
           <h1 
-            style={{ 
-              color: config.primaryColor,
-              transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
-            }} 
-            className="text-xl font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300 z-20"
+            style={{ color: config.primaryColor }} 
+            className="text-xl font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default z-20"
           >
             {config.profileName}
           </h1>
           
           {config.description && (
             <p 
-              style={{ 
-                color: config.secondaryColor,
-                transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
-              }} 
-              className="text-xs text-center mt-4 mb-8 transition-transform duration-300 z-20 max-w-md"
+              style={{ color: config.secondaryColor }} 
+              className="text-xs text-center mt-4 mb-8 z-20 max-w-md"
             >
               {config.description}
             </p>
@@ -128,8 +75,7 @@ const ProfileCard = memo(() => {
             className="group/btn relative px-6 py-2.5 rounded-full font-bold text-black text-[10px] uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 mb-6 flex items-center justify-center z-20 overflow-hidden"
             style={{
               backgroundColor: config.primaryColor,
-              boxShadow: isHovering ? `0 0 25px ${config.primaryColor}80` : `0 0 15px ${config.primaryColor}66`,
-              transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)'
+              boxShadow: `0 0 15px ${config.primaryColor}66`,
             }}
           >
             <span className="relative z-10">Work With Me</span>
@@ -137,10 +83,7 @@ const ProfileCard = memo(() => {
           </button>
 
           {displayedClients.length > 0 && (
-            <div 
-              className="flex items-center gap-3 z-20 transition-transform duration-300"
-              style={{ transform: isHovering ? 'translateZ(15px)' : 'translateZ(0)' }}
-            >
+            <div className="flex items-center gap-3 z-20">
               <div className="flex -space-x-3">
                 {displayedClients.map((client: any, index: number) => (
                   <div 
