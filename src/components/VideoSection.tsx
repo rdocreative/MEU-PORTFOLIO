@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 
@@ -147,6 +146,7 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [api, setApi] = useState<CarouselApi>();
 
   const plugin = useRef(
     AutoScroll({ 
@@ -166,17 +166,31 @@ const VideoSection = () => {
     if (baseVideos.length === 0) return [];
     
     let result = [...baseVideos];
-    // Garante buffer suficiente para loop infinito suave
     while (result.length < 12) {
       result = [...result, ...baseVideos];
     }
     return result;
   }, [baseVideos]);
 
+  const handlePrev = useCallback(() => {
+    if (!api) return;
+    const autoScroll = api.plugins().autoScroll;
+    if (autoScroll) autoScroll.stop();
+    api.scrollPrev();
+    if (autoScroll) autoScroll.play();
+  }, [api]);
+
+  const handleNext = useCallback(() => {
+    if (!api) return;
+    const autoScroll = api.plugins().autoScroll;
+    if (autoScroll) autoScroll.stop();
+    api.scrollNext();
+    if (autoScroll) autoScroll.play();
+  }, [api]);
+
   if (displayVideos.length === 0) return null;
 
-  // Setas com pointer-events garantido
-  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2 pointer-events-auto";
+  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2 pointer-events-auto active:scale-95";
 
   return (
     <>
@@ -191,11 +205,12 @@ const VideoSection = () => {
         />
 
         <Carousel
+          setApi={setApi}
           plugins={[plugin.current]}
           opts={{
             align: "center",
             loop: true,
-            dragFree: false, // IMPORTANTE: False para que as setas funcionem com snap
+            dragFree: true,
             containScroll: false,
           }}
           className="w-full relative"
@@ -208,8 +223,13 @@ const VideoSection = () => {
             ))}
           </CarouselContent>
           
-          <CarouselPrevious className={`${pixelArrowClass} left-4 md:left-8`} />
-          <CarouselNext className={`${pixelArrowClass} right-4 md:right-8`} />
+          <button onClick={handlePrev} className={`${pixelArrowClass} left-4 md:left-8`}>
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          
+          <button onClick={handleNext} className={`${pixelArrowClass} right-4 md:right-8`}>
+            <ArrowRight className="w-6 h-6" />
+          </button>
         </Carousel>
       </section>
 
