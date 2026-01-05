@@ -8,8 +8,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  useCarousel
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 
@@ -20,48 +19,26 @@ const getYouTubeId = (url: string) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// Componente de vídeo puramente visual (Loop, Mudo, Sem controles)
+// --- Componentes de Vídeo ---
+
 const VideoLoop = ({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    // Força atributos críticos via JS
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    
-    const startPlay = async () => {
-      try {
-        await video.play();
-      } catch (err) {
-        console.warn("Autoplay inicial falhou, tentando novamente mudo:", err);
-        video.muted = true;
-        try {
-          await video.play();
-        } catch (e) {
-          console.error("Autoplay falhou definitivamente:", e);
-        }
-      }
-    };
-
-    startPlay();
+    video.play().catch(console.error);
   }, [src]);
 
   return (
     <video 
       ref={videoRef}
-      key={src}
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
-      muted
-      loop 
-      playsInline 
-      autoPlay
-      preload="auto"
-      crossOrigin="anonymous" 
+      muted loop playsInline autoPlay
       controls={false}
     />
   );
@@ -99,6 +76,8 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 
   return null;
 };
+
+// --- Componente do Card ---
 
 const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
@@ -161,6 +140,36 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
   );
 };
 
+// --- Botões Customizados Pixelados ---
+
+const PixelPrev = () => {
+  const { scrollPrev, canScrollPrev } = useCarousel();
+  return (
+    <button 
+      onClick={scrollPrev}
+      disabled={!canScrollPrev}
+      className="relative pointer-events-auto h-20 w-20 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-lg disabled:opacity-50"
+    >
+      &lt;
+    </button>
+  );
+};
+
+const PixelNext = () => {
+  const { scrollNext, canScrollNext } = useCarousel();
+  return (
+    <button 
+      onClick={scrollNext}
+      disabled={!canScrollNext}
+      className="relative pointer-events-auto h-20 w-20 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-lg disabled:opacity-50"
+    >
+      &gt;
+    </button>
+  );
+};
+
+// --- Seção Principal ---
+
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
@@ -217,12 +226,12 @@ const VideoSection = () => {
           </CarouselContent>
           
           <div className="flex justify-center gap-8 mt-4 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
-            <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-16 w-16 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black transition-all rounded-xl flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-xl pb-1">
-              &lt;
-            </CarouselPrevious>
-            <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-16 w-16 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black transition-all rounded-xl flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-xl pb-1">
-              &gt;
-            </CarouselNext>
+            <div className="lg:absolute lg:left-0">
+              <PixelPrev />
+            </div>
+            <div className="lg:absolute lg:right-0">
+              <PixelNext />
+            </div>
           </div>
         </Carousel>
       </section>
