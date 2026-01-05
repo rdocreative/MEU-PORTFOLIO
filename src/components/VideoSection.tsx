@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
-import { AlertTriangle, X, ArrowLeft, ArrowRight, Play } from 'lucide-react';
+import { AlertTriangle, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
   Carousel,
@@ -20,9 +20,8 @@ const getYouTubeId = (url: string) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// --- Componentes de Vídeo Otimizados ---
+// --- Componentes de Vídeo ---
 
-// Vídeos Customizados (Uploads): Rodam liso, sem travar, loop infinito nativo.
 const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -30,7 +29,6 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     const video = videoRef.current;
     if (!video) return;
     
-    // Otimização: Só consome GPU/CPU se estiver visível na tela
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -62,57 +60,66 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
-// YouTube: Roda APENAS no hover para evitar bloqueio de bot "Sign in to confirm"
-const YouTubeHoverPreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
-  const [isHovering, setIsHovering] = useState(false);
+// Componente YouTube que carrega automaticamente quando visível
+const YouTubeAutoEmbed = memo(({ videoId, title }: { videoId: string, title?: string }) => {
+  const [shouldLoad, setShouldLoad] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Pequeno delay aleatório para evitar que todos façam requisição no mesmo milissegundo
+            setTimeout(() => {
+                setShouldLoad(true);
+            }, Math.random() * 500);
+            
+            // Uma vez carregado, desconecta para não ficar recarregando
+            if (containerRef.current) observer.unobserve(containerRef.current);
+          }
+        });
+      },
+      { rootMargin: "100px" } // Carrega um pouco antes de entrar na tela
+    );
+    
+    if (containerRef.current) observer.observe(containerRef.current);
+    
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div 
       ref={containerRef}
       className="relative w-full h-full bg-black overflow-hidden"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
     >
-      {/* Thumbnail de Alta Qualidade */}
-      <img 
-        src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
-        onError={(e) => {
-          e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        }}
-        alt={title || "Video thumbnail"} 
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovering ? 'opacity-0' : 'opacity-100'}`}
-        loading="lazy"
-      />
-
-      {/* Ícone de Play (Visual cue) */}
-      <div className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${isHovering ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="w-12 h-12 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
-           <Play className="w-5 h-5 text-white fill-white ml-1" />
-        </div>
-      </div>
-      
-      {/* Iframe carrega SOMENTE no hover. Isso engana o bot do YouTube e previne o bloqueio. */}
-      {isHovering && (
+      {shouldLoad ? (
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0&iv_load_policy=3&fs=0`}
-          className="absolute inset-0 w-full h-full pointer-events-none" 
+          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0&iv_load_policy=3&fs=0&playsinline=1`}
+          className="absolute inset-0 w-full h-full pointer-events-none scale-[1.35]" // Scale para remover bordas pretas do player
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           tabIndex={-1}
           style={{ border: 0 }}
           title={title}
         />
+      ) : (
+        <img 
+            src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+            onError={(e) => {
+                e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            }}
+            alt={title || "Loading..."}
+            className="w-full h-full object-cover opacity-50"
+        />
       )}
       
-      {/* Overlay Hover com Texto */}
-      <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 pointer-events-none z-20 ${isHovering ? 'opacity-100' : 'opacity-0'}`}>
-         {/* O vídeo está rodando no fundo */}
-      </div>
+      {/* Overlay invisível para impedir interação direta com o iframe (play/pause) no carrossel */}
+      <div className="absolute inset-0 z-10 bg-transparent" />
     </div>
   );
 });
 
-YouTubeHoverPreview.displayName = 'YouTubeHoverPreview';
+YouTubeAutoEmbed.displayName = 'YouTubeAutoEmbed';
 
 const FullVideo = ({ video }: { video: VideoData }) => {
   const videoId = getYouTubeId(video.url);
@@ -134,7 +141,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
       <div className="relative w-full h-full overflow-hidden bg-black select-none">
         <iframe
           className="w-full h-full pointer-events-auto"
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           title={video.title || "Video"}
@@ -163,7 +170,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
-              <YouTubeHoverPreview videoId={videoId} title={video.title} />
+              <YouTubeAutoEmbed videoId={videoId} title={video.title} />
             ) : (
               <div className="flex flex-col items-center justify-center opacity-20 gap-2 pointer-events-none">
                 <AlertTriangle className="w-8 h-8" />
@@ -174,6 +181,13 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
         
         {/* Borda como Overlay */}
         <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-30" />
+        
+        {/* Overlay Hover com Texto */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
+          <span className="text-[10px] bg-white text-black px-4 py-1.5 rounded-full font-bold uppercase tracking-widest shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
+            Open Video
+          </span>
+        </div>
       </div>
       
       <div className="flex flex-col gap-1 items-center">
