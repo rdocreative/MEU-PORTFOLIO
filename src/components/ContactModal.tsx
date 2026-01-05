@@ -41,8 +41,8 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           <DialogTitle className="text-white text-lg font-['Press_Start_2P'] leading-relaxed uppercase tracking-tight">
             Let's work together
           </DialogTitle>
-          <DialogDescription className="text-zinc-400 text-xs font-sans tracking-wide">
-            Choose how you prefer to contact me:
+          <DialogDescription className="text-zinc-400 text-[10px] font-['Press_Start_2P'] tracking-wide uppercase">
+            contact me:
           </DialogDescription>
         </DialogHeader>
 
@@ -58,7 +58,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
               <div style={{ color: option.color }} className="transition-transform group-hover:scale-110">
                 {option.icon}
               </div>
-              <span className="text-white text-sm font-bold uppercase tracking-widest font-sans">
+              <span className="text-white text-[10px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
                 {option.name}
               </span>
               
