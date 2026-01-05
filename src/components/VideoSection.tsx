@@ -213,7 +213,7 @@ const VideoSection = () => {
         >
           <CarouselContent className="-ml-4 items-center py-10">
             {displayVideos.map((video, idx) => (
-              <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 transition-all">
+              <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%] transition-all">
                 <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
               </CarouselItem>
             ))}
