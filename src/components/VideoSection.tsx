@@ -29,7 +29,6 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     const video = videoRef.current;
     if (!video) return;
     
-    // Otimização: Observer para tocar apenas quando visível
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -51,9 +50,9 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     <video 
       ref={videoRef}
       src={src} 
-      className="w-full h-full object-cover pointer-events-none select-none"
+      className="w-full h-full object-contain bg-black pointer-events-none select-none"
       muted loop playsInline
-      preload="none" // Não carrega o buffer até ser necessário
+      preload="none"
       controls={false}
     />
   );
@@ -68,7 +67,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
     return (
       <video 
         src={video.customVideoUrl} 
-        className="w-full h-full object-cover bg-black"
+        className="w-full h-full object-contain bg-black"
         playsInline 
         autoPlay
         controls={false}
@@ -88,7 +87,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          loading="lazy" // Otimização
+          loading="lazy"
           title={video.title || "Video"}
         />
         <div className="absolute top-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
@@ -118,11 +117,11 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
               <div className="relative w-full h-full bg-black overflow-hidden">
                  <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1`}
-                    className="w-full h-full object-cover pointer-events-none scale-[1.01] origin-center" 
+                    className="w-full h-full pointer-events-none origin-center" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
-                    loading="lazy" // Otimização CRÍTICA: carrega o iframe apenas quando perto da viewport
+                    loading="lazy"
                     title={video.title}
                  />
               </div>
