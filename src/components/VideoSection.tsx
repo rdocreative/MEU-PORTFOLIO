@@ -13,6 +13,10 @@ import {
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Reveal } from './Reveal';
 
+// Cache global para rastrear vídeos que já foram "ativados" para carregar
+// Isso evita que o iframe recarregue se o componente for desmontado/remontado pelo carrossel
+const LOADED_VIDEOS_CACHE = new Set<string>();
+
 const getYouTubeId = (url: string) => {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -60,41 +64,52 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
-const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
-  const [shouldLoad, setShouldLoad] = useState(false);
+const YouTubePreview = memo(({ videoId, title, cacheKey }: { videoId: string, title?: string, cacheKey: string }) => {
+  // Inicializa com o valor do cache para evitar flicker
+  const [shouldLoad, setShouldLoad] = useState(() => LOADED_VIDEOS_CACHE.has(cacheKey));
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Se já estiver no cache, não precisamos do observer
+    if (LOADED_VIDEOS_CACHE.has(cacheKey)) {
+      setShouldLoad(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          const timer = setTimeout(() => setShouldLoad(true), 500);
-          return () => clearTimeout(timer);
+          LOADED_VIDEOS_CACHE.add(cacheKey);
+          setShouldLoad(true);
+          // Uma vez carregado, podemos parar de observar este elemento específico
+          observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.05, rootMargin: '200px' } // Margem maior para carregar antes de aparecer
     );
 
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [cacheKey]);
 
   return (
     <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden rounded-[40px] isolate">
+      {/* Thumbnail de fundo */}
       <img 
         src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
         alt="" 
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 rounded-[40px] ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 rounded-[40px] ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
+        loading="lazy"
       />
       
       {shouldLoad && (
         <iframe
+          // vq=tiny para performance máxima. O vídeo carrega UMA vez e fica em loop.
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1&vq=tiny`}
           className="absolute inset-0 w-full h-full pointer-events-none rounded-[40px]" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           tabIndex={-1}
           style={{ border: 0, borderRadius: '40px' }}
-          loading="lazy"
           title={title}
         />
       )}
@@ -136,7 +151,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   return null;
 };
 
-const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
+const VideoCard = memo(({ video, onClick, cacheKey }: { video: VideoData, onClick: () => void, cacheKey: string }) => {
   const videoId = getYouTubeId(video.url);
 
   return (
@@ -150,7 +165,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
-              <YouTubePreview videoId={videoId} title={video.title} />
+              <YouTubePreview videoId={videoId} title={video.title} cacheKey={cacheKey} />
             ) : (
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
                 <AlertTriangle className="w-8 h-8" />
@@ -204,6 +219,7 @@ const VideoSection = () => {
     if (baseVideos.length === 0) return [];
     
     let result = [...baseVideos];
+    // Garante que temos itens suficientes para o loop infinito sem recarregar
     while (result.length < 12) {
       result = [...result, ...baseVideos];
     }
@@ -212,14 +228,10 @@ const VideoSection = () => {
 
   const handlePrev = useCallback(() => {
     api?.scrollPrev();
-    const autoScroll = api?.plugins().autoScroll;
-    if (autoScroll) (autoScroll as any).reset();
   }, [api]);
 
   const handleNext = useCallback(() => {
     api?.scrollNext();
-    const autoScroll = api?.plugins().autoScroll;
-    if (autoScroll) (autoScroll as any).reset();
   }, [api]);
 
   if (displayVideos.length === 0) return null;
@@ -253,7 +265,11 @@ const VideoSection = () => {
             <CarouselContent className="-ml-4 items-center py-10">
               {displayVideos.map((video, idx) => (
                 <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%]">
-                  <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
+                  <VideoCard 
+                    video={video} 
+                    onClick={() => setSelectedVideo(video)} 
+                    cacheKey={`${video.id}-${idx}`}
+                  />
                 </CarouselItem>
               ))}
             </CarouselContent>
