@@ -69,6 +69,6 @@ html {
 }
 
 body {
-  @apply bg-background text-foreground antialiased selection:bg-white selection:text-black;
+  @apply bg-background text-foreground antialiased selection:bg-white selection:text-black font-pixel;
   overflow-x: hidden;
 }

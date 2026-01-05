@@ -18,7 +18,7 @@ const Index = () => {
   return (
     <div 
       style={{ backgroundColor: config.backgroundColor }}
-      className="min-h-screen flex flex-col font-['Press_Start_2P'] relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
+      className="min-h-screen flex flex-col relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
       <StarsBackground />
 
