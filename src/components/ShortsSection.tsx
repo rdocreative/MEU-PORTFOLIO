@@ -57,14 +57,6 @@ const ShortsSection = () => {
     [config.shortsVideos]
   );
 
-  // REGRA: Duplica os itens para garantir que o carrossel tenha conteúdo suficiente para o loop infinito
-  const displayShorts = useMemo(() => {
-    if (baseShorts.length === 0) return [];
-    // Se tiver menos de 10 itens, triplicamos para garantir fluidez total na animação
-    if (baseShorts.length < 10) return [...baseShorts, ...baseShorts, ...baseShorts];
-    return baseShorts;
-  }, [baseShorts]);
-
   const plugin = useRef(
     AutoScroll({ 
       speed: 1,
@@ -73,7 +65,7 @@ const ShortsSection = () => {
     })
   );
 
-  if (displayShorts.length === 0) return null;
+  if (baseShorts.length === 0) return null;
 
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -81,6 +73,53 @@ const ShortsSection = () => {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
+  const ShortItem = ({ short }: { short: any }) => {
+    const videoId = getYouTubeId(short.url);
+    return (
+      <div 
+        style={{ 
+          borderColor: `${config.primaryColor}22`,
+          WebkitMaskImage: "-webkit-radial-gradient(white, black)"
+        }}
+        className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300 mx-auto"
+      >
+        {short.customVideoUrl ? (
+          <AutoPlayVideo 
+            src={short.customVideoUrl} 
+            className="w-full h-full object-cover opacity-80"
+          />
+        ) : videoId ? (
+          <img 
+            src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
+            className="w-full h-full object-cover opacity-80"
+            alt=""
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
+        )}
+        
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      </div>
+    );
+  };
+
+  // Se houver poucos shorts (menos de 5), não usa carrossel, mostra centralizado
+  if (baseShorts.length < 5) {
+    return (
+      <div className="w-full py-12 flex flex-wrap justify-center gap-6 px-4">
+        {baseShorts.map((short, idx) => (
+          <div key={`${short.id}-${idx}`} className="hover:scale-105 transition-transform">
+             <ShortItem short={short} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Se houver muitos, usa carrossel infinito
   return (
     <div className="w-full py-12 overflow-hidden pointer-events-none">
       <Carousel
@@ -93,40 +132,11 @@ const ShortsSection = () => {
         className="w-fit max-w-[1400px] mx-auto [&>div]:overflow-visible"
       >
         <CarouselContent className="-ml-6 items-center">
-          {displayShorts.map((short, idx) => {
-            const videoId = getYouTubeId(short.url);
-            return (
-              <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
-                <div 
-                  style={{ 
-                    borderColor: `${config.primaryColor}22`,
-                    WebkitMaskImage: "-webkit-radial-gradient(white, black)"
-                  }}
-                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300"
-                >
-                  {short.customVideoUrl ? (
-                    <AutoPlayVideo 
-                      src={short.customVideoUrl} 
-                      className="w-full h-full object-cover opacity-80"
-                    />
-                  ) : videoId ? (
-                    <img 
-                      src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
-                      className="w-full h-full object-cover opacity-80"
-                      alt=""
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
-                  )}
-                  
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                </div>
-              </CarouselItem>
-            );
-          })}
+          {baseShorts.map((short, idx) => (
+            <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
+              <ShortItem short={short} />
+            </CarouselItem>
+          ))}
         </CarouselContent>
       </Carousel>
     </div>

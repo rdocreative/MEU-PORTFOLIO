@@ -22,7 +22,6 @@ const getYouTubeId = (url: string) => {
 
 // --- Componentes de Vídeo ---
 
-// 1. VideoLoop: Para o CARD (Mudo, Loop, Autoplay, Sem som)
 const VideoLoop = ({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -46,7 +45,6 @@ const VideoLoop = ({ src }: { src: string }) => {
   );
 };
 
-// 2. FullVideo: Para o MODAL (Com som, Sem controles visuais, Autoplay)
 const FullVideo = ({ video }: { video: VideoData }) => {
   const videoId = getYouTubeId(video.url);
 
@@ -57,9 +55,8 @@ const FullVideo = ({ video }: { video: VideoData }) => {
         className="w-full h-full object-contain bg-black"
         playsInline 
         autoPlay
-        controls={false} // Sem player UI
+        controls={false}
         onClick={(e) => {
-          // Permite pausar/tocar clicando no vídeo
           const el = e.target as HTMLVideoElement;
           el.paused ? el.play() : el.pause();
         }}
@@ -68,7 +65,6 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   }
 
   if (videoId) {
-    // YouTube sem controles (controls=0)
     return (
       <iframe
         className="w-full h-full"
@@ -152,24 +148,27 @@ const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
 
+  // Configuração do Plugin de Autoscroll
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: true, // Para quando interage (clica/arrasta)
-      stopOnMouseEnter: true,  // Para quando passa o mouse (SOLICITADO)
+      stopOnInteraction: false, // IMPORTANTE: Não parar para sempre ao clicar na seta
+      stopOnMouseEnter: true,   // Continua parando no hover (destaque)
       startDelay: 0,
     })
   );
 
-  // Filtra e Duplica vídeos para garantir loop visual
   const baseVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
     [config.featuredVideos]
   );
 
+  // Mantém duplicação APENAS para garantir loop visual suave se tiver poucos vídeos
+  // Se tiver muito poucos (1 ou 2), duplica mais vezes para preencher a tela
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
-    if (baseVideos.length < 6) return [...baseVideos, ...baseVideos, ...baseVideos];
+    if (baseVideos.length <= 2) return [...baseVideos, ...baseVideos, ...baseVideos, ...baseVideos]; // x4
+    if (baseVideos.length <= 4) return [...baseVideos, ...baseVideos]; // x2
     return baseVideos;
   }, [baseVideos]);
 
@@ -194,10 +193,11 @@ const VideoSection = () => {
             align: "center",
             loop: true,
             dragFree: true,
+            containScroll: false, // Permite rolagem infinita mais fluida
           }}
           className="w-full relative"
         >
-          <CarouselContent className="-ml-4 items-center py-10"> {/* py-10 dá espaço para o scale do hover */}
+          <CarouselContent className="-ml-4 items-center py-10">
             {displayVideos.map((video, idx) => (
               <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 transition-all">
                 <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
@@ -217,8 +217,6 @@ const VideoSection = () => {
         <DialogContent className="max-w-5xl w-[90vw] aspect-video p-0 bg-black border-none overflow-hidden ring-0 outline-none">
            <div className="relative w-full h-full bg-black group/modal">
               {selectedVideo && <FullVideo video={selectedVideo} />}
-              
-              {/* Botão de Fechar flutuante */}
               <DialogClose className="absolute top-4 right-4 z-50 p-2 bg-black/50 rounded-full text-white hover:bg-white hover:text-black transition-all opacity-0 group-hover/modal:opacity-100">
                 <X className="w-6 h-6" />
               </DialogClose>
