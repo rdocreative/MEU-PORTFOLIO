@@ -56,7 +56,7 @@ const ProfileCard = memo(() => {
           
           <h1 
             style={{ color: config.primaryColor }} 
-            className="text-xl font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default z-20"
+            className="text-xl font-['Press_Start_2P'] uppercase text-center cursor-default z-20"
           >
             {config.profileName}
           </h1>
