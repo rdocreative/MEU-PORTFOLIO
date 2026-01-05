@@ -22,7 +22,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none">
+      <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)]">
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-white text-lg font-['Press_Start_2P'] leading-relaxed uppercase tracking-tight">
             Let's work together
@@ -32,16 +32,16 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-4 mt-8">
+        <div className="grid grid-cols-1 gap-5 mt-10">
           {/* Twitter - Redirecionamento Direto */}
           <a
             href="https://x.com/rdocreative"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative flex items-center justify-center gap-3 w-full py-5 px-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#1DA1F2]/50"
+            className="group relative flex items-center justify-center gap-4 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#1DA1F2] hover:bg-[#1DA1F2]/5"
           >
-            <Twitter className="w-5 h-5 text-[#1DA1F2] transition-transform group-hover:scale-110" />
-            <span className="text-white text-[10px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
+            <Twitter className="w-6 h-6 text-[#1DA1F2] transition-transform group-hover:scale-110" />
+            <span className="text-white text-[11px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
               Twitter
             </span>
           </a>
@@ -49,47 +49,55 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           {/* Discord - Mostrar e Copiar */}
           <button
             onClick={() => handleCopy('rdocreative', 'discord')}
-            className="group relative flex flex-col items-center justify-center gap-2 w-full py-5 px-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#5865F2]/50"
+            className="group relative flex flex-col items-center justify-center gap-3 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#5865F2] hover:bg-[#5865F2]/5"
           >
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-[#5865F2]" />
-              <span className="text-white text-[10px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
+            <div className="flex items-center gap-4">
+              <MessageSquare className="w-6 h-6 text-[#5865F2] group-hover:scale-110 transition-transform" />
+              <span className="text-white text-[11px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
                 Discord
               </span>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-zinc-500 text-[8px] font-['Press_Start_2P'] lowercase">
+            <div className="flex items-center gap-3 mt-1 bg-black/40 px-4 py-2 rounded-lg border border-zinc-800 group-hover:border-[#5865F2]/30">
+              <span className="text-white text-[9px] font-['Press_Start_2P'] lowercase tracking-tighter">
                 rdocreative
               </span>
-              {copiedType === 'discord' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-zinc-600" />}
+              {copiedType === 'discord' ? (
+                <Check className="w-4 h-4 text-green-400" />
+              ) : (
+                <Copy className="w-4 h-4 text-zinc-400 group-hover:text-white" />
+              )}
             </div>
           </button>
 
           {/* Email - Mostrar e Copiar */}
           <button
             onClick={() => handleCopy('rdovfx1@gmail.com', 'email')}
-            className="group relative flex flex-col items-center justify-center gap-2 w-full py-5 px-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-white/20"
+            className="group relative flex flex-col items-center justify-center gap-3 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-white/40 hover:bg-white/5"
           >
-            <div className="flex items-center gap-3">
-              <Mail className="w-5 h-5 text-white" />
-              <span className="text-white text-[10px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
+            <div className="flex items-center gap-4">
+              <Mail className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+              <span className="text-white text-[11px] font-bold uppercase tracking-widest font-['Press_Start_2P']">
                 Email
               </span>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-zinc-500 text-[8px] font-['Press_Start_2P'] lowercase">
+            <div className="flex items-center gap-3 mt-1 bg-black/40 px-4 py-2 rounded-lg border border-zinc-800 group-hover:border-white/20">
+              <span className="text-white text-[9px] font-['Press_Start_2P'] lowercase tracking-tighter">
                 rdovfx1@gmail.com
               </span>
-              {copiedType === 'email' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-zinc-600" />}
+              {copiedType === 'email' ? (
+                <Check className="w-4 h-4 text-green-400" />
+              ) : (
+                <Copy className="w-4 h-4 text-zinc-400 group-hover:text-white" />
+              )}
             </div>
           </button>
         </div>
 
         <button 
           onClick={onClose}
-          className="mt-8 text-[10px] text-zinc-500 hover:text-white transition-colors uppercase font-['Press_Start_2P']"
+          className="mt-10 text-[10px] text-zinc-500 hover:text-white transition-colors uppercase font-['Press_Start_2P'] underline-offset-4 hover:underline"
         >
-          [ Close ]
+          [ Back to Profile ]
         </button>
       </DialogContent>
     </Dialog>
