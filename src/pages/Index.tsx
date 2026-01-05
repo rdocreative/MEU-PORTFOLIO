@@ -7,6 +7,7 @@ import VideoSection from "@/components/VideoSection";
 import ClientsSection from "@/components/ClientsSection";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
+import { Reveal } from "@/components/Reveal";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
@@ -32,11 +33,6 @@ const Index = () => {
         @keyframes text-shimmer {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
-        }
-
-        @keyframes glow-pulse {
-          0%, 100% { filter: drop-shadow(0 0 15px rgba(var(--primary-rgb), 0.3)); }
-          50% { filter: drop-shadow(0 0 25px rgba(var(--primary-rgb), 0.6)); }
         }
 
         .animate-float-optimized {
@@ -66,7 +62,6 @@ const Index = () => {
               className="relative inline-block md:scale-110 animate-shimmer-text bg-clip-text text-transparent"
               style={{ 
                 backgroundImage: `linear-gradient(90deg, ${config.primaryColor} 0%, #ffffff 50%, ${config.primaryColor} 100%)`,
-                // Fallback for text-shadow since bg-clip-text hides it usually, we use drop-shadow filter defined in keyframes
                 filter: `drop-shadow(0 0 20px ${config.primaryColor}60)`
               }}
             >
@@ -80,27 +75,36 @@ const Index = () => {
           <ProfileCard />
         </div>
 
-        {/* Seção 2: Videos */}
+        {/* Seção 2: Videos (com Reveal) */}
         <div className="w-full max-w-7xl flex flex-col items-center gap-16">
-          <h2 
-            style={{ 
-              color: config.primaryColor,
-              textShadow: `0 0 20px ${config.primaryColor}80`
-            }} 
-            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default"
-          >
-            VIDEOS
-          </h2>
+          <Reveal>
+            <h2 
+              style={{ 
+                color: config.primaryColor,
+                textShadow: `0 0 20px ${config.primaryColor}80`
+              }} 
+              className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default"
+            >
+              VIDEOS
+            </h2>
+          </Reveal>
           <VideoSection />
         </div>
 
-        {/* Seção 3: Clientes */}
+        {/* Seção 3: Clientes (com Reveal) */}
         <div className="w-full max-w-7xl flex justify-center -mt-8">
           <ClientsSection />
         </div>
       </main>
 
-      <footer className="z-10 pb-8">
+      <footer className="z-10 pb-8 flex flex-col items-center gap-6">
+        {/* Detalhe Premium no Final */}
+        <Reveal variant="fade">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold border-b border-zinc-800 pb-1">
+            Editing focused on retention.
+          </p>
+        </Reveal>
+        
         <MadeWithDyad />
       </footer>
     </div>

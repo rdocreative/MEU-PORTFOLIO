@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import ContactModal from './ContactModal';
+import { Reveal } from './Reveal';
 
 const ProfileCard = () => {
   const { config } = useConfig();
@@ -22,9 +23,9 @@ const ProfileCard = () => {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     
-    // Calcula a rotação baseada na posição do mouse (efeito de "empurrar" o card)
-    const rotateX = ((y - centerY) / centerY) * -10; // Max 10 deg
-    const rotateY = ((x - centerX) / centerX) * 10;  // Max 10 deg
+    // Levemente reduzido para ser mais sutil
+    const rotateX = ((y - centerY) / centerY) * -5;
+    const rotateY = ((x - centerX) / centerX) * 5;
 
     setRotation({ x: rotateX, y: rotateY });
   };
@@ -38,17 +39,16 @@ const ProfileCard = () => {
     backgroundColor: `${config.cardColor}cc`, 
     borderColor: config.primaryColor,
     transform: isHovering 
-      ? `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1.02, 1.02, 1.02)` 
+      ? `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1.01, 1.01, 1.01)` 
       : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
     transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out'
   };
 
-  // Inverte a ordem dos clientes salvos para mostrar "outros" primeiro e limita a 4
   const displayedClients = config.clients ? [...config.clients].reverse().slice(0, 4) : [];
 
   return (
     <>
-      <div className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000">
+      <Reveal width="100%" className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000 z-20">
         <style>{`
           @keyframes shimmer {
             0% { transform: translateX(-200%) skewX(-20deg); }
@@ -120,17 +120,19 @@ const ProfileCard = () => {
             </p>
           )}
 
-          {/* Botão CTA Destacado */}
+          {/* Botão CTA Destacado com Brilho Suave no Hover */}
           <button 
             onClick={() => setIsContactOpen(true)}
-            className="px-8 py-3 rounded-full font-bold text-black text-sm uppercase tracking-wider transition-all hover:scale-105 active:scale-95 mb-6 flex items-center justify-center z-20"
+            className="group/btn relative px-8 py-3 rounded-full font-bold text-black text-sm uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 mb-6 flex items-center justify-center z-20 overflow-hidden"
             style={{
               backgroundColor: config.primaryColor,
-              boxShadow: `0 0 20px ${config.primaryColor}66`,
+              boxShadow: isHovering ? `0 0 30px ${config.primaryColor}80` : `0 0 20px ${config.primaryColor}66`, // Brilho aumentado no hover
               transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)'
             }}
           >
-            Work With Me
+            <span className="relative z-10">Work With Me</span>
+            {/* Outline brilhante interno extra no hover */}
+            <div className="absolute inset-0 border-2 border-white/50 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
           </button>
 
           {/* Trusted By Section */}
@@ -159,7 +161,7 @@ const ProfileCard = () => {
             </div>
           )}
         </div>
-      </div>
+      </Reveal>
 
       <ContactModal 
         isOpen={isContactOpen} 

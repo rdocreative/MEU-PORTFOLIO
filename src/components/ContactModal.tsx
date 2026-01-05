@@ -18,14 +18,12 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
     setCopiedType(type);
     setShowLocalToast(true);
     
-    // Aumentado para 3000ms (3 segundos)
     setTimeout(() => {
       setCopiedType(null);
       setShowLocalToast(false);
     }, 3000);
   };
 
-  // Resetar estados quando o modal fecha
   useEffect(() => {
     if (!isOpen) {
       setCopiedType(null);
@@ -35,7 +33,8 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)] [&>button]:hidden">
+      {/* Adicionei 'duration-150' para deixar a animação de entrada/saída mais rápida */}
+      <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)] [&>button]:hidden duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-white text-lg font-['Press_Start_2P'] leading-relaxed uppercase tracking-tight">
             Let's work together
@@ -103,7 +102,6 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           </button>
         </div>
 
-        {/* Notificação Local abaixo das opções */}
         <div className="h-8 mt-4 flex items-center justify-center">
           <div 
             className={`transition-all duration-300 transform ${showLocalToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}

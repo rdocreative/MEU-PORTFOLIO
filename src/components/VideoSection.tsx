@@ -11,6 +11,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Reveal } from './Reveal';
 
 const getYouTubeId = (url: string) => {
   if (!url) return null;
@@ -89,9 +90,9 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
   return (
     <div 
       onClick={onClick}
-      className="group relative flex flex-col gap-4 p-1 cursor-pointer transition-transform duration-300 hover:scale-[1.02] transform-gpu backface-hidden"
+      className="group relative flex flex-col gap-4 p-1 cursor-pointer transform-gpu backface-hidden"
     >
-      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-300 shadow-2xl group-hover:border-white/40 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:border-white/40 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -126,7 +127,6 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
         <h3 className="text-[10px] text-white/80 uppercase tracking-[0.2em] font-bold group-hover:text-white transition-colors">
           {video.title}
         </h3>
-        {/* Descrições removidas daqui */}
       </div>
     </div>
   );
@@ -181,44 +181,46 @@ const VideoSection = () => {
 
   return (
     <>
-      <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
-        <div 
-          className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
-          style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
-        />
-        <div 
-          className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
-          style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
-        />
+      <Reveal width="100%" delay={0.2} className="w-full">
+        <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
+            style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
+          />
+          <div 
+            className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
+            style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
+          />
 
-        <Carousel
-          setApi={setApi}
-          plugins={[plugin.current]}
-          opts={{
-            align: "center",
-            loop: true,
-            dragFree: true,
-            containScroll: false,
-          }}
-          className="w-full relative"
-        >
-          <CarouselContent className="-ml-4 items-center py-10">
-            {displayVideos.map((video, idx) => (
-              <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%]">
-                <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          
-          <button onClick={handlePrev} className={`${pixelArrowClass} left-4 md:left-8`}>
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          
-          <button onClick={handleNext} className={`${pixelArrowClass} right-4 md:right-8`}>
-            <ArrowRight className="w-6 h-6" />
-          </button>
-        </Carousel>
-      </section>
+          <Carousel
+            setApi={setApi}
+            plugins={[plugin.current]}
+            opts={{
+              align: "center",
+              loop: true,
+              dragFree: true,
+              containScroll: false,
+            }}
+            className="w-full relative"
+          >
+            <CarouselContent className="-ml-4 items-center py-10">
+              {displayVideos.map((video, idx) => (
+                <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%]">
+                  <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            
+            <button onClick={handlePrev} className={`${pixelArrowClass} left-4 md:left-8`}>
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            
+            <button onClick={handleNext} className={`${pixelArrowClass} right-4 md:right-8`}>
+              <ArrowRight className="w-6 h-6" />
+            </button>
+          </Carousel>
+        </section>
+      </Reveal>
 
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="max-w-5xl w-[90vw] aspect-video p-0 bg-black border-none overflow-hidden ring-0 outline-none">
