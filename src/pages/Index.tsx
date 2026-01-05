@@ -1,16 +1,26 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ProfileCard from "@/components/ProfileCard";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ShortsSection from "@/components/ShortsSection";
 import ClientsSection from "@/components/ClientsSection";
+import IntroAnimation from "@/components/IntroAnimation";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
+  const [introFinished, setIntroFinished] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+
+  // Controla o fade-in do conteúdo real logo antes da intro terminar
+  useEffect(() => {
+    if (introFinished) {
+      setShowContent(true);
+    }
+  }, [introFinished]);
 
   if (isLoading) {
     return <div style={{ backgroundColor: config.backgroundColor }} className="min-h-screen" />;
@@ -21,10 +31,19 @@ const Index = () => {
       style={{ backgroundColor: config.backgroundColor }}
       className="min-h-screen flex flex-col font-['Press_Start_2P'] relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
+      {/* Intro Animation Layer */}
+      {!introFinished && (
+        <IntroAnimation onComplete={() => setIntroFinished(true)} />
+      )}
+
       <StarsBackground />
 
-      {/* Container Principal */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20">
+      {/* Container Principal - Opacidade controla a revelação pós-intro */}
+      <main 
+        className={`flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20 transition-opacity duration-1000 ${
+            introFinished ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
         
         {/* Frase de Destaque - TOPO */}
         <div className="w-full max-w-5xl text-center px-4 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
@@ -47,12 +66,13 @@ const Index = () => {
         </div>
         
         {/* Seção 1: Perfil */}
-        <div className="flex flex-col items-center justify-center w-full max-w-7xl animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
+        {/* A animação original foi removida/suavizada aqui para não conflitar com a intro */}
+        <div className="flex flex-col items-center justify-center w-full max-w-7xl">
           <ProfileCard />
         </div>
 
         {/* Seção 2: Long Form */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-300 fill-mode-backwards">
           <h2 
             style={{ 
               color: config.primaryColor,
@@ -65,13 +85,13 @@ const Index = () => {
           <VideoSection />
         </div>
 
-        {/* Seção 3: Clientes - Subindo um pouco com margem negativa ou reduzindo o gap anterior */}
-        <div className="w-full max-w-7xl flex justify-center -mt-8 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-800 fill-mode-backwards">
+        {/* Seção 3: Clientes */}
+        <div className="w-full max-w-7xl flex justify-center -mt-8 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
           <ClientsSection />
         </div>
 
         {/* Seção 4: Shorts */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
           <h2 
              style={{ 
               color: config.primaryColor,
@@ -85,7 +105,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className="z-10 pb-8 animate-in fade-in duration-1000 delay-1000">
+      <footer className={`z-10 pb-8 transition-opacity duration-1000 ${introFinished ? 'opacity-100' : 'opacity-0'}`}>
         <MadeWithDyad />
       </footer>
     </div>
