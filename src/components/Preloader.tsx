@@ -16,6 +16,7 @@ const LOADING_LOGS = [
 
 const Preloader = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const [isFading, setIsFading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentLog, setCurrentLog] = useState(LOADING_LOGS[0]);
   const { config } = useConfig();
@@ -35,6 +36,7 @@ const Preloader = () => {
         if (prev >= 100) {
           clearInterval(interval);
           sessionStorage.setItem('pixel_profile_loaded', 'true');
+          setIsFading(true); // Inicia animação de saída
           setTimeout(() => setIsVisible(false), 800);
           return 100;
         }
@@ -45,7 +47,7 @@ const Preloader = () => {
         
         return prev + Math.floor(Math.random() * 5) + 1;
       });
-    }, 100);
+    }, 80); // Um pouco mais rápido
 
     return () => clearInterval(interval);
   }, []);
@@ -55,7 +57,7 @@ const Preloader = () => {
   return (
     <div 
       style={{ backgroundColor: config.backgroundColor }}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center font-['Press_Start_2P'] overflow-hidden"
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center font-['Press_Start_2P'] overflow-hidden transition-opacity duration-1000 ${isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
     >
       {/* Background Grid Effect */}
       <div 
@@ -66,39 +68,42 @@ const Preloader = () => {
         }}
       />
 
-      <div className="relative z-10 flex flex-col items-center gap-8 max-w-md w-full px-6">
+      <div className={`relative z-10 flex flex-col items-center gap-8 max-w-md w-full px-6 transition-all duration-700 ${isFading ? 'scale-110' : 'scale-100'}`}>
         
         {/* Profile Image Container with Scanner Effect */}
         <div className="relative group">
           {/* Rotating Rings */}
           <div 
-            className="absolute -inset-4 border-2 border-dashed rounded-full animate-[spin_10s_linear_infinite] opacity-30"
+            className="absolute -inset-6 border-2 border-dashed rounded-full animate-[spin_10s_linear_infinite] opacity-40"
             style={{ borderColor: config.primaryColor }}
           />
           <div 
-            className="absolute -inset-2 border border-dotted rounded-full animate-[spin_5s_linear_infinite_reverse] opacity-50"
+            className="absolute -inset-3 border border-dotted rounded-full animate-[spin_5s_linear_infinite_reverse] opacity-60"
             style={{ borderColor: config.secondaryColor }}
           />
           
-          {/* Profile Image */}
+          {/* Profile Image - Full Color & Glow */}
           <div 
-            className="w-32 h-32 rounded-full overflow-hidden border-4 relative"
-            style={{ borderColor: config.primaryColor }}
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 relative shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+            style={{ 
+              borderColor: config.primaryColor,
+              boxShadow: `0 0 40px ${config.primaryColor}40` // Glow effect
+            }}
           >
             <img 
               src={config.profileImage} 
               alt="System User" 
-              className="w-full h-full object-cover grayscale brightness-50 contrast-125"
+              className="w-full h-full object-cover transition-transform duration-1000 hover:scale-110"
             />
-            {/* Scanline Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-transparent w-full h-[20%] animate-[scanline_2s_linear_infinite]" />
+            {/* Scanline Overlay - Subtle */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent w-full h-[20%] animate-[scanline_2s_linear_infinite] pointer-events-none" />
           </div>
         </div>
 
         {/* Text Info */}
         <div className="text-center space-y-4">
           <h1 
-            className="text-lg md:text-xl uppercase tracking-widest animate-pulse"
+            className="text-lg md:text-2xl uppercase tracking-widest animate-pulse drop-shadow-md"
             style={{ color: config.primaryColor }}
           >
             {config.profileName}
@@ -117,7 +122,7 @@ const Preloader = () => {
             <span>{Math.min(progress, 100)}%</span>
           </div>
           
-          <div className="h-3 border-2 p-[2px]" style={{ borderColor: config.secondaryColor }}>
+          <div className="h-3 border-2 p-[2px] bg-black/20" style={{ borderColor: config.secondaryColor }}>
             <div 
               className="h-full transition-all duration-200 ease-out relative overflow-hidden"
               style={{ 
