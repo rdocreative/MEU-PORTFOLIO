@@ -6,58 +6,67 @@ import { Terminal } from 'lucide-react';
 
 const LOADING_LOGS = [
   "INITIALIZING_CORE...",
-  "LOADING_PROFILE_DATA...",
+  "CONNECTING_DATABASE...",
+  "FETCHING_USER_PROFILE...",
   "DECRYPTING_ASSETS...",
-  "ESTABLISHING_UPLINK...",
   "RENDERING_PIXELS...",
-  "CHECKING_SYSTEM_INTEGRITY...",
+  "SYNCHRONIZING_STREAMS...",
   "ACCESS_GRANTED"
 ];
 
 const Preloader = () => {
   const [isVisible, setIsVisible] = useState(true);
-  const [isFading, setIsFading] = useState(false);
+  const [isSlidingUp, setIsSlidingUp] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentLog, setCurrentLog] = useState(LOADING_LOGS[0]);
-  const { config } = useConfig();
+  const { config, isLoading } = useConfig(); // Pegamos isLoading real
 
   useEffect(() => {
-    // Verifica se já carregou nesta sessão
+    // Se já carregou na sessão E os dados já estão prontos, não mostra
     const hasLoaded = sessionStorage.getItem('pixel_profile_loaded');
-    
-    if (hasLoaded) {
+    if (hasLoaded && !isLoading) {
       setIsVisible(false);
       return;
     }
 
-    // Intervalo de progresso
     const interval = setInterval(() => {
       setProgress((prev) => {
+        // Se ainda está carregando os dados reais, trava em 90-99%
+        if (isLoading && prev >= 90) {
+          return 90 + (prev % 9); // Oscila levemente no final
+        }
+
+        // Se terminou de carregar (prev >= 100), inicia a saída
         if (prev >= 100) {
           clearInterval(interval);
           sessionStorage.setItem('pixel_profile_loaded', 'true');
-          setIsFading(true); // Inicia animação de saída
-          setTimeout(() => setIsVisible(false), 800);
+          
+          // Inicia a animação de slide-up
+          setIsSlidingUp(true);
+          
+          // Remove do DOM após a animação
+          setTimeout(() => setIsVisible(false), 1000);
           return 100;
         }
         
-        // Atualiza logs baseado no progresso
+        // Atualiza logs
         const logIndex = Math.floor((prev / 100) * (LOADING_LOGS.length - 1));
         setCurrentLog(LOADING_LOGS[logIndex]);
         
-        return prev + Math.floor(Math.random() * 5) + 1;
+        // Aumenta o progresso
+        return prev + Math.floor(Math.random() * 8) + 2;
       });
-    }, 80); // Um pouco mais rápido
+    }, 50);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isLoading]); // Reage a mudanças no isLoading
 
   if (!isVisible) return null;
 
   return (
     <div 
       style={{ backgroundColor: config.backgroundColor }}
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center font-['Press_Start_2P'] overflow-hidden transition-opacity duration-1000 ${isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center font-['Press_Start_2P'] overflow-hidden transition-transform duration-1000 ease-[cubic-bezier(0.76,0,0.24,1)] ${isSlidingUp ? '-translate-y-full' : 'translate-y-0'}`}
     >
       {/* Background Grid Effect */}
       <div 
@@ -68,11 +77,10 @@ const Preloader = () => {
         }}
       />
 
-      <div className={`relative z-10 flex flex-col items-center gap-8 max-w-md w-full px-6 transition-all duration-700 ${isFading ? 'scale-110' : 'scale-100'}`}>
+      <div className={`relative z-10 flex flex-col items-center gap-8 max-w-md w-full px-6 transition-all duration-700 ${isSlidingUp ? 'scale-90 opacity-50' : 'scale-100'}`}>
         
-        {/* Profile Image Container with Scanner Effect */}
+        {/* Profile Image Container */}
         <div className="relative group">
-          {/* Rotating Rings */}
           <div 
             className="absolute -inset-6 border-2 border-dashed rounded-full animate-[spin_10s_linear_infinite] opacity-40"
             style={{ borderColor: config.primaryColor }}
@@ -82,20 +90,19 @@ const Preloader = () => {
             style={{ borderColor: config.secondaryColor }}
           />
           
-          {/* Profile Image - Full Color & Glow */}
           <div 
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 relative shadow-[0_0_30px_rgba(0,0,0,0.5)]"
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 relative shadow-[0_0_30px_rgba(0,0,0,0.5)] bg-black"
             style={{ 
               borderColor: config.primaryColor,
-              boxShadow: `0 0 40px ${config.primaryColor}40` // Glow effect
+              boxShadow: `0 0 40px ${config.primaryColor}40`
             }}
           >
+            {/* Só mostra a imagem se já tiver carregado ou se tiver uma imagem válida (não a default se estiver carregando) */}
             <img 
               src={config.profileImage} 
               alt="System User" 
-              className="w-full h-full object-cover transition-transform duration-1000 hover:scale-110"
+              className={`w-full h-full object-cover transition-transform duration-1000 hover:scale-110 ${isLoading ? 'opacity-50 blur-sm' : 'opacity-100 blur-0'}`}
             />
-            {/* Scanline Overlay - Subtle */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent w-full h-[20%] animate-[scanline_2s_linear_infinite] pointer-events-none" />
           </div>
         </div>
@@ -103,10 +110,10 @@ const Preloader = () => {
         {/* Text Info */}
         <div className="text-center space-y-4">
           <h1 
-            className="text-lg md:text-2xl uppercase tracking-widest animate-pulse drop-shadow-md"
+            className="text-lg md:text-2xl uppercase tracking-widest animate-pulse drop-shadow-md min-h-[2rem]"
             style={{ color: config.primaryColor }}
           >
-            {config.profileName}
+            {isLoading ? "LOADING..." : config.profileName}
           </h1>
           
           <div className="h-6 flex items-center justify-center gap-2 text-[10px]" style={{ color: config.secondaryColor }}>
@@ -130,16 +137,14 @@ const Preloader = () => {
                 backgroundColor: config.primaryColor 
               }}
             >
-              {/* Striped pattern inside bar */}
               <div className="absolute inset-0 w-full h-full opacity-30 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#000_2px,#000_4px)]" />
             </div>
           </div>
         </div>
       </div>
       
-      {/* Footer Version */}
       <div className="absolute bottom-8 text-[8px] opacity-40" style={{ color: config.secondaryColor }}>
-        v1.0.4 SYSTEM_READY
+        v1.0.5 SYSTEM_READY
       </div>
     </div>
   );
