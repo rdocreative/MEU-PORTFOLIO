@@ -39,7 +39,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.5 }
     );
     
     observer.observe(video);
@@ -60,7 +60,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
-// Componente YouTube que carrega automaticamente quando visível
+// Componente YouTube que carrega automaticamente com proteção anti-bot
 const YouTubeAutoEmbed = memo(({ videoId, title }: { videoId: string, title?: string }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,18 +69,21 @@ const YouTubeAutoEmbed = memo(({ videoId, title }: { videoId: string, title?: st
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          // Só carrega se o vídeo estiver 70% visível na tela.
+          // Isso garante que apenas o vídeo central carregue, evitando o bloqueio de múltiplas conexões.
           if (entry.isIntersecting) {
-            // Pequeno delay aleatório para evitar que todos façam requisição no mesmo milissegundo
+            // Atraso aleatório maior (entre 0.5s e 2s) para "humanizar" as requisições
+            const delay = 500 + Math.random() * 1500;
+            
             setTimeout(() => {
                 setShouldLoad(true);
-            }, Math.random() * 500);
+            }, delay);
             
-            // Uma vez carregado, desconecta para não ficar recarregando
             if (containerRef.current) observer.unobserve(containerRef.current);
           }
         });
       },
-      { rootMargin: "100px" } // Carrega um pouco antes de entrar na tela
+      { threshold: 0.7 } // Aumentado de 0.1 para 0.7 (muito mais estrito)
     );
     
     if (containerRef.current) observer.observe(containerRef.current);
@@ -95,9 +98,11 @@ const YouTubeAutoEmbed = memo(({ videoId, title }: { videoId: string, title?: st
     >
       {shouldLoad ? (
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0&iv_load_policy=3&fs=0&playsinline=1`}
-          className="absolute inset-0 w-full h-full pointer-events-none scale-[1.35]" // Scale para remover bordas pretas do player
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1`}
+          className="absolute inset-0 w-full h-full pointer-events-none scale-[1.35]" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+          loading="lazy"
           tabIndex={-1}
           style={{ border: 0 }}
           title={title}
@@ -109,11 +114,11 @@ const YouTubeAutoEmbed = memo(({ videoId, title }: { videoId: string, title?: st
                 e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
             }}
             alt={title || "Loading..."}
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover opacity-60"
         />
       )}
       
-      {/* Overlay invisível para impedir interação direta com o iframe (play/pause) no carrossel */}
+      {/* Overlay invisível */}
       <div className="absolute inset-0 z-10 bg-transparent" />
     </div>
   );
