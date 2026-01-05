@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
-import { useConfig, VideoData } from '@/context/ConfigContext';
+import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud } from 'lucide-react';
+import { Save, ArrowLeft, Video, Zap, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +22,7 @@ const Settings = () => {
   
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const clientInputRef = useRef<HTMLInputElement>(null);
   const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const ffmpegRef = useRef(new FFmpeg());
   const isLoadedRef = useRef(false);
@@ -184,6 +185,37 @@ const Settings = () => {
     }
   };
 
+  const handleClientUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const toastId = showLoading("ADICIONANDO CLIENTE...");
+    const publicUrl = await uploadToStorage(file, `client_${Date.now()}.png`);
+
+    dismissToast(toastId);
+
+    if (publicUrl) {
+        const newClient: Client = {
+            id: Date.now().toString(),
+            name: file.name.split('.')[0],
+            image: publicUrl
+        };
+        updateLocalConfig({ clients: [...config.clients, newClient] });
+        showSuccess("CLIENTE ADICIONADO!");
+    } else {
+        showError("ERRO NO UPLOAD");
+    }
+    
+    // Reset input
+    if (clientInputRef.current) clientInputRef.current.value = '';
+  };
+
+  const removeClient = (clientId: string) => {
+      updateLocalConfig({
+          clients: config.clients.filter(c => c.id !== clientId)
+      });
+  };
+
   const handleSave = async () => {
     if (isSaving) return;
     setIsSaving(true);
@@ -257,6 +289,40 @@ const Settings = () => {
                   <Input name="primaryColor" value={config.primaryColor} onChange={handleChange} className="bg-black border-zinc-800" />
                 </div>
              </div>
+          </div>
+
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
+            <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
+              <Users className="w-5 h-5" /> Trusted_Clients
+            </h2>
+            <div className="flex flex-wrap gap-4">
+              {config.clients.map((client) => (
+                <div key={client.id} className="relative group w-24 h-24 bg-black/30 border-2 border-zinc-800 rounded-xl flex items-center justify-center p-2">
+                  <img src={client.image} alt={client.name} className="w-full h-full object-contain" />
+                  <button 
+                    onClick={() => removeClient(client.id)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              
+              <button 
+                onClick={() => clientInputRef.current?.click()}
+                className="w-24 h-24 border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-white hover:border-white transition-colors"
+              >
+                <Plus className="w-6 h-6" />
+                <span className="text-[8px]">ADD</span>
+              </button>
+              <input 
+                type="file" 
+                ref={clientInputRef} 
+                onChange={handleClientUpload} 
+                accept="image/*" 
+                className="hidden" 
+              />
+            </div>
           </div>
 
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
@@ -348,5 +414,22 @@ const Settings = () => {
     </div>
   );
 };
+
+// Ícone X que faltava importar
+const X = ({ className }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M18 6 6 18"/>
+    <path d="m6 6 18 18"/>
+  </svg>
+);
 
 export default Settings;

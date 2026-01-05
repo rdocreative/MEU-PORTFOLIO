@@ -46,10 +46,9 @@ const Index = () => {
           </h1>
         </div>
         
-        {/* Seção 1: Perfil + Clientes */}
-        <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
+        {/* Seção 1: Perfil */}
+        <div className="flex flex-col items-center justify-center w-full max-w-7xl animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
           <ProfileCard />
-          <ClientsSection />
         </div>
 
         {/* Seção 2: Long Form */}
@@ -66,7 +65,12 @@ const Index = () => {
           <VideoSection />
         </div>
 
-        {/* Seção 3: Shorts */}
+        {/* Seção 3: Clientes */}
+        <div className="w-full max-w-7xl flex justify-center animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-800 fill-mode-backwards">
+          <ClientsSection />
+        </div>
+
+        {/* Seção 4: Shorts */}
         <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
           <h2 
              style={{ 
