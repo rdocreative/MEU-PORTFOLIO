@@ -171,8 +171,8 @@ const VideoSection = () => {
 
   if (displayVideos.length === 0) return null;
 
-  // Estilo comum para as setas pixeladas
-  const pixelArrowClass = "relative lg:absolute pointer-events-auto h-12 w-12 rounded-none border-[3px] border-black bg-[#C6C6C6] text-black shadow-[inset_-4px_-4px_0px_#555,inset_4px_4px_0px_#FFF] hover:bg-[#D6D6D6] active:shadow-[inset_4px_4px_0px_#555,inset_-4px_-4px_0px_#FFF] active:translate-y-[2px] transition-none flex items-center justify-center cursor-pointer z-40";
+  // Estilo pixelado minimalista (Preto e Branco)
+  const pixelArrowClass = "relative lg:absolute pointer-events-auto h-10 w-10 rounded-none border-2 border-white bg-black text-white hover:bg-white hover:text-black transition-none flex items-center justify-center cursor-pointer z-40";
 
   return (
     <>
