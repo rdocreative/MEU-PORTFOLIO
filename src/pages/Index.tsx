@@ -2,7 +2,6 @@
 
 import React from 'react';
 import ProfileCard from "@/components/ProfileCard";
-import Navbar from "@/components/Navbar";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ShortsSection from "@/components/ShortsSection";
@@ -23,10 +22,9 @@ const Index = () => {
       className="min-h-screen flex flex-col font-['Press_Start_2P'] relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
       <StarsBackground />
-      <Navbar />
 
       {/* Container Principal com gap-24 (96px) entre as grandes seções */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-48 pb-32 gap-24">
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-24 pb-32 gap-24">
         
         {/* Seção 1: Perfil + Clientes */}
         <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">

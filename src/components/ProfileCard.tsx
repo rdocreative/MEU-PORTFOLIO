@@ -59,7 +59,7 @@ const ProfileCard = () => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-lg perspective-1000">
+    <div className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000">
       {/* Profile Section */}
       <div 
         ref={cardRef}
