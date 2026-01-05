@@ -32,6 +32,26 @@ const Index = () => {
           <ClientsSection />
         </div>
 
+        {/* Frase de Destaque */}
+        <div className="w-full max-w-4xl text-center px-4 animate-in slide-in-from-bottom-12 fade-in duration-1000 delay-600 fill-mode-backwards">
+          <h2 
+            className="text-sm md:text-xl leading-relaxed uppercase tracking-wider"
+            style={{ color: config.secondaryColor }}
+          >
+            "Receive the value <br className="md:hidden" />
+            <span 
+              className="text-white inline-block mt-2 md:mt-0 md:ml-2 relative"
+              style={{ 
+                color: config.primaryColor,
+                textShadow: `0 0 15px ${config.primaryColor}66`
+              }}
+            >
+              your content deserves
+              <div className="absolute -bottom-2 left-0 w-full h-[2px] opacity-50" style={{ backgroundColor: config.primaryColor }} />
+            </span>"
+          </h2>
+        </div>
+
         {/* Seção 2: Long Form */}
         <div className="w-full max-w-7xl flex flex-col items-center gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
           <h2 
