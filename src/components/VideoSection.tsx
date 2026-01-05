@@ -85,7 +85,8 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
   return (
     <div 
       onClick={onClick}
-      className="group relative flex flex-col gap-4 p-1 cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
+      // Removido hover:z-10 e adicionado transform-gpu para performance
+      className="group relative flex flex-col gap-4 p-1 cursor-pointer transition-transform duration-300 hover:scale-[1.02] transform-gpu backface-hidden"
     >
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-300 shadow-2xl group-hover:border-white/40 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
@@ -142,8 +143,8 @@ const VideoSection = () => {
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false, // Não para com interação
-      stopOnMouseEnter: false, // Não para com o mouse sobre
+      stopOnInteraction: false,
+      stopOnMouseEnter: false,
       startDelay: 0,
     })
   );
@@ -157,6 +158,7 @@ const VideoSection = () => {
     if (baseVideos.length === 0) return [];
     
     let result = [...baseVideos];
+    // Garantir items suficientes para o loop suave
     while (result.length < 12) {
       result = [...result, ...baseVideos];
     }
@@ -204,7 +206,8 @@ const VideoSection = () => {
         >
           <CarouselContent className="-ml-4 items-center py-10">
             {displayVideos.map((video, idx) => (
-              <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%] transition-all">
+              // REMOVIDO: transition-all (causa conflito com o motor de scroll)
+              <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%]">
                 <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
               </CarouselItem>
             ))}
