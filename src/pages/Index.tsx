@@ -26,7 +26,7 @@ const Index = () => {
       <Navbar />
 
       {/* Container Principal com gap-24 (96px) entre as grandes seções */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-32 pb-32 gap-24">
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-48 pb-32 gap-24">
         
         {/* Seção 1: Perfil + Clientes */}
         <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
