@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
@@ -60,7 +60,7 @@ const VideoLoop = ({ src }: { src: string }) => {
       playsInline 
       autoPlay
       preload="auto"
-      crossOrigin="anonymous" // Ajuda no carregamento de recursos externos
+      crossOrigin="anonymous" 
       controls={false}
     />
   );
@@ -83,16 +83,11 @@ const VideoCard = ({ video }: { video: VideoData }) => {
 
   return (
     <div className="group relative flex flex-col gap-4 p-1">
-      {/* Container Visual do Card */}
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-        
-        {/* Conteúdo Visual */}
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
-              // Se tiver vídeo upado, roda o loop
               <VideoLoop src={video.customVideoUrl} />
             ) : !imgError && videoId ? (
-              // Se for YouTube, mostra Thumbnail
               <div className="relative w-full h-full">
                  <img 
                   src={imgSrc}
@@ -103,7 +98,6 @@ const VideoCard = ({ video }: { video: VideoData }) => {
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
               </div>
             ) : (
-              // Fallback
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
                 <AlertTriangle className="w-8 h-8" />
                 <span className="text-[8px] uppercase tracking-widest">No Signal</span>
@@ -112,7 +106,6 @@ const VideoCard = ({ video }: { video: VideoData }) => {
         </div>
       </div>
       
-      {/* Metadados */}
       <div className="flex flex-col gap-1 items-center">
         <h3 className="text-[10px] text-white/80 uppercase tracking-[0.2em] font-bold">
           {video.title}
@@ -132,23 +125,33 @@ const VideoSection = () => {
     AutoScroll({ 
       speed: 1, 
       stopOnInteraction: false,
-      stopOnMouseEnter: false, // Alterado para false para nunca parar ao passar o mouse
+      stopOnMouseEnter: false, 
       startDelay: 0,
     })
   );
 
-  // Filtra vídeos que tenham URL (Youtube) OU customVideoUrl (Upload)
-  const videos = config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== ""));
+  // Filtra vídeos válidos
+  const baseVideos = useMemo(() => 
+    config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
+    [config.featuredVideos]
+  );
+
+  // Técnica de duplicação para garantir loop infinito suave mesmo com poucos itens
+  const displayVideos = useMemo(() => {
+    if (baseVideos.length === 0) return [];
+    if (baseVideos.length < 6) return [...baseVideos, ...baseVideos, ...baseVideos];
+    return baseVideos;
+  }, [baseVideos]);
+
+  if (displayVideos.length === 0) return null;
 
   return (
     <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
-      {/* Degradê Lateral Esquerdo */}
       <div 
         className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
         style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
       />
       
-      {/* Degradê Lateral Direito */}
       <div 
         className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
         style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
@@ -157,15 +160,15 @@ const VideoSection = () => {
       <Carousel
         plugins={[plugin.current]}
         opts={{
-          align: "start",
+          align: "center",
           loop: true,
           dragFree: true,
         }}
         className="w-full relative"
       >
         <CarouselContent className="-ml-4">
-          {videos.map((video) => (
-            <CarouselItem key={video.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+          {displayVideos.map((video, idx) => (
+            <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
               <VideoCard video={video} />
             </CarouselItem>
           ))}
