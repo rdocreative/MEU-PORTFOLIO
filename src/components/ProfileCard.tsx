@@ -97,16 +97,10 @@ const ProfileCard = () => {
             color: config.primaryColor,
             transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
           }} 
-          className="text-2xl mb-3 font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300"
+          className="text-2xl mb-8 font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300"
         >
           {config.profileName}
         </h1>
-        <p 
-          style={{ transform: isHovering ? 'translateZ(5px)' : 'translateZ(0)' }}
-          className="text-gray-400 text-[12px] text-center mb-8 leading-relaxed px-6 uppercase opacity-80 group-hover/card:opacity-100 transition-all duration-300"
-        >
-          {config.description}
-        </p>
 
         <div 
           className="flex gap-6 transition-transform duration-300"
