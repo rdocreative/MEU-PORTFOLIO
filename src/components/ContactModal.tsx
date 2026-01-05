@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Twitter, Mail, MessageSquare, Copy, Check, X } from 'lucide-react';
+import { Twitter, Mail, MessageSquare, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface ContactModalProps {
@@ -33,16 +33,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      {/* Re-adicionado '[&>button]:hidden' para esconder o botão padrão do componente Dialog */}
       <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)] [&>button]:hidden duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]">
-        <button 
-          onClick={onClose}
-          className="absolute right-6 top-6 p-2 text-zinc-500 hover:text-white transition-colors rounded-full hover:bg-zinc-900 z-50"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-white text-lg font-['Press_Start_2P'] leading-relaxed uppercase tracking-tight">
             Let's work together
@@ -124,7 +115,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           onClick={onClose}
           className="mt-6 text-[10px] text-zinc-500 hover:text-white transition-colors uppercase font-['Press_Start_2P'] underline-offset-4 hover:underline"
         >
-          [ Back to Profile ]
+          [ Back to Portfolio ]
         </button>
       </DialogContent>
     </Dialog>
