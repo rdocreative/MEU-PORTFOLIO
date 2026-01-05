@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Twitter, Mail, MessageSquare, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { toast } from 'sonner';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -12,19 +11,26 @@ interface ContactModalProps {
 
 const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
+  const [showLocalToast, setShowLocalToast] = useState(false);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     setCopiedType(type);
+    setShowLocalToast(true);
     
-    // Toast pequeno e rápido
-    toast.success("✅ Copied to clipboard", {
-      duration: 1000,
-      className: "font-pixel text-[10px] uppercase",
-    });
-
-    setTimeout(() => setCopiedType(null), 1000);
+    setTimeout(() => {
+      setCopiedType(null);
+      setShowLocalToast(false);
+    }, 1500);
   };
+
+  // Resetar estados quando o modal fecha
+  useEffect(() => {
+    if (!isOpen) {
+      setCopiedType(null);
+      setShowLocalToast(false);
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -96,9 +102,20 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           </button>
         </div>
 
+        {/* Notificação Local abaixo das opções */}
+        <div className="h-8 mt-4 flex items-center justify-center">
+          <div 
+            className={`transition-all duration-300 transform ${showLocalToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}
+          >
+            <span className="text-[9px] font-['Press_Start_2P'] text-green-400 uppercase tracking-tighter">
+              ✅ Copied to clipboard
+            </span>
+          </div>
+        </div>
+
         <button 
           onClick={onClose}
-          className="mt-10 text-[10px] text-zinc-500 hover:text-white transition-colors uppercase font-['Press_Start_2P'] underline-offset-4 hover:underline"
+          className="mt-6 text-[10px] text-zinc-500 hover:text-white transition-colors uppercase font-['Press_Start_2P'] underline-offset-4 hover:underline"
         >
           [ Back to Profile ]
         </button>
