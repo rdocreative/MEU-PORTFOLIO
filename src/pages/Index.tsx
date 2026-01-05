@@ -65,8 +65,8 @@ const Index = () => {
           <VideoSection />
         </div>
 
-        {/* Seção 3: Clientes */}
-        <div className="w-full max-w-7xl flex justify-center animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-800 fill-mode-backwards">
+        {/* Seção 3: Clientes - Subindo um pouco com margem negativa ou reduzindo o gap anterior */}
+        <div className="w-full max-w-7xl flex justify-center -mt-8 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-800 fill-mode-backwards">
           <ClientsSection />
         </div>
 
