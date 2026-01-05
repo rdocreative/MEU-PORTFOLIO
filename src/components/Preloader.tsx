@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
-import { Terminal } from 'lucide-react';
+import { Terminal, User } from 'lucide-react';
 
 const LOADING_LOGS = [
   "INITIALIZING_CORE...",
@@ -19,7 +19,12 @@ const Preloader = () => {
   const [isSlidingUp, setIsSlidingUp] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentLog, setCurrentLog] = useState(LOADING_LOGS[0]);
-  const { config, isLoading } = useConfig(); // Pegamos isLoading real
+  const { config, isLoading } = useConfig();
+
+  // Verifica se a imagem atual é a padrão (placeholder)
+  const isDefaultImage = config.profileImage.includes("seed=void");
+  // Só mostra a imagem real se não estiver carregando E não for a padrão
+  const showRealImage = !isLoading && !isDefaultImage;
 
   useEffect(() => {
     // Se já carregou na sessão E os dados já estão prontos, não mostra
@@ -33,33 +38,27 @@ const Preloader = () => {
       setProgress((prev) => {
         // Se ainda está carregando os dados reais, trava em 90-99%
         if (isLoading && prev >= 90) {
-          return 90 + (prev % 9); // Oscila levemente no final
+          return 90 + (prev % 9);
         }
 
-        // Se terminou de carregar (prev >= 100), inicia a saída
+        // Se terminou de carregar, inicia a saída
         if (prev >= 100) {
           clearInterval(interval);
           sessionStorage.setItem('pixel_profile_loaded', 'true');
-          
-          // Inicia a animação de slide-up
           setIsSlidingUp(true);
-          
-          // Remove do DOM após a animação
           setTimeout(() => setIsVisible(false), 1000);
           return 100;
         }
         
-        // Atualiza logs
         const logIndex = Math.floor((prev / 100) * (LOADING_LOGS.length - 1));
         setCurrentLog(LOADING_LOGS[logIndex]);
         
-        // Aumenta o progresso
         return prev + Math.floor(Math.random() * 8) + 2;
       });
     }, 50);
 
     return () => clearInterval(interval);
-  }, [isLoading]); // Reage a mudanças no isLoading
+  }, [isLoading]);
 
   if (!isVisible) return null;
 
@@ -91,18 +90,26 @@ const Preloader = () => {
           />
           
           <div 
-            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 relative shadow-[0_0_30px_rgba(0,0,0,0.5)] bg-black"
+            className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 relative shadow-[0_0_30px_rgba(0,0,0,0.5)] bg-black flex items-center justify-center"
             style={{ 
               borderColor: config.primaryColor,
               boxShadow: `0 0 40px ${config.primaryColor}40`
             }}
           >
-            {/* Só mostra a imagem se já tiver carregado ou se tiver uma imagem válida (não a default se estiver carregando) */}
-            <img 
-              src={config.profileImage} 
-              alt="System User" 
-              className={`w-full h-full object-cover transition-transform duration-1000 hover:scale-110 ${isLoading ? 'opacity-50 blur-sm' : 'opacity-100 blur-0'}`}
-            />
+            {showRealImage ? (
+              <img 
+                src={config.profileImage} 
+                alt="System User" 
+                className="w-full h-full object-cover transition-transform duration-1000 hover:scale-110"
+              />
+            ) : (
+              // Placeholder tecnológico enquanto carrega
+              <div className="flex flex-col items-center justify-center text-center opacity-50 animate-pulse">
+                 <User className="w-12 h-12 mb-2" style={{ color: config.primaryColor }} />
+                 <span className="text-[8px]" style={{ color: config.secondaryColor }}>NO_DATA</span>
+              </div>
+            )}
+            
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent w-full h-[20%] animate-[scanline_2s_linear_infinite] pointer-events-none" />
           </div>
         </div>
@@ -113,7 +120,7 @@ const Preloader = () => {
             className="text-lg md:text-2xl uppercase tracking-widest animate-pulse drop-shadow-md min-h-[2rem]"
             style={{ color: config.primaryColor }}
           >
-            {isLoading ? "LOADING..." : config.profileName}
+            {showRealImage ? config.profileName : "LOADING_USER..."}
           </h1>
           
           <div className="h-6 flex items-center justify-center gap-2 text-[10px]" style={{ color: config.secondaryColor }}>
