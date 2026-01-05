@@ -84,9 +84,9 @@ const Settings = () => {
     updateLocalConfig({ [listKey]: newList });
   };
 
-  const handleClientNameChange = (id: string, newName: string) => {
+  const handleClientUpdate = (id: string, field: keyof Client, value: string) => {
     const updatedClients = config.clients.map(c => 
-        c.id === id ? { ...c, name: newName } : c
+        c.id === id ? { ...c, [field]: value } : c
     );
     updateLocalConfig({ clients: updatedClients });
   };
@@ -205,6 +205,7 @@ const Settings = () => {
         const newClient: Client = {
             id: Date.now().toString(),
             name: file.name.split('.')[0],
+            subtitle: "100K Subs", // Default subtitle
             image: publicUrl
         };
         updateLocalConfig({ clients: [...config.clients, newClient] });
@@ -310,9 +311,15 @@ const Settings = () => {
                   </div>
                   <Input 
                     value={client.name} 
-                    onChange={(e) => handleClientNameChange(client.id, e.target.value)}
+                    onChange={(e) => handleClientUpdate(client.id, 'name', e.target.value)}
                     className="bg-black border-zinc-800 text-[8px] h-8 text-center"
                     placeholder="NAME"
+                  />
+                  <Input 
+                    value={client.subtitle || ''} 
+                    onChange={(e) => handleClientUpdate(client.id, 'subtitle', e.target.value)}
+                    className="bg-black border-zinc-800 text-[8px] h-8 text-center text-zinc-400"
+                    placeholder="SUBTITLE (e.g. 100K Subs)"
                   />
                   <button 
                     onClick={() => removeClient(client.id)}
@@ -325,7 +332,7 @@ const Settings = () => {
               
               <button 
                 onClick={() => clientInputRef.current?.click()}
-                className="w-full aspect-square border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-white hover:border-white transition-colors min-h-[140px]"
+                className="w-full border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-white hover:border-white transition-colors min-h-[180px]"
               >
                 <Plus className="w-8 h-8" />
                 <span className="text-[8px]">ADD NEW</span>

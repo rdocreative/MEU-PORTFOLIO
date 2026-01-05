@@ -7,6 +7,7 @@ export interface Client {
   id: string;
   image: string;
   name: string;
+  subtitle?: string; // Novo campo para o subtítulo (ex: inscritos)
 }
 
 export interface VideoData {

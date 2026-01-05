@@ -10,48 +10,42 @@ const ClientsSection = () => {
 
   return (
     <div className="w-full max-w-6xl flex flex-col items-center">
-      <div className="flex flex-wrap justify-center gap-x-12 gap-y-16">
+      <div className="flex flex-wrap justify-center gap-x-16 gap-y-16">
         {config.clients.map((client) => (
           <div 
             key={client.id}
-            className="flex flex-col items-center group relative"
+            className="flex flex-col items-center group relative cursor-default"
           >
-            {/* Linha de conexão (opcional, estilo tech) */}
-            <div 
-                style={{ backgroundColor: config.primaryColor }}
-                className="absolute top-20 h-8 w-[2px] opacity-30 group-hover:h-10 transition-all duration-300 z-0"
-            />
-
             {/* Logo/Avatar do Cliente */}
             <div 
-              style={{ 
-                borderColor: config.primaryColor,
-                boxShadow: `0 0 20px ${config.primaryColor}20`
-              }}
-              className="relative z-10 w-24 h-24 md:w-28 md:h-28 bg-black transition-transform duration-300 group-hover:scale-105 border-2 rounded-full overflow-hidden mb-6"
+              className="relative w-28 h-28 md:w-32 md:h-32 mb-4 transition-transform duration-300 group-hover:scale-110 rounded-full overflow-hidden shadow-2xl"
             >
+              <div 
+                style={{ borderColor: config.primaryColor }}
+                className="absolute inset-0 border-2 rounded-full opacity-50 z-10" 
+              />
               <img 
                 src={client.image} 
                 alt={client.name} 
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                className="w-full h-full object-cover"
               />
             </div>
 
-            {/* Badge de Nome - Estilo mais forte e legível */}
-            <div 
-              style={{ 
-                backgroundColor: '#09090b', // Zinc-950
-                borderColor: config.primaryColor,
-                boxShadow: `4px 4px 0 0 ${config.primaryColor}`
-              }}
-              className="z-10 px-6 py-3 border-2 transition-all duration-200 group-hover:-translate-y-1 group-hover:translate-x-[-2px] group-hover:shadow-[6px_6px_0_0_rgba(255,255,255,0.2)]"
-            >
+            {/* Texto: Nome e Subtítulo */}
+            <div className="flex flex-col items-center gap-1 transition-transform group-hover:-translate-y-1">
               <span 
-                style={{ color: '#ffffff' }}
-                className="text-[10px] md:text-xs uppercase font-bold tracking-widest whitespace-nowrap drop-shadow-md"
+                className="text-xs md:text-sm text-white font-bold tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
               >
                 {client.name}
               </span>
+              
+              {client.subtitle && (
+                <span 
+                  className="text-[10px] md:text-[10px] text-zinc-400 font-normal tracking-wide"
+                >
+                  {client.subtitle}
+                </span>
+              )}
             </div>
           </div>
         ))}
