@@ -1,6 +1,6 @@
 "use client";
 
-import React, a from 'react';
+import React, { useState, useEffect } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 
 interface IntroAnimationProps {
@@ -9,9 +9,9 @@ interface IntroAnimationProps {
 
 const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
   const { config } = useConfig();
-  const [phase, setPhase] = a.useState<'start' | 'shrink' | 'fade'>('start');
+  const [phase, setPhase] = useState<'start' | 'shrink' | 'fade'>('start');
 
-  a.useEffect(() => {
+  useEffect(() => {
     // Inicia a animação de encolher quase imediatamente
     const shrinkTimer = setTimeout(() => setPhase('shrink'), 100);
     // Inicia o fade out antes do fim para sobrepor com o conteúdo principal
