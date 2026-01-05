@@ -190,10 +190,11 @@ const VideoSection = () => {
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
   const [api, setApi] = useState<CarouselApi>();
 
+  // Configurado para PARAR o auto-scroll ao interagir (permitindo movimento livre)
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false,
+      stopOnInteraction: true, // Agora para quando o usuário clica ou arrasta
       stopOnMouseEnter: false,
       startDelay: 0,
     })
@@ -213,21 +214,20 @@ const VideoSection = () => {
     return result;
   }, [baseVideos]);
 
-  // Funções de navegação aprimoradas
-  const scrollPrev = useCallback(() => {
+  const handlePrev = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (api) {
       api.scrollPrev();
-      // Reinicia o autoscroll se necessário para manter fluidez
-      const autoScroll = api.plugins().autoScroll;
-      if (autoScroll) (autoScroll as any).play();
+      // O AutoScroll irá parar devido ao stopOnInteraction: true
     }
   }, [api]);
 
-  const scrollNext = useCallback(() => {
+  const handleNext = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (api) {
       api.scrollNext();
-      const autoScroll = api.plugins().autoScroll;
-      if (autoScroll) (autoScroll as any).play();
     }
   }, [api]);
 
@@ -238,8 +238,8 @@ const VideoSection = () => {
   return (
     <>
       <Reveal width="100%" delay={0.2} className="w-full">
-        <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative overflow-visible">
-          {/* Gradientes laterais com z-index menor que as setas */}
+        <section className="w-full max-w-7xl px-4 mx-auto relative overflow-visible group/carousel">
+          {/* Gradientes laterais */}
           <div 
             className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
             style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
@@ -249,13 +249,30 @@ const VideoSection = () => {
             style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
           />
 
+          {/* Botões manuais posicionados na raiz da section para evitar bloqueio */}
+          <button 
+            onClick={handlePrev} 
+            className={`${pixelArrowClass} left-2 md:left-6`}
+            aria-label="Previous slide"
+          >
+            <ArrowLeft className="w-8 h-8" />
+          </button>
+          
+          <button 
+            onClick={handleNext} 
+            className={`${pixelArrowClass} right-2 md:right-6`}
+            aria-label="Next slide"
+          >
+            <ArrowRight className="w-8 h-8" />
+          </button>
+
           <Carousel
             setApi={setApi}
             plugins={[plugin.current]}
             opts={{
               align: "center",
               loop: true,
-              dragFree: true,
+              dragFree: true, // Permite mover livremente ao arrastar
               containScroll: false,
             }}
             className="w-full relative"
@@ -271,23 +288,6 @@ const VideoSection = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            
-            {/* Botões manuais posicionados sobre o carrossel */}
-            <button 
-              onClick={(e) => { e.stopPropagation(); scrollPrev(); }} 
-              className={`${pixelArrowClass} left-2 md:left-6`}
-              aria-label="Previous slide"
-            >
-              <ArrowLeft className="w-8 h-8" />
-            </button>
-            
-            <button 
-              onClick={(e) => { e.stopPropagation(); scrollNext(); }} 
-              className={`${pixelArrowClass} right-2 md:right-6`}
-              aria-label="Next slide"
-            >
-              <ArrowRight className="w-8 h-8" />
-            </button>
           </Carousel>
         </section>
       </Reveal>
