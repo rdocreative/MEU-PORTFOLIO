@@ -18,10 +18,11 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
     setCopiedType(type);
     setShowLocalToast(true);
     
+    // Aumentado para 3000ms (3 segundos)
     setTimeout(() => {
       setCopiedType(null);
       setShowLocalToast(false);
-    }, 1500);
+    }, 3000);
   };
 
   // Resetar estados quando o modal fecha
