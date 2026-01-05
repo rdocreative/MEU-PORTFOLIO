@@ -26,17 +26,20 @@ const Index = () => {
       <Navbar />
 
       <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-32">
-        {/* Hero / Profile Section - Centralizado na tela */}
-        <div className="min-h-[60vh] flex flex-col items-center justify-center w-full max-w-7xl gap-16 mb-24 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
+        {/* Hero / Profile Section - Reduzi min-h e mb para subir o conteúdo abaixo */}
+        <div className="min-h-[40vh] flex flex-col items-center justify-center w-full max-w-7xl gap-12 mb-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
           <ProfileCard />
           <ClientsSection />
         </div>
 
         {/* Long Form */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-10 mb-32 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-8 mb-32 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
           <h2 
-            style={{ color: config.primaryColor }} 
-            className="text-[10px] md:text-xs tracking-[0.2em] uppercase opacity-70"
+            style={{ 
+              color: config.primaryColor,
+              textShadow: `0 0 20px ${config.primaryColor}80`
+            }} 
+            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase hover:scale-105 transition-transform cursor-default"
           >
             LONG-FORM
           </h2>
@@ -44,10 +47,13 @@ const Index = () => {
         </div>
 
         {/* Shorts Content */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-10 mb-32 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-8 mb-32 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
           <h2 
-            style={{ color: config.primaryColor }} 
-            className="text-[10px] md:text-xs tracking-[0.2em] uppercase opacity-70"
+             style={{ 
+              color: config.primaryColor,
+              textShadow: `0 0 20px ${config.primaryColor}80`
+            }} 
+            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase hover:scale-105 transition-transform cursor-default"
           >
             SHORTS
           </h2>
