@@ -27,11 +27,10 @@ const ClientsSection = () => {
     ? [...config.clients, ...config.clients, ...config.clients] 
     : config.clients;
 
-  // Cor de fundo para o degradê (fallback para preto se não houver config)
   const bgColor = config.backgroundColor || "#09090b";
 
   return (
-    <div className="w-full py-8 relative">
+    <div className="w-full py-12 relative overflow-hidden">
       {/* Máscaras de Degradê Laterais */}
       <div 
         className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
@@ -42,7 +41,7 @@ const ClientsSection = () => {
         style={{ background: `linear-gradient(to left, ${bgColor}, transparent)` }}
       />
 
-      <div className="w-full overflow-hidden">
+      <div className="w-full">
         <Carousel
           plugins={[plugin.current]}
           opts={{
@@ -52,16 +51,18 @@ const ClientsSection = () => {
           }}
           className="w-full max-w-[1400px] mx-auto"
         >
-          <CarouselContent className="-ml-0 items-center">
+          {/* Adicionado padding vertical no CarouselContent para não cortar o topo/fundo no hover */}
+          <CarouselContent className="-ml-0 items-center py-4">
             {displayClients.map((client, idx) => (
               <CarouselItem 
                 key={`${client.id}-${idx}`} 
                 className="pl-0 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/5"
               >
-                <div className="flex flex-col items-center group relative cursor-default px-2">
-                  {/* Logo/Avatar do Cliente - AUMENTADO */}
+                {/* px-4 fornece espaço lateral para a animação de scale */}
+                <div className="flex flex-col items-center group relative cursor-default px-4">
+                  {/* Container da Imagem */}
                   <div 
-                    className="relative w-24 h-24 md:w-32 md:h-32 mb-4 rounded-full overflow-hidden shadow-lg transition-transform duration-300 group-hover:scale-105"
+                    className="relative w-24 h-24 md:w-32 md:h-32 mb-4 rounded-full shadow-lg transition-transform duration-300 ease-out group-hover:scale-110"
                   >
                     <div 
                       style={{ borderColor: config.primaryColor }}
@@ -70,12 +71,12 @@ const ClientsSection = () => {
                     <img 
                       src={client.image} 
                       alt={client.name} 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-full"
                     />
                   </div>
 
                   {/* Texto: Nome e Subtítulo */}
-                  <div className="flex flex-col items-center gap-1 text-center px-1">
+                  <div className="flex flex-col items-center gap-1 text-center">
                     <span 
                       className="text-[10px] md:text-xs text-white font-bold tracking-wider uppercase opacity-80"
                     >
