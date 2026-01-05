@@ -65,9 +65,9 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
             </div>
           </button>
 
-          {/* Email - Mostrar e Copiar */}
-          <button
-            onClick={() => handleCopy('rdovfx1@gmail.com', 'email')}
+          {/* Email - Redirecionamento Direto via Mailto */}
+          <a
+            href="mailto:rdovfx1@gmail.com"
             className="group relative flex flex-col items-center justify-center gap-2 w-full py-5 px-6 rounded-2xl bg-zinc-900 border-2 border-zinc-800 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-white/20"
           >
             <div className="flex items-center gap-3">
@@ -76,13 +76,15 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
                 Email
               </span>
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-col items-center gap-1 mt-1">
               <span className="text-zinc-500 text-[8px] font-['Press_Start_2P'] lowercase">
                 rdovfx1@gmail.com
               </span>
-              {copiedType === 'email' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-zinc-600" />}
+              <span className="text-[6px] text-zinc-600 font-['Press_Start_2P'] uppercase mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to write
+              </span>
             </div>
-          </button>
+          </a>
         </div>
 
         <button 
