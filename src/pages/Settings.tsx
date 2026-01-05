@@ -56,7 +56,7 @@ const Settings = () => {
     const { data, error } = await supabase.storage
       .from('portfolio')
       .upload(fileName, file, {
-        cacheControl: '3600',
+        cacheControl: '31536000', // Cache por 1 ano para "carregar apenas uma vez"
         upsert: false
       });
 
@@ -105,14 +105,14 @@ const Settings = () => {
 
       await ffmpeg.exec([
         '-i', inputName,
-        '-t', '7',                 // Corta exatamente os primeiros 7 segundos
-        '-vf', 'scale=-2:360',     // Redimensiona para 360p de altura
-        '-r', '15',                // 15 FPS
+        '-t', '7',                 // 7 segundos
+        '-vf', 'scale=-2:720',     // 720p de altura (mantendo aspect ratio)
+        '-r', '24',                // 24 FPS para maior fluidez em HD
         '-c:v', 'libx264',
-        '-b:v', '600k',
-        '-preset', 'superfast',
+        '-b:v', '2500k',           // 2.5 Mbps Bitrate para qualidade 720p nítida
+        '-preset', 'fast',         // Preset balanceado
         '-movflags', '+faststart',
-        '-an',                     // Remove áudio
+        '-an',                     // Sem áudio
         outputName
       ]);
 
@@ -130,7 +130,7 @@ const Settings = () => {
 
     setProcessingIndex(index);
     setProcessingProgress(0);
-    const currentToastId = showLoading("PROCESSANDO (7s) E ENVIANDO...");
+    const currentToastId = showLoading("PROCESSANDO HD (720p) E ENVIANDO...");
 
     try {
       let finalFile: File | Blob = file;
@@ -152,7 +152,7 @@ const Settings = () => {
         updateLocalConfig({ featuredVideos: newList });
         
         dismissToast(currentToastId);
-        showSuccess(usedOptimization ? "VÍDEO OTIMIZADO (7s)!" : "VÍDEO SALVO!");
+        showSuccess(usedOptimization ? "VÍDEO HD (7s) SALVO!" : "VÍDEO SALVO!");
       } else {
         throw new Error("Falha no upload");
       }

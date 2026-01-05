@@ -52,7 +52,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
       src={src} 
       className="w-full h-full object-contain bg-black pointer-events-none select-none"
       muted loop playsInline
-      preload="metadata"
+      preload="auto" // Força carregamento imediato
       controls={false}
     />
   );
