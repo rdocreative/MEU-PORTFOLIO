@@ -105,14 +105,14 @@ const Settings = () => {
 
       await ffmpeg.exec([
         '-i', inputName,
-        '-t', '15',                // Corta o vídeo para 15 segundos
-        '-vf', 'scale=-2:360',     // Redimensiona para 360p de altura, mantendo a proporção
-        '-r', '15',                // Define a taxa de quadros para 15 FPS para maior fluidez
+        '-t', '7',                 // Corta exatamente os primeiros 7 segundos
+        '-vf', 'scale=-2:360',     // Redimensiona para 360p de altura
+        '-r', '15',                // 15 FPS
         '-c:v', 'libx264',
-        '-b:v', '600k',            // Aumenta o bitrate para melhor qualidade de imagem
-        '-preset', 'superfast',    // Usa uma predefinição de codificação mais eficiente
-        '-movflags', '+faststart', // Otimiza o vídeo para streaming na web (carregamento rápido)
-        '-an',                     // Remove a faixa de áudio para reduzir o tamanho
+        '-b:v', '600k',
+        '-preset', 'superfast',
+        '-movflags', '+faststart',
+        '-an',                     // Remove áudio
         outputName
       ]);
 
@@ -130,7 +130,7 @@ const Settings = () => {
 
     setProcessingIndex(index);
     setProcessingProgress(0);
-    const currentToastId = showLoading("PROCESSANDO E ENVIANDO VÍDEO...");
+    const currentToastId = showLoading("PROCESSANDO (7s) E ENVIANDO...");
 
     try {
       let finalFile: File | Blob = file;
@@ -152,14 +152,14 @@ const Settings = () => {
         updateLocalConfig({ featuredVideos: newList });
         
         dismissToast(currentToastId);
-        showSuccess(usedOptimization ? "VÍDEO OTIMIZADO E SALVO!" : "VÍDEO SALVO NO SERVIDOR!");
+        showSuccess(usedOptimization ? "VÍDEO OTIMIZADO (7s)!" : "VÍDEO SALVO!");
       } else {
         throw new Error("Falha no upload");
       }
       
     } catch (err) {
       dismissToast(currentToastId);
-      showError("Erro ao enviar vídeo para o servidor.");
+      showError("Erro ao enviar vídeo.");
     } finally {
       setProcessingIndex(null);
       setProcessingProgress(0);

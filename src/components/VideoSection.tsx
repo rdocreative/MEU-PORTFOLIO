@@ -50,7 +50,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     <video 
       ref={videoRef}
       src={src} 
-      className="w-full h-full object-cover bg-black pointer-events-none select-none"
+      className="w-full h-full object-contain bg-black pointer-events-none select-none"
       muted loop playsInline
       preload="metadata"
       controls={false}
@@ -83,7 +83,7 @@ const YouTubeAutoEmbed = memo(({ videoId, title }: { videoId: string, title?: st
           }
         });
       },
-      { threshold: 0.7 } // Aumentado de 0.1 para 0.7 (muito mais estrito)
+      { threshold: 0.7 }
     );
     
     if (containerRef.current) observer.observe(containerRef.current);
