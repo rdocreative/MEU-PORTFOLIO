@@ -130,9 +130,9 @@ const VideoSection = () => {
 
   const plugin = useRef(
     AutoScroll({ 
-      speed: 1, // Aumentado de 0.8 para 1.0 (+25%)
+      speed: 1, 
       stopOnInteraction: false,
-      stopOnMouseEnter: true,
+      stopOnMouseEnter: false, // Alterado para false para nunca parar ao passar o mouse
       startDelay: 0,
     })
   );
