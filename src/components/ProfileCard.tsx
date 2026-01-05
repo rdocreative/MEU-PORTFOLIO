@@ -51,7 +51,7 @@ const ProfileCard = () => {
   const cardStyle = { 
     backgroundColor: `${config.cardColor}cc`, 
     borderColor: config.primaryColor,
-    boxShadow: `10px 10px 0px 0px ${config.primaryColor}4d`,
+    // REMOVIDO: boxShadow: `10px 10px 0px 0px ${config.primaryColor}4d`,
     transform: isHovering 
       ? `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1.02, 1.02, 1.02)` 
       : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
