@@ -80,16 +80,16 @@ const Index = () => {
           <ProfileCard />
         </div>
 
-        {/* Seção 2: Long Form */}
+        {/* Seção 2: Videos */}
         <div className="w-full max-w-7xl flex flex-col items-center gap-16">
           <h2 
             style={{ 
               color: config.primaryColor,
               textShadow: `0 0 20px ${config.primaryColor}80`
             }} 
-            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase hover:scale-105 transition-transform cursor-default"
+            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default"
           >
-            LONG-FORM
+            VIDEOS
           </h2>
           <VideoSection />
         </div>
