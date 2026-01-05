@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
-import { Twitter, Mail } from 'lucide-react';
+import { Twitter, Mail, Briefcase } from 'lucide-react';
 import { useConfig } from '@/context/ConfigContext';
 
 // Ícone SVG do Discord
@@ -129,6 +129,20 @@ const ProfileCard = () => {
             {config.description}
           </p>
         )}
+
+        {/* Botão CTA Destacado */}
+        <a 
+          href={`mailto:${config.email}`}
+          className="px-8 py-3 rounded-full font-bold text-black text-sm uppercase tracking-wider transition-all hover:scale-105 active:scale-95 mb-8 flex items-center gap-2 z-20"
+          style={{
+            backgroundColor: config.primaryColor,
+            boxShadow: `0 0 20px ${config.primaryColor}66`,
+            transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)'
+          }}
+        >
+          <Briefcase className="w-4 h-4" />
+          Work With Me
+        </a>
 
         <div 
           className="flex gap-6 transition-transform duration-300 z-20"
