@@ -162,14 +162,13 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
-  // FIX: Garantir que existam slides suficientes (pelo menos ~12) para que o loop infinito 
-  // funcione suavemente mesmo em telas largas e com rolagem rápida.
+  // FIX: Buffer de itens significativamente maior para evitar glitches em telas ultrawide ou scroll rápido
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
     
     let result = [...baseVideos];
-    // Continua duplicando até ter pelo menos 12 itens
-    while (result.length < 12) {
+    // Garante pelo menos 16 itens (aprox 5 telas de conteúdo em desktop comum)
+    while (result.length < 16) {
       result = [...result, ...baseVideos];
     }
     return result;
@@ -177,6 +176,7 @@ const VideoSection = () => {
 
   if (displayVideos.length === 0) return null;
 
+  // Botões de navegação estilizados e posicionados
   const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2";
 
   return (
@@ -209,8 +209,8 @@ const VideoSection = () => {
             ))}
           </CarouselContent>
           
-          <CarouselPrevious className={`${pixelArrowClass} left-4 md:left-8`} />
-          <CarouselNext className={`${pixelArrowClass} right-4 md:right-8`} />
+          <CarouselPrevious className={`${pixelArrowClass} left-4`} />
+          <CarouselNext className={`${pixelArrowClass} right-4`} />
         </Carousel>
       </section>
 
