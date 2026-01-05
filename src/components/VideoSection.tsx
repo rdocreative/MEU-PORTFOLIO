@@ -151,7 +151,7 @@ const VideoSection = () => {
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false,
+      stopOnInteraction: true, // Importante: para o autoscroll ao interagir
       stopOnMouseEnter: true,
       startDelay: 0,
     })
@@ -171,8 +171,8 @@ const VideoSection = () => {
 
   if (displayVideos.length === 0) return null;
 
-  // Estilo pixelado minimalista corrigido
-  const pixelArrowClass = "h-10 w-10 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-50 pointer-events-auto shadow-lg";
+  // Botões de navegação com z-index alto e posicionamento absoluto
+  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2";
 
   return (
     <>
@@ -204,9 +204,8 @@ const VideoSection = () => {
             ))}
           </CarouselContent>
           
-          {/* Setas integradas ao componente para funcionar corretamente */}
-          <CarouselPrevious className={`${pixelArrowClass} left-2 md:left-4 lg:left-8 top-1/2 -translate-y-1/2 absolute translate-x-0`} />
-          <CarouselNext className={`${pixelArrowClass} right-2 md:right-4 lg:right-8 top-1/2 -translate-y-1/2 absolute translate-x-0`} />
+          <CarouselPrevious className={`${pixelArrowClass} left-4 md:left-8`} />
+          <CarouselNext className={`${pixelArrowClass} right-4 md:right-8`} />
         </Carousel>
       </section>
 
