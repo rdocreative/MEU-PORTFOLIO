@@ -27,60 +27,75 @@ const ClientsSection = () => {
     ? [...config.clients, ...config.clients, ...config.clients] 
     : config.clients;
 
-  return (
-    <div className="w-full py-8 overflow-hidden">
-      <Carousel
-        plugins={[plugin.current]}
-        opts={{
-          align: "start",
-          loop: true,
-          dragFree: true,
-        }}
-        className="w-full max-w-[1400px] mx-auto"
-      >
-        <CarouselContent className="-ml-4 items-center">
-          {displayClients.map((client, idx) => (
-            <CarouselItem 
-              key={`${client.id}-${idx}`} 
-              className="pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
-            >
-              <div className="flex flex-col items-center group relative cursor-default">
-                {/* Logo/Avatar do Cliente */}
-                <div 
-                  className="relative w-20 h-20 md:w-24 md:h-24 mb-4 rounded-full overflow-hidden shadow-xl transition-transform duration-300 group-hover:scale-110"
-                >
-                  <div 
-                    style={{ borderColor: config.primaryColor }}
-                    className="absolute inset-0 border-2 rounded-full opacity-30 z-10" 
-                  />
-                  <img 
-                    src={client.image} 
-                    alt={client.name} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+  // Cor de fundo para o degradê (fallback para preto se não houver config)
+  const bgColor = config.backgroundColor || "#09090b";
 
-                {/* Texto: Nome e Subtítulo */}
-                <div className="flex flex-col items-center gap-1 text-center px-2">
-                  <span 
-                    className="text-[10px] md:text-xs text-white font-bold tracking-wider uppercase opacity-80"
+  return (
+    <div className="w-full py-8 relative">
+      {/* Máscaras de Degradê Laterais */}
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
+        style={{ background: `linear-gradient(to right, ${bgColor}, transparent)` }}
+      />
+      <div 
+        className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
+        style={{ background: `linear-gradient(to left, ${bgColor}, transparent)` }}
+      />
+
+      <div className="w-full overflow-hidden">
+        <Carousel
+          plugins={[plugin.current]}
+          opts={{
+            align: "start",
+            loop: true,
+            dragFree: true,
+          }}
+          className="w-full max-w-[1400px] mx-auto"
+        >
+          <CarouselContent className="-ml-2 items-center">
+            {displayClients.map((client, idx) => (
+              <CarouselItem 
+                key={`${client.id}-${idx}`} 
+                className="pl-2 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/5"
+              >
+                <div className="flex flex-col items-center group relative cursor-default">
+                  {/* Logo/Avatar do Cliente */}
+                  <div 
+                    className="relative w-16 h-16 md:w-20 md:h-20 mb-3 rounded-full overflow-hidden shadow-lg transition-transform duration-300 group-hover:scale-105"
                   >
-                    {client.name}
-                  </span>
-                  
-                  {client.subtitle && (
+                    <div 
+                      style={{ borderColor: config.primaryColor }}
+                      className="absolute inset-0 border-[1px] rounded-full opacity-20 z-10" 
+                    />
+                    <img 
+                      src={client.image} 
+                      alt={client.name} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Texto: Nome e Subtítulo */}
+                  <div className="flex flex-col items-center gap-0.5 text-center px-1">
                     <span 
-                      className="text-[8px] md:text-[9px] text-zinc-500 font-normal tracking-wide uppercase line-clamp-1"
+                      className="text-[9px] md:text-[10px] text-white font-semibold tracking-wider uppercase opacity-70"
                     >
-                      {client.subtitle}
+                      {client.name}
                     </span>
-                  )}
+                    
+                    {client.subtitle && (
+                      <span 
+                        className="text-[7px] md:text-[8px] text-zinc-500 font-normal tracking-wide uppercase line-clamp-1"
+                      >
+                        {client.subtitle}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
     </div>
   );
 };
