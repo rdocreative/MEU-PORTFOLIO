@@ -406,20 +406,6 @@ const Settings = () => {
               ))}
             </div>
           </div>
-
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
-              <Zap className="w-5 h-5 fill-yellow-400 text-yellow-400" /> Shorts_Marquee
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {config.shortsVideos.map((video, index) => (
-                <div key={video.id} className="p-4 border border-zinc-800 rounded-2xl bg-black/20 flex gap-4 items-center">
-                  <span className="text-[8px] text-zinc-600">#{index+1}</span>
-                  <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value, 'shorts')} className="bg-black border-zinc-800 text-[10px] h-10" placeholder="YOUTUBE URL" />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="flex gap-6">
@@ -450,7 +436,7 @@ const X = ({ className }: { className?: string }) => (
     className={className}
   >
     <path d="M18 6 6 18"/>
-    <path d="m6 6 18 18"/>
+    <path d="M6 6l12 12"/>
   </svg>
 );
 

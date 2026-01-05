@@ -4,7 +4,6 @@ import React from 'react';
 import ProfileCard from "@/components/ProfileCard";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
-import ShortsSection from "@/components/ShortsSection";
 import ClientsSection from "@/components/ClientsSection";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
@@ -68,20 +67,6 @@ const Index = () => {
         {/* Seção 3: Clientes */}
         <div className="w-full max-w-7xl flex justify-center -mt-8">
           <ClientsSection />
-        </div>
-
-        {/* Seção 4: Shorts */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-16">
-          <h2 
-             style={{ 
-              color: config.primaryColor,
-              textShadow: `0 0 20px ${config.primaryColor}80`
-            }} 
-            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase hover:scale-105 transition-transform cursor-default"
-          >
-            SHORTS
-          </h2>
-          <ShortsSection />
         </div>
       </main>
 
