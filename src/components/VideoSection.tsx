@@ -27,40 +27,18 @@ const VideoLoop = ({ src }: { src: string }) => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    
-    const startPlay = async () => {
-      try {
-        await video.play();
-      } catch (err) {
-        console.warn("Autoplay inicial falhou, tentando novamente mudo:", err);
-        video.muted = true;
-        try {
-          await video.play();
-        } catch (e) {
-          console.error("Autoplay falhou definitivamente:", e);
-        }
-      }
-    };
-
-    startPlay();
+    video.play().catch(console.error);
   }, [src]);
 
   return (
     <video 
       ref={videoRef}
-      key={src}
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
-      muted
-      loop 
-      playsInline 
-      autoPlay
-      preload="auto"
-      crossOrigin="anonymous" 
+      muted loop playsInline autoPlay
       controls={false}
     />
   );
@@ -166,17 +144,11 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
 
 const PixelPrev = () => {
   const { scrollPrev, canScrollPrev } = useCarousel();
-  const { config } = useConfig();
-  
   return (
     <button 
       onClick={scrollPrev}
       disabled={!canScrollPrev}
-      style={{ 
-        borderColor: config.primaryColor,
-        color: config.primaryColor 
-      }}
-      className="relative pointer-events-auto h-20 w-20 border-4 bg-black/90 hover:bg-white hover:text-black transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] disabled:opacity-50"
+      className="relative pointer-events-auto h-20 w-20 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-lg disabled:opacity-50"
     >
       &lt;
     </button>
@@ -185,17 +157,11 @@ const PixelPrev = () => {
 
 const PixelNext = () => {
   const { scrollNext, canScrollNext } = useCarousel();
-  const { config } = useConfig();
-
   return (
     <button 
       onClick={scrollNext}
       disabled={!canScrollNext}
-      style={{ 
-        borderColor: config.primaryColor,
-        color: config.primaryColor 
-      }}
-      className="relative pointer-events-auto h-20 w-20 border-4 bg-black/90 hover:bg-white hover:text-black transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] disabled:opacity-50"
+      className="relative pointer-events-auto h-20 w-20 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-lg disabled:opacity-50"
     >
       &gt;
     </button>
