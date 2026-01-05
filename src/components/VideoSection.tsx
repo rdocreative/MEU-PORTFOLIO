@@ -50,7 +50,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     <video 
       ref={videoRef}
       src={src} 
-      className="w-full h-full object-cover bg-black pointer-events-none select-none"
+      className="w-full h-full object-cover bg-black pointer-events-none select-none rounded-[40px]"
       muted loop playsInline
       preload="none"
       controls={false}
@@ -60,7 +60,6 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
-// Componente para gerenciar o iframe do YouTube de forma leve
 const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
   const [shouldLoad, setShouldLoad] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +68,6 @@ const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: stri
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Pequeno delay para não travar o scroll inicial
           const timer = setTimeout(() => setShouldLoad(true), 500);
           return () => clearTimeout(timer);
         }
@@ -82,22 +80,20 @@ const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: stri
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden">
-      {/* Thumbnail de fundo enquanto o iframe não carrega */}
+    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden rounded-[40px] isolate">
       <img 
         src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
         alt="" 
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 rounded-[40px] ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
       />
       
       {shouldLoad && (
         <iframe
-          // vq=tiny força a menor qualidade possível para carregamento instantâneo
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1&vq=tiny`}
-          className="absolute inset-0 w-full h-full pointer-events-none" 
+          className="absolute inset-0 w-full h-full pointer-events-none rounded-[40px]" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           tabIndex={-1}
-          style={{ border: 0 }}
+          style={{ border: 0, borderRadius: '40px' }}
           loading="lazy"
           title={title}
         />
@@ -140,8 +136,6 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   return null;
 };
 
-// --- Componente do Card ---
-
 const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
 
@@ -150,10 +144,9 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
       onClick={onClick}
       className="group relative flex flex-col gap-4 p-1 cursor-pointer transform-gpu backface-hidden"
     >
-      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)] isolate">
         
-        {/* Camada de Vídeo */}
-        <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none rounded-[40px] overflow-hidden">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
@@ -166,17 +159,14 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             )}
         </div>
         
-        {/* Overlays e Bordas */}
-        <div className="absolute inset-0 z-10 bg-transparent" />
+        <div className="absolute inset-0 z-10 bg-transparent rounded-[40px]" />
         
-        {/* Overlay Hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20 rounded-[40px]">
           <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
             Watch
           </span>
         </div>
 
-        {/* Borda como Overlay */}
         <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-30" />
       </div>
       
@@ -190,8 +180,6 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
 });
 
 VideoCard.displayName = 'VideoCard';
-
-// --- Seção Principal ---
 
 const VideoSection = () => {
   const { config } = useConfig();
