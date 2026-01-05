@@ -50,7 +50,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     <video 
       ref={videoRef}
       src={src} 
-      className="w-full h-full object-contain bg-black pointer-events-none select-none"
+      className="w-full h-full object-cover bg-black pointer-events-none select-none"
       muted loop playsInline
       preload="none"
       controls={false}
@@ -83,7 +83,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
     return (
       <div className="relative w-full h-full overflow-hidden bg-black select-none">
         <iframe
-          className="absolute inset-0 w-[101%] h-[101%] -left-[0.5%] -top-[0.5%] pointer-events-auto"
+          className="w-full h-full pointer-events-auto"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -109,7 +109,9 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
       onClick={onClick}
       className="group relative flex flex-col gap-4 p-1 cursor-pointer transform-gpu backface-hidden"
     >
-      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:border-white/40 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+        
+        {/* Camada de Vídeo */}
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -117,7 +119,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
               <div className="relative w-full h-full bg-black overflow-hidden">
                  <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1`}
-                    className="absolute inset-0 w-[101%] h-[101%] -left-[0.5%] -top-[0.5%] pointer-events-none" 
+                    className="absolute inset-0 w-full h-full pointer-events-none" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
@@ -133,13 +135,18 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             )}
         </div>
         
+        {/* Overlays e Bordas */}
         <div className="absolute inset-0 z-10 bg-transparent" />
         
+        {/* Overlay Hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20">
           <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
             Watch
           </span>
         </div>
+
+        {/* Borda como Overlay (corrige aspect-ratio e barras pretas) */}
+        <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-30" />
       </div>
       
       <div className="flex flex-col gap-1 items-center">
