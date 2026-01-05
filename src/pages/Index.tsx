@@ -25,15 +25,17 @@ const Index = () => {
       <StarsBackground />
       <Navbar />
 
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-32">
-        {/* Hero / Profile Section - Reduzi min-h e mb para subir o conteúdo abaixo */}
-        <div className="min-h-[40vh] flex flex-col items-center justify-center w-full max-w-7xl gap-12 mb-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
+      {/* Container Principal com gap-24 (96px) entre as grandes seções */}
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-32 pb-32 gap-24">
+        
+        {/* Seção 1: Perfil + Clientes */}
+        <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
           <ProfileCard />
           <ClientsSection />
         </div>
 
-        {/* Long Form */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-8 mb-32 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
+        {/* Seção 2: Long Form */}
+        <div className="w-full max-w-7xl flex flex-col items-center gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
           <h2 
             style={{ 
               color: config.primaryColor,
@@ -46,8 +48,8 @@ const Index = () => {
           <VideoSection />
         </div>
 
-        {/* Shorts Content */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-8 mb-32 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
+        {/* Seção 3: Shorts */}
+        <div className="w-full max-w-7xl flex flex-col items-center gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
           <h2 
              style={{ 
               color: config.primaryColor,
