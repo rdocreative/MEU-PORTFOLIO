@@ -81,35 +81,6 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 
 const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
-  const [imgError, setImgError] = useState(false);
-
-  const thumbnailQualities = useMemo(() => [
-    'maxresdefault.jpg',
-    'sddefault.jpg',
-    'hqdefault.jpg',
-    'mqdefault.jpg',
-    '0.jpg'
-  ], []);
-
-  const [currentQualityIndex, setCurrentQualityIndex] = useState(0);
-
-  const imgSrc = useMemo(() => {
-    if (!videoId) return '';
-    return `https://img.youtube.com/vi/${videoId}/${thumbnailQualities[currentQualityIndex]}`;
-  }, [videoId, currentQualityIndex, thumbnailQualities]);
-
-  const handleImgError = () => {
-    if (currentQualityIndex < thumbnailQualities.length - 1) {
-      setCurrentQualityIndex(prev => prev + 1);
-    } else {
-      setImgError(true);
-    }
-  };
-
-  useEffect(() => {
-    setCurrentQualityIndex(0);
-    setImgError(false);
-  }, [video.url]);
 
   return (
     <div 
@@ -120,15 +91,15 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
-            ) : !imgError && videoId ? (
-              <div className="relative w-full h-full">
-                 <img 
-                  src={imgSrc}
-                  alt={video.title}
-                  className="w-full h-full object-cover"
-                  onError={handleImgError}
-                />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+            ) : videoId ? (
+              <div className="relative w-full h-full bg-black overflow-hidden">
+                 <iframe
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0`}
+                    className="w-full h-full object-cover pointer-events-none scale-[1.35]"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    tabIndex={-1}
+                    style={{ border: 0 }}
+                 />
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
@@ -138,8 +109,11 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
             )}
         </div>
         
+        {/* Camada transparente para garantir que o clique funcione sobre o iframe */}
+        <div className="absolute inset-0 z-10 bg-transparent" />
+        
         {/* Overlay de "Click to Watch" */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px]">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20">
           <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
             Watch
           </span>
