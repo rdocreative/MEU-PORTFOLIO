@@ -8,7 +8,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  useCarousel
+  CarouselNext,
+  CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 
@@ -21,6 +22,7 @@ const getYouTubeId = (url: string) => {
 
 // --- Componentes de Vídeo ---
 
+// 1. VideoLoop: Para o CARD (Mudo, Loop, Autoplay, Sem som)
 const VideoLoop = ({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -44,6 +46,7 @@ const VideoLoop = ({ src }: { src: string }) => {
   );
 };
 
+// 2. FullVideo: Para o MODAL (Com som, Sem controles visuais, Autoplay)
 const FullVideo = ({ video }: { video: VideoData }) => {
   const videoId = getYouTubeId(video.url);
 
@@ -54,8 +57,9 @@ const FullVideo = ({ video }: { video: VideoData }) => {
         className="w-full h-full object-contain bg-black"
         playsInline 
         autoPlay
-        controls={false}
+        controls={false} // Sem player UI
         onClick={(e) => {
+          // Permite pausar/tocar clicando no vídeo
           const el = e.target as HTMLVideoElement;
           el.paused ? el.play() : el.pause();
         }}
@@ -64,6 +68,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   }
 
   if (videoId) {
+    // YouTube sem controles (controls=0)
     return (
       <iframe
         className="w-full h-full"
@@ -121,6 +126,7 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
             )}
         </div>
         
+        {/* Overlay de "Click to Watch" */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px]">
           <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
             Watch
@@ -140,34 +146,6 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
   );
 };
 
-// --- Botões Customizados Pixelados ---
-
-const PixelPrev = () => {
-  const { scrollPrev, canScrollPrev } = useCarousel();
-  return (
-    <button 
-      onClick={scrollPrev}
-      disabled={!canScrollPrev}
-      className="relative pointer-events-auto h-20 w-20 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-lg disabled:opacity-50"
-    >
-      &lt;
-    </button>
-  );
-};
-
-const PixelNext = () => {
-  const { scrollNext, canScrollNext } = useCarousel();
-  return (
-    <button 
-      onClick={scrollNext}
-      disabled={!canScrollNext}
-      className="relative pointer-events-auto h-20 w-20 border-4 border-white/20 bg-black/80 text-white hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95 animate-wiggle font-['Press_Start_2P'] text-3xl pb-2 z-30 shadow-lg disabled:opacity-50"
-    >
-      &gt;
-    </button>
-  );
-};
-
 // --- Seção Principal ---
 
 const VideoSection = () => {
@@ -177,12 +155,13 @@ const VideoSection = () => {
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: true,
-      stopOnMouseEnter: true, 
+      stopOnInteraction: true, // Para quando interage (clica/arrasta)
+      stopOnMouseEnter: true,  // Para quando passa o mouse (SOLICITADO)
       startDelay: 0,
     })
   );
 
+  // Filtra e Duplica vídeos para garantir loop visual
   const baseVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
     [config.featuredVideos]
@@ -199,6 +178,7 @@ const VideoSection = () => {
   return (
     <>
       <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
+        {/* Degradês Laterais */}
         <div 
           className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
@@ -217,7 +197,7 @@ const VideoSection = () => {
           }}
           className="w-full relative"
         >
-          <CarouselContent className="-ml-4 items-center py-10">
+          <CarouselContent className="-ml-4 items-center py-10"> {/* py-10 dá espaço para o scale do hover */}
             {displayVideos.map((video, idx) => (
               <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 transition-all">
                 <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
@@ -225,22 +205,20 @@ const VideoSection = () => {
             ))}
           </CarouselContent>
           
-          <div className="flex justify-center gap-8 mt-4 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
-            <div className="lg:absolute lg:left-0">
-              <PixelPrev />
-            </div>
-            <div className="lg:absolute lg:right-0">
-              <PixelNext />
-            </div>
+          <div className="flex justify-center gap-4 mt-4 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
+            <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95" />
+            <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95" />
           </div>
         </Carousel>
       </section>
 
+      {/* Modal / Dialog para assistir */}
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="max-w-5xl w-[90vw] aspect-video p-0 bg-black border-none overflow-hidden ring-0 outline-none">
            <div className="relative w-full h-full bg-black group/modal">
               {selectedVideo && <FullVideo video={selectedVideo} />}
               
+              {/* Botão de Fechar flutuante */}
               <DialogClose className="absolute top-4 right-4 z-50 p-2 bg-black/50 rounded-full text-white hover:bg-white hover:text-black transition-all opacity-0 group-hover/modal:opacity-100">
                 <X className="w-6 h-6" />
               </DialogClose>
