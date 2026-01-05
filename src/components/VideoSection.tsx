@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
   Carousel,
@@ -11,6 +11,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 
 const getYouTubeId = (url: string) => {
   if (!url) return null;
@@ -19,54 +20,71 @@ const getYouTubeId = (url: string) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// Componente de vídeo puramente visual (Loop, Mudo, Sem controles)
+// --- Componentes de Vídeo ---
+
+// 1. VideoLoop: Para o CARD (Mudo, Loop, Autoplay, Sem som)
 const VideoLoop = ({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    // Força atributos críticos via JS
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    
-    const startPlay = async () => {
-      try {
-        await video.play();
-      } catch (err) {
-        console.warn("Autoplay inicial falhou, tentando novamente mudo:", err);
-        video.muted = true;
-        try {
-          await video.play();
-        } catch (e) {
-          console.error("Autoplay falhou definitivamente:", e);
-        }
-      }
-    };
-
-    startPlay();
+    video.play().catch(console.error);
   }, [src]);
 
   return (
     <video 
       ref={videoRef}
-      key={src}
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
-      muted
-      loop 
-      playsInline 
-      autoPlay
-      preload="auto"
-      crossOrigin="anonymous" 
+      muted loop playsInline autoPlay
       controls={false}
     />
   );
 };
 
-const VideoCard = ({ video }: { video: VideoData }) => {
+// 2. FullVideo: Para o MODAL (Com som, Sem controles visuais, Autoplay)
+const FullVideo = ({ video }: { video: VideoData }) => {
+  const videoId = getYouTubeId(video.url);
+
+  if (video.customVideoUrl) {
+    return (
+      <video 
+        src={video.customVideoUrl} 
+        className="w-full h-full object-contain bg-black"
+        playsInline 
+        autoPlay
+        controls={false} // Sem player UI
+        onClick={(e) => {
+          // Permite pausar/tocar clicando no vídeo
+          const el = e.target as HTMLVideoElement;
+          el.paused ? el.play() : el.pause();
+        }}
+      />
+    );
+  }
+
+  if (videoId) {
+    // YouTube sem controles (controls=0)
+    return (
+      <iframe
+        className="w-full h-full"
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0`}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+
+  return null;
+};
+
+// --- Componente do Card ---
+
+const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
   const [imgError, setImgError] = useState(false);
   const [imgSrc, setImgSrc] = useState(
@@ -82,8 +100,11 @@ const VideoCard = ({ video }: { video: VideoData }) => {
   };
 
   return (
-    <div className="group relative flex flex-col gap-4 p-1">
-      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-500 shadow-2xl group-hover:border-white/20 group-hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+    <div 
+      onClick={onClick}
+      className="group relative flex flex-col gap-4 p-1 cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10"
+    >
+      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-300 shadow-2xl group-hover:border-white/40 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -104,10 +125,17 @@ const VideoCard = ({ video }: { video: VideoData }) => {
               </div>
             )}
         </div>
+        
+        {/* Overlay de "Click to Watch" */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px]">
+          <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
+            Watch
+          </span>
+        </div>
       </div>
       
       <div className="flex flex-col gap-1 items-center">
-        <h3 className="text-[10px] text-white/80 uppercase tracking-[0.2em] font-bold">
+        <h3 className="text-[10px] text-white/80 uppercase tracking-[0.2em] font-bold group-hover:text-white transition-colors">
           {video.title}
         </h3>
         <span className="text-[8px] text-white/30 font-bold uppercase">
@@ -118,25 +146,27 @@ const VideoCard = ({ video }: { video: VideoData }) => {
   );
 };
 
+// --- Seção Principal ---
+
 const VideoSection = () => {
   const { config } = useConfig();
+  const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
 
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false,
-      stopOnMouseEnter: false, 
+      stopOnInteraction: true, // Para quando interage (clica/arrasta)
+      stopOnMouseEnter: true,  // Para quando passa o mouse (SOLICITADO)
       startDelay: 0,
     })
   );
 
-  // Filtra vídeos válidos
+  // Filtra e Duplica vídeos para garantir loop visual
   const baseVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
     [config.featuredVideos]
   );
 
-  // Técnica de duplicação para garantir loop infinito suave mesmo com poucos itens
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
     if (baseVideos.length < 6) return [...baseVideos, ...baseVideos, ...baseVideos];
@@ -146,40 +176,56 @@ const VideoSection = () => {
   if (displayVideos.length === 0) return null;
 
   return (
-    <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
-      <div 
-        className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
-        style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
-      />
-      
-      <div 
-        className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
-        style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
-      />
+    <>
+      <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
+        {/* Degradês Laterais */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
+          style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
+        />
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
+          style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
+        />
 
-      <Carousel
-        plugins={[plugin.current]}
-        opts={{
-          align: "center",
-          loop: true,
-          dragFree: true,
-        }}
-        className="w-full relative"
-      >
-        <CarouselContent className="-ml-4">
-          {displayVideos.map((video, idx) => (
-            <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-              <VideoCard video={video} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        
-        <div className="flex justify-center gap-4 mt-8 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
-          <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer" />
-          <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer" />
-        </div>
-      </Carousel>
-    </section>
+        <Carousel
+          plugins={[plugin.current]}
+          opts={{
+            align: "center",
+            loop: true,
+            dragFree: true,
+          }}
+          className="w-full relative"
+        >
+          <CarouselContent className="-ml-4 items-center py-10"> {/* py-10 dá espaço para o scale do hover */}
+            {displayVideos.map((video, idx) => (
+              <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 transition-all">
+                <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          
+          <div className="flex justify-center gap-4 mt-4 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
+            <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95" />
+            <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95" />
+          </div>
+        </Carousel>
+      </section>
+
+      {/* Modal / Dialog para assistir */}
+      <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
+        <DialogContent className="max-w-5xl w-[90vw] aspect-video p-0 bg-black border-none overflow-hidden ring-0 outline-none">
+           <div className="relative w-full h-full bg-black group/modal">
+              {selectedVideo && <FullVideo video={selectedVideo} />}
+              
+              {/* Botão de Fechar flutuante */}
+              <DialogClose className="absolute top-4 right-4 z-50 p-2 bg-black/50 rounded-full text-white hover:bg-white hover:text-black transition-all opacity-0 group-hover/modal:opacity-100">
+                <X className="w-6 h-6" />
+              </DialogClose>
+           </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
