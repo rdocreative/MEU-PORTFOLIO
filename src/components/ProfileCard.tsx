@@ -60,6 +60,14 @@ const ProfileCard = () => {
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000">
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-200%) skewX(-20deg); }
+          15% { transform: translateX(200%) skewX(-20deg); }
+          100% { transform: translateX(200%) skewX(-20deg); }
+        }
+      `}</style>
+
       {/* Profile Section */}
       <div 
         ref={cardRef}
@@ -69,19 +77,27 @@ const ProfileCard = () => {
         style={cardStyle} 
         className="relative overflow-hidden backdrop-blur-md border-4 p-12 rounded-[40px] w-full flex flex-col items-center group/card will-change-transform"
       >
-        {/* Efeito de brilho (Glare) */}
+        {/* Efeito de brilho interativo (Glare) */}
         <div 
-            className="absolute inset-0 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 mix-blend-overlay"
+            className="absolute inset-0 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 mix-blend-overlay z-10"
             style={{
                 background: `linear-gradient(${115 + rotation.x * 2}deg, transparent 30%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 55%, transparent 70%)`,
                 transform: `translateX(${rotation.y * 2}px) translateY(${rotation.x * 2}px)`
             }}
         />
 
-        <div className="scanline"></div>
+        {/* Efeito de brilho automático passando (Shimmer) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[40px] z-10">
+            <div 
+              style={{ animation: 'shimmer 6s infinite linear' }}
+              className="absolute top-0 bottom-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
+            />
+        </div>
+
+        <div className="scanline z-0"></div>
         
         <div 
-          className="relative w-32 h-32 mb-6 transition-transform duration-500"
+          className="relative w-32 h-32 mb-6 transition-transform duration-500 z-20"
           style={{ transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)' }}
         >
           <div style={{ borderColor: config.secondaryColor }} className="absolute inset-0 border-4 rounded-full animate-pulse"></div>
@@ -97,13 +113,13 @@ const ProfileCard = () => {
             color: config.primaryColor,
             transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
           }} 
-          className="text-2xl mb-8 font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300"
+          className="text-2xl mb-8 font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300 z-20"
         >
           {config.profileName}
         </h1>
 
         <div 
-          className="flex gap-6 transition-transform duration-300"
+          className="flex gap-6 transition-transform duration-300 z-20"
           style={{ transform: isHovering ? 'translateZ(15px)' : 'translateZ(0)' }}
         >
           <a href={config.twitterUrl} target="_blank" rel="noopener" style={primaryStyle} className="p-4 bg-zinc-900 hover:bg-white hover:text-black transition-all border-2 rounded-full group">
