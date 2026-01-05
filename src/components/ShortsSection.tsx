@@ -75,35 +75,15 @@ const ShortsSection = () => {
 
   const ShortItem = ({ short }: { short: any }) => {
     const videoId = getYouTubeId(short.url);
-    const [imgError, setImgError] = useState(false);
-
-    const thumbnailQualities = useMemo(() => [
-      'maxresdefault.jpg',
-      'sddefault.jpg',
-      'hqdefault.jpg',
-      'mqdefault.jpg',
-      '0.jpg'
-    ], []);
-
-    const [currentQualityIndex, setCurrentQualityIndex] = useState(0);
-
-    const imgSrc = useMemo(() => {
-      if (!videoId) return '';
-      return `https://img.youtube.com/vi/${videoId}/${thumbnailQualities[currentQualityIndex]}`;
-    }, [videoId, currentQualityIndex, thumbnailQualities]);
-
-    const handleImgError = () => {
-      if (currentQualityIndex < thumbnailQualities.length - 1) {
-        setCurrentQualityIndex(prev => prev + 1);
-      } else {
-        setImgError(true);
-      }
-    };
-
-    useEffect(() => {
-      setCurrentQualityIndex(0);
-      setImgError(false);
-    }, [short.url]);
+    
+    // Se não tiver ID e nem vídeo customizado, não renderiza nada útil
+    if (!videoId && !short.customVideoUrl) {
+       return (
+        <div className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] border-4 border-zinc-800 flex items-center justify-center text-[8px] opacity-20">
+          NO_SIGNAL
+        </div>
+       );
+    }
 
     return (
       <div 
@@ -111,25 +91,29 @@ const ShortsSection = () => {
           borderColor: `${config.primaryColor}22`,
           WebkitMaskImage: "-webkit-radial-gradient(white, black)"
         }}
-        className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300 mx-auto"
+        className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300 mx-auto group"
       >
         {short.customVideoUrl ? (
           <AutoPlayVideo 
             src={short.customVideoUrl} 
             className="w-full h-full object-cover opacity-80"
           />
-        ) : videoId && !imgError ? (
-          <img 
-            src={imgSrc} 
-            className="w-full h-full object-cover opacity-80"
-            alt={short.title || 'YouTube Short'}
-            onError={handleImgError}
-          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
+          <div className="w-full h-full relative bg-black">
+             <iframe
+               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0`}
+               className="w-full h-full object-cover pointer-events-none scale-[1.35] opacity-80"
+               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+               tabIndex={-1}
+               style={{ border: 0 }}
+               loading="lazy"
+             />
+             {/* Overlay para bloquear interação direta e manter o scroll do carrossel funcionando */}
+             <div className="absolute inset-0 z-10 bg-transparent" />
+          </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
       </div>
     );
   };
