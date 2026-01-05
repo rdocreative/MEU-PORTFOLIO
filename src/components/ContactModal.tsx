@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Twitter, Mail, MessageSquare, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { showSuccess } from '@/utils/toast';
+import { toast } from 'sonner';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -16,13 +16,18 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     setCopiedType(type);
-    showSuccess(`${type.toUpperCase()} COPIADO!`);
-    setTimeout(() => setCopiedType(null), 2000);
+    
+    // Toast pequeno e rápido
+    toast.success("✅ Copied to clipboard", {
+      duration: 1000,
+      className: "font-pixel text-[10px] uppercase",
+    });
+
+    setTimeout(() => setCopiedType(null), 1000);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      {/* Adicionada a classe [&>button]:hidden para ocultar o botão de fechar padrão do Shadcn */}
       <DialogContent className="max-w-md bg-[#0a0a0a] border-4 border-white rounded-[32px] p-8 text-center sm:rounded-[40px] outline-none shadow-[0_0_50px_rgba(255,255,255,0.1)] [&>button]:hidden">
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-white text-lg font-['Press_Start_2P'] leading-relaxed uppercase tracking-tight">
@@ -34,7 +39,6 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-5 mt-10">
-          {/* Twitter - Redirecionamento Direto */}
           <a
             href="https://x.com/rdocreative"
             target="_blank"
@@ -47,7 +51,6 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
             </span>
           </a>
 
-          {/* Discord - Mostrar e Copiar */}
           <button
             onClick={() => handleCopy('rdocreative', 'discord')}
             className="group relative flex flex-col items-center justify-center gap-3 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#5865F2] hover:bg-[#5865F2]/5"
@@ -70,7 +73,6 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
             </div>
           </button>
 
-          {/* Email - Mostrar e Copiar */}
           <button
             onClick={() => handleCopy('rdovfx1@gmail.com', 'email')}
             className="group relative flex flex-col items-center justify-center gap-3 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-white/40 hover:bg-white/5"
