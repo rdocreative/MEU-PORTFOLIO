@@ -41,8 +41,8 @@ const ProfileCard = () => {
     transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out'
   };
 
-  // Inverte a ordem dos clientes salvos para mostrar "outros" primeiro
-  const displayedClients = config.clients ? [...config.clients].reverse().slice(0, 5) : [];
+  // Inverte a ordem dos clientes salvos para mostrar "outros" primeiro e limita a 4
+  const displayedClients = config.clients ? [...config.clients].reverse().slice(0, 4) : [];
 
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000">
