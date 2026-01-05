@@ -83,7 +83,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
     return (
       <div className="relative w-full h-full overflow-hidden bg-black select-none">
         <iframe
-          className="w-full h-full pointer-events-auto origin-center"
+          className="absolute inset-0 w-[101%] h-[101%] -left-[0.5%] -top-[0.5%] pointer-events-auto"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -117,7 +117,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
               <div className="relative w-full h-full bg-black overflow-hidden">
                  <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1`}
-                    className="w-full h-full pointer-events-none origin-center" 
+                    className="absolute inset-0 w-[101%] h-[101%] -left-[0.5%] -top-[0.5%] pointer-events-none" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
