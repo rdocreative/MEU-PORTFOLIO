@@ -9,12 +9,12 @@ const ClientsSection = () => {
   if (!config.clients || config.clients.length === 0) return null;
 
   return (
-    <div className="w-full max-w-lg flex flex-col items-center gap-6">
-      <h2 style={{ color: config.secondaryColor }} className="text-[10px] font-['Press_Start_2P'] uppercase tracking-widest opacity-50">
-        Trusted_Clients
+    <div className="w-full max-w-5xl flex flex-col items-center gap-10">
+      <h2 className="text-white text-lg md:text-xl font-['Press_Start_2P'] uppercase tracking-widest">
+        Clients
       </h2>
       
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="flex flex-wrap justify-center gap-8 md:gap-12">
         {config.clients.map((client) => (
           <div 
             key={client.id}
@@ -22,13 +22,13 @@ const ClientsSection = () => {
               backgroundColor: `${config.cardColor}cc`,
               borderColor: config.primaryColor 
             }}
-            className="w-20 h-20 border-2 rounded-2xl flex items-center justify-center p-3 grayscale hover:grayscale-0 transition-all hover:scale-110"
+            className="w-32 h-32 md:w-40 md:h-40 border-4 rounded-3xl flex items-center justify-center p-6 transition-all hover:scale-110 hover:bg-white/5 bg-black/40"
             title={client.name}
           >
             <img 
               src={client.image} 
               alt={client.name} 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain drop-shadow-lg"
             />
           </div>
         ))}

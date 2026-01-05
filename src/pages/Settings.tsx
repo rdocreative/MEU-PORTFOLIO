@@ -84,6 +84,13 @@ const Settings = () => {
     updateLocalConfig({ [listKey]: newList });
   };
 
+  const handleClientNameChange = (id: string, newName: string) => {
+    const updatedClients = config.clients.map(c => 
+        c.id === id ? { ...c, name: newName } : c
+    );
+    updateLocalConfig({ clients: updatedClients });
+  };
+
   const processVideo = async (file: File): Promise<Blob | null> => {
     const ffmpeg = ffmpegRef.current;
     if (!ffmpeg.loaded) {
@@ -295,10 +302,18 @@ const Settings = () => {
             <h2 className="text-white text-[12px] uppercase flex items-center gap-4">
               <Users className="w-5 h-5" /> Trusted_Clients
             </h2>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {config.clients.map((client) => (
-                <div key={client.id} className="relative group w-24 h-24 bg-black/30 border-2 border-zinc-800 rounded-xl flex items-center justify-center p-2">
-                  <img src={client.image} alt={client.name} className="w-full h-full object-contain" />
+                <div key={client.id} className="relative group p-4 bg-black/30 border-2 border-zinc-800 rounded-xl flex flex-col items-center gap-3">
+                  <div className="w-20 h-20 flex items-center justify-center bg-black/20 rounded-lg p-2">
+                    <img src={client.image} alt={client.name} className="w-full h-full object-contain" />
+                  </div>
+                  <Input 
+                    value={client.name} 
+                    onChange={(e) => handleClientNameChange(client.id, e.target.value)}
+                    className="bg-black border-zinc-800 text-[8px] h-8 text-center"
+                    placeholder="NAME"
+                  />
                   <button 
                     onClick={() => removeClient(client.id)}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -310,10 +325,10 @@ const Settings = () => {
               
               <button 
                 onClick={() => clientInputRef.current?.click()}
-                className="w-24 h-24 border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-white hover:border-white transition-colors"
+                className="w-full aspect-square border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-white hover:border-white transition-colors min-h-[140px]"
               >
-                <Plus className="w-6 h-6" />
-                <span className="text-[8px]">ADD</span>
+                <Plus className="w-8 h-8" />
+                <span className="text-[8px]">ADD NEW</span>
               </button>
               <input 
                 type="file" 
