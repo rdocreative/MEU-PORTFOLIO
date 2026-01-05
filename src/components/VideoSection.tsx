@@ -2,16 +2,16 @@
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
 
 const getYouTubeId = (url: string) => {
   if (!url) return null;
@@ -147,12 +147,13 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [api, setApi] = useState<CarouselApi>();
 
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false, // FIX: Não para permanentemente ao interagir
-      stopOnMouseEnter: true,   // FIX: Pausa ao passar o mouse para facilitar clique
+      stopOnInteraction: false, 
+      stopOnMouseEnter: true,   
       startDelay: 0,
     })
   );
@@ -162,22 +163,27 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
-  // FIX: Garantir que existam slides suficientes (pelo menos ~12) para que o loop infinito 
-  // funcione suavemente mesmo em telas largas e com rolagem rápida.
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
-    
     let result = [...baseVideos];
-    // Continua duplicando até ter pelo menos 12 itens
     while (result.length < 12) {
       result = [...result, ...baseVideos];
     }
     return result;
   }, [baseVideos]);
 
+  const handlePrev = () => {
+    // Para o autoscroll temporariamente se necessário, mas o embla geralmente lida bem
+    api?.scrollPrev();
+  };
+
+  const handleNext = () => {
+    api?.scrollNext();
+  };
+
   if (displayVideos.length === 0) return null;
 
-  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2";
+  const arrowButtonClass = "absolute top-1/2 -translate-y-1/2 z-[100] h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-all shadow-xl flex items-center justify-center active:scale-95";
 
   return (
     <>
@@ -192,6 +198,7 @@ const VideoSection = () => {
         />
 
         <Carousel
+          setApi={setApi}
           plugins={[plugin.current]}
           opts={{
             align: "center",
@@ -208,10 +215,24 @@ const VideoSection = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          
-          <CarouselPrevious className={`${pixelArrowClass} left-4 md:left-8`} />
-          <CarouselNext className={`${pixelArrowClass} right-4 md:right-8`} />
         </Carousel>
+
+        {/* Botões manuais fora do Carousel mas dentro da Section relativa */}
+        <button 
+          onClick={handlePrev}
+          className={`${arrowButtonClass} left-4 md:left-8`}
+          aria-label="Previous slide"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+
+        <button 
+          onClick={handleNext}
+          className={`${arrowButtonClass} right-4 md:right-8`}
+          aria-label="Next slide"
+        >
+          <ArrowRight className="w-6 h-6" />
+        </button>
       </section>
 
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
