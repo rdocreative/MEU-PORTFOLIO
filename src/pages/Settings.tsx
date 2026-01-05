@@ -97,13 +97,14 @@ const Settings = () => {
 
       await ffmpeg.exec([
         '-i', inputName,
-        '-t', '15',
-        '-vf', 'scale=-2:240',
-        '-r', '12',
+        '-t', '15',                // Corta o vídeo para 15 segundos
+        '-vf', 'scale=-2:360',     // Redimensiona para 360p de altura, mantendo a proporção
+        '-r', '15',                // Define a taxa de quadros para 15 FPS para maior fluidez
         '-c:v', 'libx264',
-        '-b:v', '400k', 
-        '-preset', 'ultrafast',
-        '-an',
+        '-b:v', '600k',            // Aumenta o bitrate para melhor qualidade de imagem
+        '-preset', 'superfast',    // Usa uma predefinição de codificação mais eficiente
+        '-movflags', '+faststart', // Otimiza o vídeo para streaming na web (carregamento rápido)
+        '-an',                     // Remove a faixa de áudio para reduzir o tamanho
         outputName
       ]);
 
