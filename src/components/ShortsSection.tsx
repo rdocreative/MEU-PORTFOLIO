@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
@@ -8,6 +8,13 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+
+const getYouTubeId = (url: string) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
 
 const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -51,7 +58,6 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
 const ShortsSection = () => {
   const { config } = useConfig();
   
-  // Filtra shorts válidos
   const baseShorts = useMemo(() => 
     config.shortsVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
     [config.shortsVideos]
@@ -67,14 +73,21 @@ const ShortsSection = () => {
 
   if (baseShorts.length === 0) return null;
 
-  const getYouTubeId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
   const ShortItem = ({ short }: { short: any }) => {
     const videoId = getYouTubeId(short.url);
+    const [imgError, setImgError] = useState(false);
+    const [imgSrc, setImgSrc] = useState(
+      videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : ''
+    );
+
+    const handleImgError = () => {
+      if (videoId && imgSrc.includes('maxresdefault')) {
+        setImgSrc(`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`);
+      } else {
+        setImgError(true);
+      }
+    };
+
     return (
       <div 
         style={{ 
@@ -88,14 +101,12 @@ const ShortsSection = () => {
             src={short.customVideoUrl} 
             className="w-full h-full object-cover opacity-80"
           />
-        ) : videoId ? (
+        ) : videoId && !imgError ? (
           <img 
-            src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
+            src={imgSrc} 
             className="w-full h-full object-cover opacity-80"
-            alt=""
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-            }}
+            alt={short.title || 'YouTube Short'}
+            onError={handleImgError}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[8px] opacity-20">NO_SIGNAL</div>
@@ -106,7 +117,6 @@ const ShortsSection = () => {
     );
   };
 
-  // Se houver poucos shorts (menos de 5), não usa carrossel, mostra centralizado
   if (baseShorts.length < 5) {
     return (
       <div className="w-full py-12 flex flex-wrap justify-center gap-6 px-4">
@@ -119,7 +129,6 @@ const ShortsSection = () => {
     );
   }
 
-  // Se houver muitos, usa carrossel infinito
   return (
     <div className="w-full py-12 overflow-hidden pointer-events-none">
       <Carousel

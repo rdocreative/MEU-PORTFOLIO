@@ -87,7 +87,7 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
   );
 
   const handleImgError = () => {
-    if (imgSrc.includes('maxresdefault')) {
+    if (videoId && imgSrc.includes('maxresdefault')) {
       setImgSrc(`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`);
     } else {
       setImgError(true);
