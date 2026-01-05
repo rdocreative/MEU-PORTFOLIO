@@ -41,6 +41,9 @@ const ProfileCard = () => {
     transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out'
   };
 
+  // Inverte a ordem dos clientes salvos para mostrar "outros" primeiro
+  const displayedClients = config.clients ? [...config.clients].reverse().slice(0, 5) : [];
+
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000">
       <style>{`
@@ -128,20 +131,20 @@ const ProfileCard = () => {
         </a>
 
         {/* Trusted By Section */}
-        {config.clients && config.clients.length > 0 && (
+        {displayedClients.length > 0 && (
           <div 
             className="flex items-center gap-3 z-20 transition-transform duration-300"
             style={{ transform: isHovering ? 'translateZ(15px)' : 'translateZ(0)' }}
           >
             <div className="flex -space-x-3">
-              {config.clients.slice(0, 4).map((client: any, index: number) => (
+              {displayedClients.map((client: any, index: number) => (
                 <div 
                   key={index} 
                   className="w-8 h-8 rounded-full border-2 border-black/50 overflow-hidden bg-zinc-800"
                 >
                   <img 
                     src={client.image} 
-                    alt={`Client ${index + 1}`} 
+                    alt={client.name || `Client ${index + 1}`} 
                     className="w-full h-full object-cover"
                   />
                 </div>
