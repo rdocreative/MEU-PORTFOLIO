@@ -151,8 +151,8 @@ const VideoSection = () => {
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false, // FIX: Não para permanentemente ao interagir
-      stopOnMouseEnter: true,   // FIX: Pausa ao passar o mouse para facilitar clique
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
       startDelay: 0,
     })
   );
@@ -162,13 +162,11 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
-  // FIX: Garantir que existam slides suficientes (pelo menos ~12) para que o loop infinito 
-  // funcione suavemente mesmo em telas largas e com rolagem rápida.
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
     
     let result = [...baseVideos];
-    // Continua duplicando até ter pelo menos 12 itens
+    // Garante buffer suficiente para loop infinito suave
     while (result.length < 12) {
       result = [...result, ...baseVideos];
     }
@@ -177,7 +175,8 @@ const VideoSection = () => {
 
   if (displayVideos.length === 0) return null;
 
-  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2";
+  // Setas com pointer-events garantido
+  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2 pointer-events-auto";
 
   return (
     <>
@@ -196,7 +195,7 @@ const VideoSection = () => {
           opts={{
             align: "center",
             loop: true,
-            dragFree: true,
+            dragFree: false, // IMPORTANTE: False para que as setas funcionem com snap
             containScroll: false,
           }}
           className="w-full relative"
