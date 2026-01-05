@@ -151,7 +151,7 @@ const VideoSection = () => {
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: true, // Importante: para o autoscroll ao interagir
+      stopOnInteraction: true,
       stopOnMouseEnter: true,
       startDelay: 0,
     })
@@ -162,16 +162,21 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
+  // FIX: Garantir que existam slides suficientes (pelo menos ~12) para que o loop infinito 
+  // funcione suavemente mesmo em telas largas e com rolagem rápida.
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
-    if (baseVideos.length <= 2) return [...baseVideos, ...baseVideos, ...baseVideos, ...baseVideos];
-    if (baseVideos.length <= 4) return [...baseVideos, ...baseVideos];
-    return baseVideos;
+    
+    let result = [...baseVideos];
+    // Continua duplicando até ter pelo menos 12 itens
+    while (result.length < 12) {
+      result = [...result, ...baseVideos];
+    }
+    return result;
   }, [baseVideos]);
 
   if (displayVideos.length === 0) return null;
 
-  // Botões de navegação com z-index alto e posicionamento absoluto
   const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2";
 
   return (
