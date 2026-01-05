@@ -82,17 +82,34 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
   const [imgError, setImgError] = useState(false);
-  const [imgSrc, setImgSrc] = useState(
-    videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : ''
-  );
+
+  const thumbnailQualities = useMemo(() => [
+    'maxresdefault.jpg',
+    'sddefault.jpg',
+    'hqdefault.jpg',
+    'mqdefault.jpg',
+    '0.jpg'
+  ], []);
+
+  const [currentQualityIndex, setCurrentQualityIndex] = useState(0);
+
+  const imgSrc = useMemo(() => {
+    if (!videoId) return '';
+    return `https://img.youtube.com/vi/${videoId}/${thumbnailQualities[currentQualityIndex]}`;
+  }, [videoId, currentQualityIndex, thumbnailQualities]);
 
   const handleImgError = () => {
-    if (videoId && imgSrc.includes('maxresdefault')) {
-      setImgSrc(`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`);
+    if (currentQualityIndex < thumbnailQualities.length - 1) {
+      setCurrentQualityIndex(prev => prev + 1);
     } else {
       setImgError(true);
     }
   };
+
+  useEffect(() => {
+    setCurrentQualityIndex(0);
+    setImgError(false);
+  }, [video.url]);
 
   return (
     <div 
