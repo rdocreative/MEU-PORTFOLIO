@@ -14,15 +14,24 @@ const ClientsSection = () => {
         {config.clients.map((client) => (
           <div 
             key={client.id}
-            style={{ borderColor: `${config.primaryColor}33` }}
-            className="relative group w-24 h-24 md:w-32 md:h-32 transition-transform hover:scale-110 border-2 rounded-full overflow-hidden"
-            title={client.name}
+            className="flex flex-col items-center gap-4 group"
           >
-            <img 
-              src={client.image} 
-              alt={client.name} 
-              className="w-full h-full object-cover"
-            />
+            <div 
+              style={{ borderColor: `${config.primaryColor}33` }}
+              className="relative w-24 h-24 md:w-32 md:h-32 transition-transform group-hover:scale-110 border-2 rounded-full overflow-hidden"
+            >
+              <img 
+                src={client.image} 
+                alt={client.name} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span 
+              style={{ color: config.secondaryColor }}
+              className="text-[8px] md:text-[10px] uppercase tracking-widest text-center font-bold opacity-60 group-hover:opacity-100 transition-opacity"
+            >
+              {client.name}
+            </span>
           </div>
         ))}
       </div>
