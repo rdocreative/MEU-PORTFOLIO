@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import Header from '@/components/Header';
+import ProfileHeader from '@/components/ProfileHeader';
 import FeaturedVideos from '@/components/FeaturedVideos';
 import ShortsSection from '@/components/ShortsSection';
 import ClientsSection from '@/components/ClientsSection';
@@ -16,12 +16,12 @@ const Index = () => {
       className="min-h-screen flex flex-col items-center px-4 py-8 md:py-16 gap-16 md:gap-24 transition-colors duration-500"
       style={{ backgroundColor: config.backgroundColor || '#0a0a0a' }}
     >
-      <Header />
+      <ProfileHeader />
       
       <main className="w-full flex flex-col items-center gap-20 md:gap-32">
         <FeaturedVideos />
         
-        <div className="w-full flex flex-col items-center gap-12 md:gap-16 -mt-8 md:-mt-12">
+        <div className="w-full flex flex-col items-center -mt-12 md:-mt-20">
           <ClientsSection />
         </div>
 
