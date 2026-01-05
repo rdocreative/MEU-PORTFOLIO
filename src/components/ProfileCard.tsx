@@ -51,7 +51,6 @@ const ProfileCard = () => {
   const cardStyle = { 
     backgroundColor: `${config.cardColor}cc`, 
     borderColor: config.primaryColor,
-    // REMOVIDO: boxShadow: `10px 10px 0px 0px ${config.primaryColor}4d`,
     transform: isHovering 
       ? `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1.02, 1.02, 1.02)` 
       : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
@@ -113,10 +112,23 @@ const ProfileCard = () => {
             color: config.primaryColor,
             transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
           }} 
-          className="text-2xl mb-8 font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300 z-20"
+          className="text-2xl font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300 z-20"
         >
           {config.profileName}
         </h1>
+        
+        {/* Descrição do Perfil */}
+        {config.description && (
+          <p 
+            style={{ 
+              color: config.secondaryColor,
+              transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
+            }} 
+            className="text-xs md:text-sm text-center mt-4 mb-8 transition-transform duration-300 z-20 max-w-md"
+          >
+            {config.description}
+          </p>
+        )}
 
         <div 
           className="flex gap-6 transition-transform duration-300 z-20"
