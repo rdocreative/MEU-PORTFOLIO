@@ -1,15 +1,17 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import ProfileCard from "@/components/ProfileCard";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ClientsSection from "@/components/ClientsSection";
+import ContactModal from "@/components/ContactModal";
 import { useConfig } from "@/context/ConfigContext";
 import { Reveal } from "@/components/Reveal";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
+  const [isContactOpen, setIsContactOpen] = useState(false);
 
   if (isLoading) {
     return <div style={{ backgroundColor: config.backgroundColor }} className="min-h-screen" />;
@@ -47,7 +49,7 @@ const Index = () => {
       `}</style>
 
       {/* Container Principal */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20">
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-16 gap-20">
         
         {/* Frase de Destaque - TOPO */}
         <div className="w-full max-w-5xl text-center px-4 perspective-1000">
@@ -94,6 +96,25 @@ const Index = () => {
         <div className="w-full max-w-7xl flex justify-center -mt-8">
           <ClientsSection />
         </div>
+
+        {/* CTA FINAL */}
+        <div className="w-full flex flex-col items-center gap-12 mt-12 mb-8">
+          <Reveal variant="fade-up" delay={0.3}>
+            <button 
+              onClick={() => setIsContactOpen(true)}
+              className="group/btn relative px-12 py-5 rounded-full font-bold text-black text-sm md:text-base uppercase tracking-[0.2em] transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden shadow-2xl"
+              style={{
+                backgroundColor: config.primaryColor,
+                boxShadow: `0 0 40px ${config.primaryColor}4d`,
+              }}
+            >
+              <span className="relative z-10">Work With Me</span>
+              <div className="absolute inset-0 border-2 border-white/40 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+              {/* Brilho extra interno */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-700 ease-in-out" />
+            </button>
+          </Reveal>
+        </div>
       </main>
 
       <footer className="z-10 pb-16 flex flex-col items-center gap-6">
@@ -104,6 +125,11 @@ const Index = () => {
           </p>
         </Reveal>
       </footer>
+
+      <ContactModal 
+        isOpen={isContactOpen} 
+        onClose={() => setIsContactOpen(false)} 
+      />
     </div>
   );
 };
