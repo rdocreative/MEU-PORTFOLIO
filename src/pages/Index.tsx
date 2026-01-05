@@ -12,21 +12,10 @@ import { useConfig } from "@/context/ConfigContext";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
-  const [introFinished, setIntroFinished] = useState(false);
-  const [startReveal, setStartReveal] = useState(false);
-
-  // Sincronia: Começa a revelar o site UM POUCO ANTES da intro terminar totalmente
-  // para que haja uma sobreposição suave (crossfade).
-  useEffect(() => {
-    // A intro dura 3000ms total, começa o fade out aos 2200ms.
-    // Revelamos o site aos 2200ms para que quando a intro sumir, o site já esteja lá.
-    const timer = setTimeout(() => {
-        setStartReveal(true);
-    }, 2200);
-    return () => clearTimeout(timer);
-  }, []);
+  const [showIntro, setShowIntro] = useState(true);
 
   if (isLoading) {
+    // Mostra uma tela vazia com a cor de fundo enquanto os dados carregam
     return <div style={{ backgroundColor: config.backgroundColor }} className="min-h-screen" />;
   }
 
@@ -35,17 +24,17 @@ const Index = () => {
       style={{ backgroundColor: config.backgroundColor }}
       className="min-h-screen flex flex-col font-['Press_Start_2P'] relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
-      {/* Intro Animation Layer */}
-      {!introFinished && (
-        <IntroAnimation onComplete={() => setIntroFinished(true)} />
+      {/* A intro só é renderizada se `showIntro` for verdadeiro */}
+      {showIntro && (
+        <IntroAnimation onComplete={() => setShowIntro(false)} />
       )}
 
       <StarsBackground />
 
-      {/* Container Principal */}
+      {/* Container Principal - A transição de opacidade cria o efeito de crossfade */}
       <main 
-        className={`flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20 transition-all duration-1000 ease-out ${
-            startReveal ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        className={`flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20 transition-opacity duration-1000 ease-out ${
+            showIntro ? 'opacity-0' : 'opacity-100'
         }`}
       >
         
@@ -108,7 +97,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className={`z-10 pb-8 transition-opacity duration-1000 ${startReveal ? 'opacity-100' : 'opacity-0'}`}>
+      <footer className={`z-10 pb-8 transition-opacity duration-1000 ${showIntro ? 'opacity-0' : 'opacity-100'}`}>
         <MadeWithDyad />
       </footer>
     </div>
