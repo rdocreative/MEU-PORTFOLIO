@@ -73,6 +73,14 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
               </div>
             )}
         </div>
+        
+        {/* Overlay do botão WATCH ao passar o mouse */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
+          <span className="text-[10px] bg-white text-black px-6 py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
+            Watch
+          </span>
+        </div>
+
         <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
       </div>
       <h3 className="text-[10px] text-white/60 uppercase tracking-[0.2em] font-bold text-center group-hover:text-white transition-colors">
