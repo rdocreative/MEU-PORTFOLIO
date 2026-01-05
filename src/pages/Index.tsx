@@ -24,21 +24,21 @@ const Index = () => {
       <StarsBackground />
 
       {/* Container Principal */}
-      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-12 pb-32 gap-16">
+      <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20">
         
         {/* Frase de Destaque - TOPO */}
-        <div className="w-full max-w-4xl text-center px-4 py-4 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
+        <div className="w-full max-w-5xl text-center px-4 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
           <h1 
-            className="text-xs md:text-lg lg:text-xl leading-relaxed uppercase tracking-widest font-bold flex flex-col gap-3"
+            className="text-sm md:text-xl lg:text-2xl leading-loose uppercase tracking-widest font-bold flex flex-col gap-4 md:gap-6"
           >
-            <span style={{ color: config.secondaryColor }} className="opacity-90">
+            <span style={{ color: config.secondaryColor }} className="opacity-80">
               Receive the value
             </span>
             <span 
-              className="relative inline-block"
+              className="relative inline-block transform md:scale-110"
               style={{ 
                 color: config.primaryColor,
-                textShadow: `0 0 20px ${config.primaryColor}60`
+                textShadow: `0 0 25px ${config.primaryColor}50`
               }}
             >
               your content deserves
@@ -47,13 +47,13 @@ const Index = () => {
         </div>
         
         {/* Seção 1: Perfil + Clientes */}
-        <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
+        <div className="flex flex-col items-center justify-center w-full max-w-7xl gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
           <ProfileCard />
           <ClientsSection />
         </div>
 
         {/* Seção 2: Long Form */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
           <h2 
             style={{ 
               color: config.primaryColor,
@@ -67,7 +67,7 @@ const Index = () => {
         </div>
 
         {/* Seção 3: Shorts */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-12 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-900 fill-mode-backwards">
           <h2 
              style={{ 
               color: config.primaryColor,
