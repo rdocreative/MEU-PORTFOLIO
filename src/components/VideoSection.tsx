@@ -66,14 +66,14 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   if (videoId) {
     return (
       <div className="relative w-full h-full overflow-hidden bg-black select-none">
-        {/* Scale aumentado para 1.35 para cortar agressivamente as barras de info do YouTube */}
+        {/* Scale aumentado para 1.5 no modal também para consistência */}
         <iframe
-          className="w-full h-full pointer-events-auto scale-[1.35] origin-center"
+          className="w-full h-full pointer-events-auto scale-[1.5] origin-center"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
-        {/* Overlays invisíveis para impedir interação com bordas caso algo vaze */}
+        {/* Overlays invisíveis para impedir interação com bordas */}
         <div className="absolute top-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
         <div className="absolute bottom-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
       </div>
@@ -101,7 +101,7 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
               <div className="relative w-full h-full bg-black overflow-hidden">
                  <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0`}
-                    className="w-full h-full object-cover pointer-events-none scale-[1.35]"
+                    className="w-full h-full object-cover pointer-events-none scale-[1.5] origin-center" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
