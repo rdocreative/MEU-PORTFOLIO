@@ -102,15 +102,14 @@ const Index = () => {
           <Reveal variant="fade-up" delay={0.3}>
             <button 
               onClick={() => setIsContactOpen(true)}
-              className="group/btn relative px-12 py-5 rounded-full font-bold text-black text-sm md:text-base uppercase tracking-[0.2em] transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden shadow-2xl"
+              className="group/btn relative px-8 py-3.5 rounded-full font-bold text-black text-[10px] md:text-xs uppercase tracking-[0.2em] transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden shadow-2xl"
               style={{
                 backgroundColor: config.primaryColor,
-                boxShadow: `0 0 40px ${config.primaryColor}4d`,
+                boxShadow: `0 0 30px ${config.primaryColor}4d`,
               }}
             >
               <span className="relative z-10">Work With Me</span>
               <div className="absolute inset-0 border-2 border-white/40 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
-              {/* Brilho extra interno */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-700 ease-in-out" />
             </button>
           </Reveal>

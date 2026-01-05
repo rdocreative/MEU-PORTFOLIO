@@ -23,7 +23,6 @@ const ProfileCard = () => {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     
-    // Levemente reduzido para ser mais sutil
     const rotateX = ((y - centerY) / centerY) * -5;
     const rotateY = ((x - centerX) / centerX) * 5;
 
@@ -57,7 +56,6 @@ const ProfileCard = () => {
           }
         `}</style>
 
-        {/* Profile Section */}
         <div 
           ref={cardRef}
           onMouseMove={handleMouseMove}
@@ -66,7 +64,6 @@ const ProfileCard = () => {
           style={cardStyle} 
           className="relative overflow-hidden backdrop-blur-md border-4 p-12 rounded-[40px] w-full flex flex-col items-center group/card will-change-transform"
         >
-          {/* Efeito de brilho interativo (Glare) */}
           <div 
               className="absolute inset-0 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 mix-blend-overlay z-10"
               style={{
@@ -75,7 +72,6 @@ const ProfileCard = () => {
               }}
           />
 
-          {/* Efeito de brilho automático passando (Shimmer) */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[40px] z-10">
               <div 
                 style={{ animation: 'shimmer 6s infinite linear' }}
@@ -107,7 +103,6 @@ const ProfileCard = () => {
             {config.profileName}
           </h1>
           
-          {/* Descrição do Perfil */}
           {config.description && (
             <p 
               style={{ 
@@ -120,22 +115,19 @@ const ProfileCard = () => {
             </p>
           )}
 
-          {/* Botão CTA Destacado com Brilho Suave no Hover */}
           <button 
             onClick={() => setIsContactOpen(true)}
-            className="group/btn relative px-8 py-3 rounded-full font-bold text-black text-sm uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 mb-6 flex items-center justify-center z-20 overflow-hidden"
+            className="group/btn relative px-6 py-2.5 rounded-full font-bold text-black text-[10px] uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 mb-6 flex items-center justify-center z-20 overflow-hidden"
             style={{
               backgroundColor: config.primaryColor,
-              boxShadow: isHovering ? `0 0 30px ${config.primaryColor}80` : `0 0 20px ${config.primaryColor}66`, // Brilho aumentado no hover
+              boxShadow: isHovering ? `0 0 25px ${config.primaryColor}80` : `0 0 15px ${config.primaryColor}66`,
               transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)'
             }}
           >
             <span className="relative z-10">Work With Me</span>
-            {/* Outline brilhante interno extra no hover */}
             <div className="absolute inset-0 border-2 border-white/50 rounded-full opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
           </button>
 
-          {/* Trusted By Section */}
           {displayedClients.length > 0 && (
             <div 
               className="flex items-center gap-3 z-20 transition-transform duration-300"
