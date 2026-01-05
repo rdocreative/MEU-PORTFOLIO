@@ -65,12 +65,15 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 
   if (videoId) {
     return (
-      <iframe
-        className="w-full h-full"
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0`}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
+      <div className="relative w-full h-full overflow-hidden bg-black">
+        {/* O scale de 1.15 e o translate-y escondem as barras de título e botões do YouTube */}
+        <iframe
+          className="absolute top-0 left-0 w-full h-[115%] -translate-y-[7.5%] pointer-events-auto"
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3`}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
     );
   }
 
@@ -85,7 +88,6 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
   return (
     <div 
       onClick={onClick}
-      // Removido hover:z-10 e adicionado transform-gpu para performance
       className="group relative flex flex-col gap-4 p-1 cursor-pointer transition-transform duration-300 hover:scale-[1.02] transform-gpu backface-hidden"
     >
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden border-4 border-white/5 transition-all duration-300 shadow-2xl group-hover:border-white/40 group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
@@ -110,10 +112,8 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
             )}
         </div>
         
-        {/* Camada transparente para garantir que o clique funcione sobre o iframe */}
         <div className="absolute inset-0 z-10 bg-transparent" />
         
-        {/* Overlay de "Click to Watch" */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20">
           <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
             Watch
@@ -158,7 +158,6 @@ const VideoSection = () => {
     if (baseVideos.length === 0) return [];
     
     let result = [...baseVideos];
-    // Garantir items suficientes para o loop suave
     while (result.length < 12) {
       result = [...result, ...baseVideos];
     }
@@ -206,7 +205,6 @@ const VideoSection = () => {
         >
           <CarouselContent className="-ml-4 items-center py-10">
             {displayVideos.map((video, idx) => (
-              // REMOVIDO: transition-all (causa conflito com o motor de scroll)
               <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%]">
                 <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
               </CarouselItem>
