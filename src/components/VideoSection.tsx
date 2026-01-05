@@ -20,7 +20,7 @@ const getYouTubeId = (url: string) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// --- Componentes de Vídeo Otimizados ---
+// --- Componentes de Vídeo ---
 
 const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -59,53 +59,6 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 });
 
 VideoLoop.displayName = 'VideoLoop';
-
-// Componente para gerenciar o iframe do YouTube de forma leve
-const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
-  const [shouldLoad, setShouldLoad] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          // Carrega imediatamente ao entrar na margem de visualização
-          setShouldLoad(true);
-        }
-      },
-      { threshold: 0.1, rootMargin: '200px' } // Margem aumentada para carregar antes de aparecer
-    );
-
-    if (containerRef.current) observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden">
-      {/* Thumbnail de fundo enquanto o iframe não carrega */}
-      <img 
-        src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
-        alt="" 
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
-      />
-      
-      {shouldLoad && (
-        <iframe
-          // Removido start/end para evitar reload no loop.
-          // Mantido vq=tiny para performance.
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&playsinline=1&vq=tiny`}
-          className="absolute inset-0 w-full h-full pointer-events-none" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          tabIndex={-1}
-          style={{ border: 0 }}
-          title={title}
-        />
-      )}
-    </div>
-  );
-});
-
-YouTubePreview.displayName = 'YouTubePreview';
 
 const FullVideo = ({ video }: { video: VideoData }) => {
   const videoId = getYouTubeId(video.url);
@@ -151,12 +104,22 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
     >
       <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
         
-        {/* Camada de Vídeo */}
+        {/* Camada de Conteúdo (Imagem ou Vídeo Loop) */}
         <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
-              <YouTubePreview videoId={videoId} title={video.title} />
+              // SOLUÇÃO: Usar apenas a imagem da thumbnail. Zero iframes aqui.
+              <img 
+                src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+                onError={(e) => {
+                  // Fallback se maxres não existir
+                  e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                }}
+                alt={video.title}
+                className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+              />
             ) : (
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
                 <AlertTriangle className="w-8 h-8" />
@@ -165,18 +128,27 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             )}
         </div>
         
-        {/* Overlays e Bordas */}
-        <div className="absolute inset-0 z-10 bg-transparent" />
+        {/* Botão de Play Visual */}
+        {!video.customVideoUrl && videoId && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-white/20">
+               <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[14px] border-l-white border-b-[8px] border-b-transparent ml-1 shadow-sm" />
+            </div>
+          </div>
+        )}
         
-        {/* Overlay Hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20">
-          <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
-            Watch
+        {/* Overlays e Bordas */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/40 to-transparent opacity-60" />
+        
+        {/* Overlay Hover com Texto */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-30">
+          <span className="text-[10px] bg-white text-black px-4 py-1.5 rounded-full font-bold uppercase tracking-widest shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
+            Watch Video
           </span>
         </div>
 
         {/* Borda como Overlay */}
-        <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-30" />
+        <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-40" />
       </div>
       
       <div className="flex flex-col gap-1 items-center">
