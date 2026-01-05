@@ -9,7 +9,7 @@ const ClientsSection = () => {
   if (!config.clients || config.clients.length === 0) return null;
 
   return (
-    <div className="w-full max-w-lg mt-12 flex flex-col items-center gap-6">
+    <div className="w-full max-w-lg flex flex-col items-center gap-6">
       <h2 style={{ color: config.secondaryColor }} className="text-[10px] font-['Press_Start_2P'] uppercase tracking-widest opacity-50">
         Trusted_Clients
       </h2>

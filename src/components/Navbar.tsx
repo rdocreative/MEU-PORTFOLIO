@@ -8,14 +8,14 @@ const Navbar = () => {
   const { config } = useConfig();
 
   return (
-    <nav className="fixed top-8 left-0 w-full z-50 px-6 flex justify-center">
+    <nav className="fixed top-8 left-0 w-full z-50 px-6 flex justify-center animate-in slide-in-from-top-full duration-1000 delay-300 fill-mode-backwards pointer-events-none">
       <div 
         style={{ 
           backgroundColor: `${config.cardColor}e6`, 
           borderColor: config.primaryColor,
           boxShadow: `0px 5px 0px 0px ${config.primaryColor}4d`
         }}
-        className="w-full max-w-3xl backdrop-blur-md border-4 flex items-center justify-between p-4 rounded-full"
+        className="w-full max-w-3xl backdrop-blur-md border-4 flex items-center justify-between p-4 rounded-full pointer-events-auto"
       >
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-4 group ml-3">
