@@ -13,14 +13,18 @@ import { useConfig } from "@/context/ConfigContext";
 const Index = () => {
   const { config, isLoading } = useConfig();
   const [introFinished, setIntroFinished] = useState(false);
-  const [showContent, setShowContent] = useState(false);
+  const [startReveal, setStartReveal] = useState(false);
 
-  // Controla o fade-in do conteúdo real logo antes da intro terminar
+  // Sincronia: Começa a revelar o site UM POUCO ANTES da intro terminar totalmente
+  // para que haja uma sobreposição suave (crossfade).
   useEffect(() => {
-    if (introFinished) {
-      setShowContent(true);
-    }
-  }, [introFinished]);
+    // A intro dura 3000ms total, começa o fade out aos 2200ms.
+    // Revelamos o site aos 2200ms para que quando a intro sumir, o site já esteja lá.
+    const timer = setTimeout(() => {
+        setStartReveal(true);
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isLoading) {
     return <div style={{ backgroundColor: config.backgroundColor }} className="min-h-screen" />;
@@ -38,15 +42,15 @@ const Index = () => {
 
       <StarsBackground />
 
-      {/* Container Principal - Opacidade controla a revelação pós-intro */}
+      {/* Container Principal */}
       <main 
-        className={`flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20 transition-opacity duration-1000 ${
-            introFinished ? 'opacity-100' : 'opacity-0'
+        className={`flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-32 gap-20 transition-all duration-1000 ease-out ${
+            startReveal ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
         
         {/* Frase de Destaque - TOPO */}
-        <div className="w-full max-w-5xl text-center px-4 animate-in slide-in-from-top-12 fade-in duration-1000 delay-200 fill-mode-backwards">
+        <div className="w-full max-w-5xl text-center px-4">
           <h1 
             className="text-sm md:text-xl lg:text-2xl leading-loose uppercase tracking-widest font-bold flex flex-col gap-4 md:gap-6"
           >
@@ -66,13 +70,12 @@ const Index = () => {
         </div>
         
         {/* Seção 1: Perfil */}
-        {/* A animação original foi removida/suavizada aqui para não conflitar com a intro */}
         <div className="flex flex-col items-center justify-center w-full max-w-7xl">
           <ProfileCard />
         </div>
 
         {/* Seção 2: Long Form */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-300 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-16">
           <h2 
             style={{ 
               color: config.primaryColor,
@@ -86,12 +89,12 @@ const Index = () => {
         </div>
 
         {/* Seção 3: Clientes */}
-        <div className="w-full max-w-7xl flex justify-center -mt-8 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-500 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex justify-center -mt-8">
           <ClientsSection />
         </div>
 
         {/* Seção 4: Shorts */}
-        <div className="w-full max-w-7xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-24 fade-in duration-1000 delay-700 fill-mode-backwards">
+        <div className="w-full max-w-7xl flex flex-col items-center gap-16">
           <h2 
              style={{ 
               color: config.primaryColor,
@@ -105,7 +108,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className={`z-10 pb-8 transition-opacity duration-1000 ${introFinished ? 'opacity-100' : 'opacity-0'}`}>
+      <footer className={`z-10 pb-8 transition-opacity duration-1000 ${startReveal ? 'opacity-100' : 'opacity-0'}`}>
         <MadeWithDyad />
       </footer>
     </div>
