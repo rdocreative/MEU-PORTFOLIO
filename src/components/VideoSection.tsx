@@ -66,9 +66,9 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   if (videoId) {
     return (
       <div className="relative w-full h-full overflow-hidden bg-black select-none">
-        {/* Modal continua tocando o vídeo completo, sem restrição de tempo, mas mantendo o scale para limpeza visual */}
+        {/* Removido scale-[1.5] para exibir o vídeo completo sem cortes */}
         <iframe
-          className="w-full h-full pointer-events-auto scale-[1.5] origin-center"
+          className="w-full h-full pointer-events-auto origin-center"
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
@@ -98,10 +98,10 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
               <div className="relative w-full h-full bg-black overflow-hidden">
-                 {/* Adicionado &start=0&end=15 para limitar a prévia aos primeiros 15 segundos */}
+                 {/* Removido scale-[1.5] para exibir o vídeo completo sem cortes */}
                  <iframe
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15`}
-                    className="w-full h-full object-cover pointer-events-none scale-[1.5] origin-center" 
+                    className="w-full h-full object-cover pointer-events-none origin-center" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
