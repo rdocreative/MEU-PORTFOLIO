@@ -112,7 +112,7 @@ const ProfileCard = () => {
             color: config.primaryColor,
             transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
           }} 
-          className="text-2xl font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300 z-20"
+          className="text-xl font-['Press_Start_2P'] uppercase text-center pixel-glitch cursor-default transition-transform duration-300 z-20"
         >
           {config.profileName}
         </h1>
@@ -124,7 +124,7 @@ const ProfileCard = () => {
               color: config.secondaryColor,
               transform: isHovering ? 'translateZ(10px)' : 'translateZ(0)'
             }} 
-            className="text-xs md:text-sm text-center mt-4 mb-8 transition-transform duration-300 z-20 max-w-md"
+            className="text-xs text-center mt-4 mb-8 transition-transform duration-300 z-20 max-w-md"
           >
             {config.description}
           </p>
