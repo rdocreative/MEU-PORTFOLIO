@@ -16,9 +16,9 @@ const ClientsSection = () => {
             key={client.id}
             className="flex flex-col items-center group relative cursor-default"
           >
-            {/* Logo/Avatar do Cliente */}
+            {/* Logo/Avatar do Cliente - Estático */}
             <div 
-              className="relative w-28 h-28 md:w-32 md:h-32 mb-4 transition-transform duration-300 group-hover:scale-110 rounded-full overflow-hidden shadow-2xl"
+              className="relative w-28 h-28 md:w-32 md:h-32 mb-4 rounded-full overflow-hidden shadow-2xl"
             >
               <div 
                 style={{ borderColor: config.primaryColor }}
@@ -31,8 +31,8 @@ const ClientsSection = () => {
               />
             </div>
 
-            {/* Texto: Nome e Subtítulo */}
-            <div className="flex flex-col items-center gap-1 transition-transform group-hover:-translate-y-1">
+            {/* Texto: Nome e Subtítulo - Estático */}
+            <div className="flex flex-col items-center gap-1">
               <span 
                 className="text-xs md:text-sm text-white font-bold tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
               >
