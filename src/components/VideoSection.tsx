@@ -27,33 +27,10 @@ const VideoLoop = ({ src }: { src: string }) => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    // Configuração inicial
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Quando entra na tela: reseta e toca
-            video.currentTime = 0;
-            video.play().catch(console.error);
-          } else {
-            // Quando sai da tela: pausa para economizar recursos
-            video.pause();
-          }
-        });
-      },
-      { threshold: 0.1 } // Aciona quando 10% do vídeo está visível
-    );
-
-    observer.observe(video);
-
-    return () => {
-      observer.disconnect();
-    };
+    video.play().catch(console.error);
   }, [src]);
 
   return (
@@ -61,9 +38,8 @@ const VideoLoop = ({ src }: { src: string }) => {
       ref={videoRef}
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
-      muted loop playsInline
+      muted loop playsInline autoPlay
       controls={false}
-      preload="auto"
     />
   );
 };
@@ -105,9 +81,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 
 const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
-  // Usamos o Intersection Observer para iframes também, recarregando o iframe se necessário seria muito pesado,
-  // mas garantimos que a flag de autoplay esteja ativa.
-  
+
   return (
     <div 
       onClick={onClick}
@@ -126,7 +100,6 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
-                    loading="lazy"
                  />
               </div>
             ) : (
