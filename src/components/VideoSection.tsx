@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useState, useMemo, memo } from 'react';
+import React, { useRef, useEffect, useState, useMemo, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
-import { AlertTriangle, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Reveal } from './Reveal';
 
@@ -74,6 +74,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             )}
         </div>
         
+        {/* Overlay do botão WATCH ao passar o mouse */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
           <span className="text-[10px] bg-white text-black px-6 py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
             Watch
@@ -91,48 +92,40 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
 
 VideoCard.displayName = 'VideoCard';
 
-// --- Seção Principal ---
+// --- Seção Principal com Marquee CSS ---
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const activeVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
     [config.featuredVideos]
   );
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = window.innerWidth > 768 ? 482 : 332; // card width + gap
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   if (activeVideos.length === 0) return null;
+
+  // Duplicamos a lista para criar o efeito infinito visual no CSS
+  const marqueeItems = [...activeVideos, ...activeVideos, ...activeVideos];
 
   return (
     <>
-      <Reveal width="100%" delay={0.2} className="w-full py-10 relative group">
-        {/* Setas de Navegação */}
-        <button 
-          onClick={() => scroll('left')}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-white/10 hover:bg-white text-white hover:text-black rounded-full backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden md:flex"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
+      <style>{`
+        @keyframes marquee-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.33%); }
+        }
+        .animate-marquee-infinite {
+          display: flex;
+          width: fit-content;
+          animation: marquee-scroll 40s linear infinite;
+        }
+        .animate-marquee-infinite:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
 
-        <button 
-          onClick={() => scroll('right')}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-50 p-3 bg-white/10 hover:bg-white text-white hover:text-black rounded-full backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden md:flex"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
-        {/* Gradientes laterais */}
+      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-10 relative">
+        {/* Gradientes laterais para suavizar as bordas */}
         <div 
           className="absolute left-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
@@ -142,18 +135,13 @@ const VideoSection = () => {
           style={{ background: `linear-gradient(to left, ${config.backgroundColor}, transparent)` }}
         />
 
-        {/* Container de Scroll */}
-        <div 
-          ref={scrollRef}
-          className="flex gap-8 px-24 md:px-[20%] overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory"
-        >
-          {activeVideos.map((video) => (
-            <div key={video.id} className="snap-center">
-              <VideoCard 
-                video={video} 
-                onClick={() => setSelectedVideo(video)} 
-              />
-            </div>
+        <div className="animate-marquee-infinite gap-8 px-4">
+          {marqueeItems.map((video, idx) => (
+            <VideoCard 
+              key={`${video.id}-${idx}`} 
+              video={video} 
+              onClick={() => setSelectedVideo(video)} 
+            />
           ))}
         </div>
       </Reveal>
