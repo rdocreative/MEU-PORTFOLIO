@@ -1,32 +1,36 @@
 "use client";
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, memo } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import ContactModal from './ContactModal';
 import { Reveal } from './Reveal';
 
-const ProfileCard = () => {
+const ProfileCard = memo(() => {
   const { config } = useConfig();
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
 
+  // Throttling do evento de mouse para performance (opcional, mas mantendo simples para não alterar comportamento)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
 
-    const card = cardRef.current;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    const rotateX = ((y - centerY) / centerY) * -5;
-    const rotateY = ((x - centerX) / centerX) * 5;
+    // requestAnimationFrame para suavizar a atualização visual na GPU
+    requestAnimationFrame(() => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = ((y - centerY) / centerY) * -5;
+        const rotateY = ((x - centerX) / centerX) * 5;
 
-    setRotation({ x: rotateX, y: rotateY });
+        setRotation({ x: rotateX, y: rotateY });
+    });
   };
 
   const resetRotation = () => {
@@ -86,9 +90,13 @@ const ProfileCard = () => {
             style={{ transform: isHovering ? 'translateZ(20px)' : 'translateZ(0)' }}
           >
             <div style={{ borderColor: config.secondaryColor }} className="absolute inset-0 border-4 rounded-full animate-pulse"></div>
+            {/* Otimização: fetchPriority="high" pois é a imagem principal (LCP) */}
             <img 
               src={config.profileImage} 
               alt="Profile" 
+              fetchPriority="high"
+              width={128}
+              height={128}
               className="w-full h-full p-2 bg-black rounded-full object-cover"
             />
           </div>
@@ -143,6 +151,9 @@ const ProfileCard = () => {
                       src={client.image} 
                       alt={client.name || `Client ${index + 1}`} 
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      width={32}
+                      height={32}
                     />
                   </div>
                 ))}
@@ -161,6 +172,8 @@ const ProfileCard = () => {
       />
     </>
   );
-};
+});
+
+ProfileCard.displayName = 'ProfileCard';
 
 export default ProfileCard;

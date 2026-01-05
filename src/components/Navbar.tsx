@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { useConfig } from '@/context/ConfigContext';
 
-const Navbar = () => {
+const Navbar = memo(() => {
   const { config } = useConfig();
 
   return (
@@ -27,6 +27,9 @@ const Navbar = () => {
                 src={config.profileImage} 
                 alt="Home" 
                 className="w-full h-full bg-gray-800 object-cover"
+                width={48}
+                height={48}
+                loading="lazy"
               />
             </div>
           </Link>
@@ -45,6 +48,8 @@ const Navbar = () => {
       </div>
     </nav>
   );
-};
+});
+
+Navbar.displayName = 'Navbar';
 
 export default Navbar;

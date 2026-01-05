@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import AutoScroll from "embla-carousel-auto-scroll";
@@ -20,18 +20,31 @@ const getYouTubeId = (url: string) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// --- Componentes de Vídeo ---
+// --- Componentes de Vídeo Otimizados ---
 
-const VideoLoop = ({ src }: { src: string }) => {
+const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.playsInline = true;
-    video.play().catch(console.error);
+    
+    // Otimização: Observer para tocar apenas quando visível
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(video);
+    return () => observer.disconnect();
   }, [src]);
 
   return (
@@ -39,11 +52,14 @@ const VideoLoop = ({ src }: { src: string }) => {
       ref={videoRef}
       src={src} 
       className="w-full h-full object-cover pointer-events-none select-none"
-      muted loop playsInline autoPlay
+      muted loop playsInline
+      preload="none" // Não carrega o buffer até ser necessário
       controls={false}
     />
   );
-};
+});
+
+VideoLoop.displayName = 'VideoLoop';
 
 const FullVideo = ({ video }: { video: VideoData }) => {
   const videoId = getYouTubeId(video.url);
@@ -72,6 +88,8 @@ const FullVideo = ({ video }: { video: VideoData }) => {
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          loading="lazy" // Otimização
+          title={video.title || "Video"}
         />
         <div className="absolute top-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
         <div className="absolute bottom-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
@@ -84,7 +102,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 
 // --- Componente do Card ---
 
-const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }) => {
+const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
 
   return (
@@ -104,6 +122,8 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     tabIndex={-1}
                     style={{ border: 0 }}
+                    loading="lazy" // Otimização CRÍTICA: carrega o iframe apenas quando perto da viewport
+                    title={video.title}
                  />
               </div>
             ) : (
@@ -130,7 +150,9 @@ const VideoCard = ({ video, onClick }: { video: VideoData, onClick: () => void }
       </div>
     </div>
   );
-};
+});
+
+VideoCard.displayName = 'VideoCard';
 
 // --- Seção Principal ---
 

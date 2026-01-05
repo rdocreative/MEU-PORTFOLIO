@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, memo } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import { Reveal } from './Reveal';
 
-const ClientsSection = () => {
+const ClientsSection = memo(() => {
   const { config } = useConfig();
 
   const plugin = useRef(
@@ -56,10 +56,6 @@ const ClientsSection = () => {
                 key={`${client.id}-${idx}`} 
                 className="pl-0 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/5"
               >
-                {/* 
-                   Usamos o Reveal aqui com delay dinâmico baseado no índice (apenas para os primeiros visíveis).
-                   O Math.min limita o delay para não demorar demais nos loops.
-                */}
                 <Reveal 
                   delay={Math.min(idx * 0.1, 1.5)} 
                   variant="fade"
@@ -77,6 +73,9 @@ const ClientsSection = () => {
                         src={client.image} 
                         alt={client.name} 
                         className="w-full h-full object-cover rounded-full"
+                        loading="lazy"
+                        width={128}
+                        height={128}
                       />
                     </div>
 
@@ -104,6 +103,8 @@ const ClientsSection = () => {
       </div>
     </div>
   );
-};
+});
+
+ClientsSection.displayName = 'ClientsSection';
 
 export default ClientsSection;
