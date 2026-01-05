@@ -60,6 +60,54 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
+// Componente para gerenciar o iframe do YouTube de forma leve
+const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Pequeno delay para não travar o scroll inicial
+          const timer = setTimeout(() => setShouldLoad(true), 500);
+          return () => clearTimeout(timer);
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden">
+      {/* Thumbnail de fundo enquanto o iframe não carrega */}
+      <img 
+        src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
+        alt="" 
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
+      />
+      
+      {shouldLoad && (
+        <iframe
+          // vq=tiny força a menor qualidade possível para carregamento instantâneo
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1&vq=tiny`}
+          className="absolute inset-0 w-full h-full pointer-events-none" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          tabIndex={-1}
+          style={{ border: 0 }}
+          loading="lazy"
+          title={title}
+        />
+      )}
+    </div>
+  );
+});
+
+YouTubePreview.displayName = 'YouTubePreview';
+
 const FullVideo = ({ video }: { video: VideoData }) => {
   const videoId = getYouTubeId(video.url);
 
@@ -70,11 +118,7 @@ const FullVideo = ({ video }: { video: VideoData }) => {
         className="w-full h-full object-contain bg-black"
         playsInline 
         autoPlay
-        controls={false}
-        onClick={(e) => {
-          const el = e.target as HTMLVideoElement;
-          el.paused ? el.play() : el.pause();
-        }}
+        controls={true}
       />
     );
   }
@@ -84,14 +128,11 @@ const FullVideo = ({ video }: { video: VideoData }) => {
       <div className="relative w-full h-full overflow-hidden bg-black select-none">
         <iframe
           className="w-full h-full pointer-events-auto"
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          loading="lazy"
           title={video.title || "Video"}
         />
-        <div className="absolute top-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
-        <div className="absolute bottom-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
       </div>
     );
   }
@@ -116,17 +157,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
-              <div className="relative w-full h-full bg-black overflow-hidden">
-                 <iframe
-                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1`}
-                    className="absolute inset-0 w-full h-full pointer-events-none" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    tabIndex={-1}
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    title={video.title}
-                 />
-              </div>
+              <YouTubePreview videoId={videoId} title={video.title} />
             ) : (
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
                 <AlertTriangle className="w-8 h-8" />
@@ -145,7 +176,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
           </span>
         </div>
 
-        {/* Borda como Overlay (corrige aspect-ratio e barras pretas) */}
+        {/* Borda como Overlay */}
         <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-30" />
       </div>
       
