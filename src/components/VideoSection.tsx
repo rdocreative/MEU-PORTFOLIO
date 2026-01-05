@@ -148,12 +148,11 @@ const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
 
-  // Configuração do Plugin de Autoscroll
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false, // IMPORTANTE: Não parar para sempre ao clicar na seta
-      stopOnMouseEnter: true,   // Continua parando no hover (destaque)
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
       startDelay: 0,
     })
   );
@@ -163,21 +162,21 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
-  // Mantém duplicação APENAS para garantir loop visual suave se tiver poucos vídeos
-  // Se tiver muito poucos (1 ou 2), duplica mais vezes para preencher a tela
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
-    if (baseVideos.length <= 2) return [...baseVideos, ...baseVideos, ...baseVideos, ...baseVideos]; // x4
-    if (baseVideos.length <= 4) return [...baseVideos, ...baseVideos]; // x2
+    if (baseVideos.length <= 2) return [...baseVideos, ...baseVideos, ...baseVideos, ...baseVideos];
+    if (baseVideos.length <= 4) return [...baseVideos, ...baseVideos];
     return baseVideos;
   }, [baseVideos]);
 
   if (displayVideos.length === 0) return null;
 
+  // Estilo comum para as setas pixeladas
+  const pixelArrowClass = "relative lg:absolute pointer-events-auto h-12 w-12 rounded-none border-[3px] border-black bg-[#C6C6C6] text-black shadow-[inset_-4px_-4px_0px_#555,inset_4px_4px_0px_#FFF] hover:bg-[#D6D6D6] active:shadow-[inset_4px_4px_0px_#555,inset_-4px_-4px_0px_#FFF] active:translate-y-[2px] transition-none flex items-center justify-center cursor-pointer z-40";
+
   return (
     <>
       <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
-        {/* Degradês Laterais */}
         <div 
           className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
@@ -193,7 +192,7 @@ const VideoSection = () => {
             align: "center",
             loop: true,
             dragFree: true,
-            containScroll: false, // Permite rolagem infinita mais fluida
+            containScroll: false,
           }}
           className="w-full relative"
         >
@@ -206,13 +205,12 @@ const VideoSection = () => {
           </CarouselContent>
           
           <div className="flex justify-center gap-4 mt-4 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:w-full lg:left-0 lg:px-4 lg:justify-between pointer-events-none z-30">
-            <CarouselPrevious className="relative lg:absolute lg:left-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95" />
-            <CarouselNext className="relative lg:absolute lg:right-0 pointer-events-auto h-12 w-12 border-2 border-white/20 bg-black/50 text-white hover:bg-white hover:text-black transition-all rounded-full flex items-center justify-center backdrop-blur-md cursor-pointer hover:scale-110 active:scale-95" />
+            <CarouselPrevious className={`${pixelArrowClass} lg:left-0`} />
+            <CarouselNext className={`${pixelArrowClass} lg:right-0`} />
           </div>
         </Carousel>
       </section>
 
-      {/* Modal / Dialog para assistir */}
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="max-w-5xl w-[90vw] aspect-video p-0 bg-black border-none overflow-hidden ring-0 outline-none">
            <div className="relative w-full h-full bg-black group/modal">
