@@ -171,7 +171,7 @@ const VideoSection = () => {
 
   if (displayVideos.length === 0) return null;
 
-  // Estilo pixelado minimalista com borda suave (border-zinc-700 e apenas border)
+  // Estilo pixelado minimalista
   const pixelArrowClass = "relative pointer-events-auto h-10 w-10 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-none flex items-center justify-center cursor-pointer z-40";
 
   return (
@@ -204,8 +204,8 @@ const VideoSection = () => {
             ))}
           </CarouselContent>
           
-          {/* Setas Centralizadas abaixo do carrossel */}
-          <div className="flex justify-center gap-6 mt-2 pointer-events-none">
+          {/* Setas Centralizadas verticalmente nas laterais do carrossel */}
+          <div className="absolute top-1/2 -translate-y-1/2 w-full left-0 flex justify-between px-2 md:px-10 pointer-events-none z-30">
             <CarouselPrevious className={pixelArrowClass} />
             <CarouselNext className={pixelArrowClass} />
           </div>
