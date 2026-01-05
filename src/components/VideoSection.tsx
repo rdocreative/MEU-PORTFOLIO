@@ -151,7 +151,7 @@ const VideoSection = () => {
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: false,
+      stopOnInteraction: true, // Para quando o usuário interage
       stopOnMouseEnter: true,
       startDelay: 0,
     })
@@ -173,19 +173,15 @@ const VideoSection = () => {
   }, [baseVideos]);
 
   const handlePrev = useCallback(() => {
-    if (!api) return;
-    const autoScroll = api.plugins().autoScroll;
-    if (autoScroll) autoScroll.stop();
-    api.scrollPrev();
-    if (autoScroll) autoScroll.play();
+    api?.scrollPrev();
+    const autoScroll = api?.plugins().autoScroll;
+    if (autoScroll) (autoScroll as any).reset();
   }, [api]);
 
   const handleNext = useCallback(() => {
-    if (!api) return;
-    const autoScroll = api.plugins().autoScroll;
-    if (autoScroll) autoScroll.stop();
-    api.scrollNext();
-    if (autoScroll) autoScroll.play();
+    api?.scrollNext();
+    const autoScroll = api?.plugins().autoScroll;
+    if (autoScroll) (autoScroll as any).reset();
   }, [api]);
 
   if (displayVideos.length === 0) return null;
