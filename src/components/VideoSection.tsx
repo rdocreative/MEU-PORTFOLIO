@@ -142,6 +142,18 @@ const VideoSection = () => {
 
   return (
     <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
+      {/* Degradê Lateral Esquerdo */}
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
+        style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
+      />
+      
+      {/* Degradê Lateral Direito */}
+      <div 
+        className="absolute right-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
+        style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
+      />
+
       <Carousel
         plugins={[plugin.current]}
         opts={{
