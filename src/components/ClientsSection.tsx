@@ -1,55 +1,84 @@
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useConfig } from '@/context/ConfigContext';
+import AutoScroll from "embla-carousel-auto-scroll";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 const ClientsSection = () => {
   const { config } = useConfig();
 
+  const plugin = useRef(
+    AutoScroll({ 
+      speed: 0.8,
+      stopOnInteraction: false,
+      stopOnMouseEnter: false, 
+    })
+  );
+
   if (!config.clients || config.clients.length === 0) return null;
 
-  return (
-    <div className="w-full max-w-6xl flex flex-col items-center">
-      <div className="flex flex-wrap justify-center gap-x-16 gap-y-16">
-        {config.clients.map((client) => (
-          <div 
-            key={client.id}
-            className="flex flex-col items-center group relative cursor-default"
-          >
-            {/* Logo/Avatar do Cliente - Estático */}
-            <div 
-              className="relative w-28 h-28 md:w-32 md:h-32 mb-4 rounded-full overflow-hidden shadow-2xl"
-            >
-              <div 
-                style={{ borderColor: config.primaryColor }}
-                className="absolute inset-0 border-2 rounded-full opacity-50 z-10" 
-              />
-              <img 
-                src={client.image} 
-                alt={client.name} 
-                className="w-full h-full object-cover"
-              />
-            </div>
+  // Se houver poucos clientes, não faz sentido o carrossel, mas para manter o estilo
+  // vamos duplicar a lista se necessário para garantir o efeito infinito suave
+  const displayClients = config.clients.length < 8 
+    ? [...config.clients, ...config.clients, ...config.clients] 
+    : config.clients;
 
-            {/* Texto: Nome e Subtítulo - Estático */}
-            <div className="flex flex-col items-center gap-1">
-              <span 
-                className="text-xs md:text-sm text-white font-bold tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-              >
-                {client.name}
-              </span>
-              
-              {client.subtitle && (
-                <span 
-                  className="text-[10px] md:text-[10px] text-zinc-400 font-normal tracking-wide"
+  return (
+    <div className="w-full py-8 overflow-hidden">
+      <Carousel
+        plugins={[plugin.current]}
+        opts={{
+          align: "center",
+          loop: true,
+          dragFree: true,
+        }}
+        className="w-full max-w-[1400px] mx-auto"
+      >
+        <CarouselContent className="-ml-12 items-center">
+          {displayClients.map((client, idx) => (
+            <CarouselItem key={`${client.id}-${idx}`} className="pl-12 basis-auto">
+              <div className="flex flex-col items-center group relative cursor-default">
+                {/* Logo/Avatar do Cliente */}
+                <div 
+                  className="relative w-24 h-24 md:w-28 md:h-28 mb-4 rounded-full overflow-hidden shadow-xl transition-transform duration-300 group-hover:scale-110"
                 >
-                  {client.subtitle}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+                  <div 
+                    style={{ borderColor: config.primaryColor }}
+                    className="absolute inset-0 border-2 rounded-full opacity-30 z-10" 
+                  />
+                  <img 
+                    src={client.image} 
+                    alt={client.name} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Texto: Nome e Subtítulo */}
+                <div className="flex flex-col items-center gap-1">
+                  <span 
+                    className="text-[10px] md:text-xs text-white font-bold tracking-wider uppercase opacity-80"
+                  >
+                    {client.name}
+                  </span>
+                  
+                  {client.subtitle && (
+                    <span 
+                      className="text-[8px] md:text-[9px] text-zinc-500 font-normal tracking-wide uppercase"
+                    >
+                      {client.subtitle}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </div>
   );
 };
