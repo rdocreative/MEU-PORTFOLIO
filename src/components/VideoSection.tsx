@@ -13,9 +13,6 @@ import {
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Reveal } from './Reveal';
 
-// Cache global para rastrear vídeos que já foram "ativados" para carregar
-const LOADED_VIDEOS_CACHE = new Set<string>();
-
 const getYouTubeId = (url: string) => {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -53,7 +50,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
     <video 
       ref={videoRef}
       src={src} 
-      className="w-full h-full object-cover bg-black pointer-events-none select-none rounded-[40px]"
+      className="w-full h-full object-cover bg-black pointer-events-none select-none"
       muted loop playsInline
       preload="none"
       controls={false}
@@ -63,47 +60,45 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
-const YouTubePreview = memo(({ videoId, title, cacheKey }: { videoId: string, title?: string, cacheKey: string }) => {
-  const [shouldLoad, setShouldLoad] = useState(() => LOADED_VIDEOS_CACHE.has(cacheKey));
+// Componente para gerenciar o iframe do YouTube de forma leve
+const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
+  const [shouldLoad, setShouldLoad] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (LOADED_VIDEOS_CACHE.has(cacheKey)) {
-      setShouldLoad(true);
-      return;
-    }
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          LOADED_VIDEOS_CACHE.add(cacheKey);
-          setShouldLoad(true);
-          observer.disconnect();
+          // Pequeno delay para não travar o scroll inicial
+          const timer = setTimeout(() => setShouldLoad(true), 500);
+          return () => clearTimeout(timer);
         }
       },
-      { threshold: 0.05, rootMargin: '200px' }
+      { threshold: 0.1, rootMargin: '100px' }
     );
 
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [cacheKey]);
+  }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden rounded-[40px] isolate">
+    <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden">
+      {/* Thumbnail de fundo enquanto o iframe não carrega */}
       <img 
         src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} 
         alt="" 
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 rounded-[40px] ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
-        loading="lazy"
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${shouldLoad ? 'opacity-0' : 'opacity-100'}`}
       />
       
       {shouldLoad && (
         <iframe
+          // vq=tiny força a menor qualidade possível para carregamento instantâneo
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&showinfo=0&modestbranding=1&iv_load_policy=3&fs=0&rel=0&start=0&end=15&playsinline=1&vq=tiny`}
-          className="absolute inset-0 w-full h-full pointer-events-none rounded-[40px]" 
+          className="absolute inset-0 w-full h-full pointer-events-none" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           tabIndex={-1}
-          style={{ border: 0, borderRadius: '40px' }}
+          style={{ border: 0 }}
+          loading="lazy"
           title={title}
         />
       )}
@@ -145,7 +140,9 @@ const FullVideo = ({ video }: { video: VideoData }) => {
   return null;
 };
 
-const VideoCard = memo(({ video, onClick, cacheKey }: { video: VideoData, onClick: () => void, cacheKey: string }) => {
+// --- Componente do Card ---
+
+const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
 
   return (
@@ -153,12 +150,14 @@ const VideoCard = memo(({ video, onClick, cacheKey }: { video: VideoData, onClic
       onClick={onClick}
       className="group relative flex flex-col gap-4 p-1 cursor-pointer transform-gpu backface-hidden"
     >
-      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)] isolate">
-        <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none rounded-[40px] overflow-hidden">
+      <div className="aspect-video relative bg-zinc-900 rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+        
+        {/* Camada de Vídeo */}
+        <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center pointer-events-none">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
-              <YouTubePreview videoId={videoId} title={video.title} cacheKey={cacheKey} />
+              <YouTubePreview videoId={videoId} title={video.title} />
             ) : (
               <div className="flex flex-col items-center justify-center opacity-20 gap-2">
                 <AlertTriangle className="w-8 h-8" />
@@ -166,14 +165,21 @@ const VideoCard = memo(({ video, onClick, cacheKey }: { video: VideoData, onClic
               </div>
             )}
         </div>
-        <div className="absolute inset-0 z-10 bg-transparent rounded-[40px]" />
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20 rounded-[40px]">
+        
+        {/* Overlays e Bordas */}
+        <div className="absolute inset-0 z-10 bg-transparent" />
+        
+        {/* Overlay Hover */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-20">
           <span className="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-widest">
             Watch
           </span>
         </div>
+
+        {/* Borda como Overlay */}
         <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 pointer-events-none transition-colors duration-300 group-hover:border-white/40 z-30" />
       </div>
+      
       <div className="flex flex-col gap-1 items-center">
         <h3 className="text-[10px] text-white/80 uppercase tracking-[0.2em] font-bold group-hover:text-white transition-colors">
           {video.title}
@@ -185,16 +191,17 @@ const VideoCard = memo(({ video, onClick, cacheKey }: { video: VideoData, onClic
 
 VideoCard.displayName = 'VideoCard';
 
+// --- Seção Principal ---
+
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
   const [api, setApi] = useState<CarouselApi>();
 
-  // Configurado para PARAR o auto-scroll ao interagir (permitindo movimento livre)
   const plugin = useRef(
     AutoScroll({ 
       speed: 1, 
-      stopOnInteraction: true, // Agora para quando o usuário clica ou arrasta
+      stopOnInteraction: false,
       stopOnMouseEnter: false,
       startDelay: 0,
     })
@@ -207,6 +214,7 @@ const VideoSection = () => {
 
   const displayVideos = useMemo(() => {
     if (baseVideos.length === 0) return [];
+    
     let result = [...baseVideos];
     while (result.length < 12) {
       result = [...result, ...baseVideos];
@@ -214,32 +222,26 @@ const VideoSection = () => {
     return result;
   }, [baseVideos]);
 
-  const handlePrev = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (api) {
-      api.scrollPrev();
-      // O AutoScroll irá parar devido ao stopOnInteraction: true
-    }
+  const handlePrev = useCallback(() => {
+    api?.scrollPrev();
+    const autoScroll = api?.plugins().autoScroll;
+    if (autoScroll) (autoScroll as any).reset();
   }, [api]);
 
-  const handleNext = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (api) {
-      api.scrollNext();
-    }
+  const handleNext = useCallback(() => {
+    api?.scrollNext();
+    const autoScroll = api?.plugins().autoScroll;
+    if (autoScroll) (autoScroll as any).reset();
   }, [api]);
 
   if (displayVideos.length === 0) return null;
 
-  const pixelArrowClass = "h-14 w-14 rounded-none border-2 border-zinc-700 bg-black/80 text-white hover:bg-white hover:text-black transition-all flex items-center justify-center cursor-pointer z-[100] shadow-2xl absolute top-1/2 -translate-y-1/2 active:scale-90 pointer-events-auto backdrop-blur-sm";
+  const pixelArrowClass = "h-12 w-12 rounded-none border border-zinc-700 bg-black text-white hover:bg-white hover:text-black transition-colors flex items-center justify-center cursor-pointer z-[100] shadow-lg absolute top-1/2 -translate-y-1/2 pointer-events-auto active:scale-95";
 
   return (
     <>
       <Reveal width="100%" delay={0.2} className="w-full">
-        <section className="w-full max-w-7xl px-4 mx-auto relative overflow-visible group/carousel">
-          {/* Gradientes laterais */}
+        <section className="w-full max-w-7xl px-4 mx-auto group/carousel relative">
           <div 
             className="absolute left-0 top-0 bottom-0 w-24 md:w-40 z-20 pointer-events-none"
             style={{ background: `linear-gradient(to right, ${config.backgroundColor} 10%, transparent)` }}
@@ -249,30 +251,13 @@ const VideoSection = () => {
             style={{ background: `linear-gradient(to left, ${config.backgroundColor} 10%, transparent)` }}
           />
 
-          {/* Botões manuais posicionados na raiz da section para evitar bloqueio */}
-          <button 
-            onClick={handlePrev} 
-            className={`${pixelArrowClass} left-2 md:left-6`}
-            aria-label="Previous slide"
-          >
-            <ArrowLeft className="w-8 h-8" />
-          </button>
-          
-          <button 
-            onClick={handleNext} 
-            className={`${pixelArrowClass} right-2 md:right-6`}
-            aria-label="Next slide"
-          >
-            <ArrowRight className="w-8 h-8" />
-          </button>
-
           <Carousel
             setApi={setApi}
             plugins={[plugin.current]}
             opts={{
               align: "center",
               loop: true,
-              dragFree: true, // Permite mover livremente ao arrastar
+              dragFree: true,
               containScroll: false,
             }}
             className="w-full relative"
@@ -280,14 +265,18 @@ const VideoSection = () => {
             <CarouselContent className="-ml-4 items-center py-10">
               {displayVideos.map((video, idx) => (
                 <CarouselItem key={`${video.id}-${idx}`} className="pl-4 basis-full md:basis-[58%] lg:basis-[38%]">
-                  <VideoCard 
-                    video={video} 
-                    onClick={() => setSelectedVideo(video)} 
-                    cacheKey={`${video.id}-${idx}`}
-                  />
+                  <VideoCard video={video} onClick={() => setSelectedVideo(video)} />
                 </CarouselItem>
               ))}
             </CarouselContent>
+            
+            <button onClick={handlePrev} className={`${pixelArrowClass} left-4 md:left-8`}>
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            
+            <button onClick={handleNext} className={`${pixelArrowClass} right-4 md:right-8`}>
+              <ArrowRight className="w-6 h-6" />
+            </button>
           </Carousel>
         </section>
       </Reveal>
