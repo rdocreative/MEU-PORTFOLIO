@@ -5,7 +5,6 @@ import ProfileCard from "@/components/ProfileCard";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ClientsSection from "@/components/ClientsSection";
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useConfig } from "@/context/ConfigContext";
 import { Reveal } from "@/components/Reveal";
 
@@ -97,15 +96,13 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className="z-10 pb-8 flex flex-col items-center gap-6">
+      <footer className="z-10 pb-16 flex flex-col items-center gap-6">
         {/* Detalhe Premium no Final */}
         <Reveal variant="fade">
           <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold border-b border-zinc-800 pb-1">
             Editing focused on retention.
           </p>
         </Reveal>
-        
-        <MadeWithDyad />
       </footer>
     </div>
   );
