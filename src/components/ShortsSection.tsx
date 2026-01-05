@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
@@ -16,7 +16,6 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
     const video = videoRef.current;
     if (!video) return;
 
-    // Força mudo e play via JS
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
@@ -37,7 +36,7 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
   return (
     <video 
       ref={videoRef}
-      key={src} // Importante para resetar se a URL mudar
+      key={src} 
       src={src} 
       className={`${className} pointer-events-none select-none`}
       muted 
@@ -51,7 +50,20 @@ const AutoPlayVideo = ({ src, className }: { src: string, className?: string }) 
 
 const ShortsSection = () => {
   const { config } = useConfig();
-  const shorts = config.shortsVideos.filter(v => v.url || v.customVideoUrl);
+  
+  // Filtra shorts válidos
+  const baseShorts = useMemo(() => 
+    config.shortsVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
+    [config.shortsVideos]
+  );
+
+  // REGRA: Duplica os itens para garantir que o carrossel tenha conteúdo suficiente para o loop infinito
+  const displayShorts = useMemo(() => {
+    if (baseShorts.length === 0) return [];
+    // Se tiver menos de 10 itens, triplicamos para garantir fluidez total na animação
+    if (baseShorts.length < 10) return [...baseShorts, ...baseShorts, ...baseShorts];
+    return baseShorts;
+  }, [baseShorts]);
 
   const plugin = useRef(
     AutoScroll({ 
@@ -61,7 +73,7 @@ const ShortsSection = () => {
     })
   );
 
-  if (shorts.length === 0) return null;
+  if (displayShorts.length === 0) return null;
 
   const getYouTubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -81,7 +93,7 @@ const ShortsSection = () => {
         className="w-fit max-w-[1400px] mx-auto [&>div]:overflow-visible"
       >
         <CarouselContent className="-ml-6 items-center">
-          {shorts.map((short, idx) => {
+          {displayShorts.map((short, idx) => {
             const videoId = getYouTubeId(short.url);
             return (
               <CarouselItem key={`${short.id}-${idx}`} className="pl-6 basis-auto">
@@ -90,7 +102,7 @@ const ShortsSection = () => {
                     borderColor: `${config.primaryColor}22`,
                     WebkitMaskImage: "-webkit-radial-gradient(white, black)"
                   }}
-                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300 hover:scale-105"
+                  className="w-48 md:w-56 aspect-[9/16] bg-zinc-900 rounded-[40px] overflow-hidden border-4 relative shadow-2xl transition-transform duration-300"
                 >
                   {short.customVideoUrl ? (
                     <AutoPlayVideo 
