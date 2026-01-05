@@ -65,14 +65,17 @@ const FullVideo = ({ video }: { video: VideoData }) => {
 
   if (videoId) {
     return (
-      <div className="relative w-full h-full overflow-hidden bg-black">
-        {/* O scale de 1.15 e o translate-y escondem as barras de título e botões do YouTube */}
+      <div className="relative w-full h-full overflow-hidden bg-black select-none">
+        {/* Scale aumentado para 1.35 para cortar agressivamente as barras de info do YouTube */}
         <iframe
-          className="absolute top-0 left-0 w-full h-[115%] -translate-y-[7.5%] pointer-events-auto"
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3`}
+          className="w-full h-full pointer-events-auto scale-[1.35] origin-center"
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&loop=1&playlist=${videoId}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
+        {/* Overlays invisíveis para impedir interação com bordas caso algo vaze */}
+        <div className="absolute top-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
+        <div className="absolute bottom-0 left-0 w-full h-[15%] z-10 pointer-events-auto" />
       </div>
     );
   }
