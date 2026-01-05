@@ -41,6 +41,17 @@ const ProfileCard = () => {
     transition: isHovering ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out'
   };
 
+  // Clientes fixos solicitados
+  const pinnedClients = [
+    { name: 'RackPogs', image: 'https://ui-avatars.com/api/?name=RP&background=ef4444&color=fff&bold=true' },
+    { name: 'Tru Original', image: 'https://ui-avatars.com/api/?name=TO&background=000000&color=fff&bold=true' },
+    { name: 'SoyNeto', image: 'https://ui-avatars.com/api/?name=SN&background=3b82f6&color=fff&bold=true' },
+    { name: 'Netoblox', image: 'https://ui-avatars.com/api/?name=NB&background=22c55e&color=fff&bold=true' }
+  ];
+
+  // Combina clientes fixos com os do config, garantindo que os fixos apareçam primeiro
+  const displayClients = [...pinnedClients, ...(config.clients || [])].slice(0, 4);
+
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-xl perspective-1000">
       <style>{`
@@ -128,20 +139,21 @@ const ProfileCard = () => {
         </a>
 
         {/* Trusted By Section */}
-        {config.clients && config.clients.length > 0 && (
+        {displayClients.length > 0 && (
           <div 
             className="flex items-center gap-3 z-20 transition-transform duration-300"
             style={{ transform: isHovering ? 'translateZ(15px)' : 'translateZ(0)' }}
           >
             <div className="flex -space-x-3">
-              {config.clients.slice(0, 4).map((client: any, index: number) => (
+              {displayClients.map((client: any, index: number) => (
                 <div 
                   key={index} 
                   className="w-8 h-8 rounded-full border-2 border-black/50 overflow-hidden bg-zinc-800"
+                  title={client.name}
                 >
                   <img 
                     src={client.image} 
-                    alt={`Client ${index + 1}`} 
+                    alt={client.name} 
                     className="w-full h-full object-cover"
                   />
                 </div>
