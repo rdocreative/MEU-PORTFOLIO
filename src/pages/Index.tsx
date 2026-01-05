@@ -18,8 +18,8 @@ const Index = () => {
     >
       <Header />
       
-      <main className="w-full flex flex-col items-center gap-20 md:gap-32">
-        <div className="w-full flex flex-col items-center gap-8 md:gap-12">
+      <main className="w-full flex flex-col items-center gap-16 md:gap-24">
+        <div className="w-full flex flex-col items-center gap-4">
           <FeaturedVideos />
           <ClientsSection />
         </div>
