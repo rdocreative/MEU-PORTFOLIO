@@ -58,9 +58,10 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
   return (
     <div 
       onClick={onClick}
-      className="flex-shrink-0 w-[300px] md:w-[450px] group relative flex flex-col gap-4 p-1 cursor-pointer"
+      // Alterado w-[300px] para w-[44vw] no mobile para caber 2 lado a lado (considerando gap)
+      className="flex-shrink-0 w-[44vw] md:w-[450px] group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer"
     >
-      <div className="aspect-video relative bg-black rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
+      <div className="aspect-video relative bg-black rounded-[20px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -76,14 +77,14 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
         
         {/* Overlay do botão WATCH ao passar o mouse */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
-          <span className="text-[10px] bg-white text-black px-6 py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
+          <span className="text-[8px] md:text-[10px] bg-white text-black px-4 md:px-6 py-1.5 md:py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
             Watch
           </span>
         </div>
 
-        <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
+        <div className="absolute inset-0 rounded-[20px] md:rounded-[40px] border-2 md:border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
       </div>
-      <h3 className="text-[10px] text-white/60 uppercase tracking-[0.2em] font-bold text-center group-hover:text-white transition-colors">
+      <h3 className="text-[8px] md:text-[10px] text-white/60 uppercase tracking-[0.2em] font-bold text-center group-hover:text-white transition-colors truncate px-2">
         {video.title}
       </h3>
     </div>
@@ -105,7 +106,6 @@ const VideoSection = () => {
   if (activeVideos.length === 0) return null;
 
   // Duplicamos a lista para criar o efeito infinito visual no CSS
-  // Quanto mais itens, mais suave a transição. Se tiver poucos vídeos, triplicamos.
   const marqueeItems = activeVideos.length > 4 ? [...activeVideos, ...activeVideos] : [...activeVideos, ...activeVideos, ...activeVideos, ...activeVideos];
 
   return (
@@ -126,19 +126,20 @@ const VideoSection = () => {
         }
       `}</style>
 
-      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-10 relative group/section">
+      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-6 md:py-10 relative group/section">
         {/* Gradientes laterais para suavizar as bordas */}
         <div 
-          className="absolute left-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
+          className="absolute left-0 top-0 bottom-0 w-8 md:w-60 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
         />
         <div 
-          className="absolute right-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
+          className="absolute right-0 top-0 bottom-0 w-8 md:w-60 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to left, ${config.backgroundColor}, transparent)` }}
         />
 
         {/* Container Marquee */}
-        <div className="animate-marquee-infinite gap-8 px-4">
+        {/* Alterado gap-8 para gap-3 no mobile */}
+        <div className="animate-marquee-infinite gap-3 md:gap-8 px-2 md:px-4">
           {marqueeItems.map((video, idx) => (
             <VideoCard 
               key={`${video.id}-${idx}`} 
