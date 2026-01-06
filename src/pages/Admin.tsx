@@ -13,33 +13,14 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { supabase } from '@/integrations/supabase/client';
 
-const Settings = () => {
+const Admin = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
   const [isSaving, setIsSaving] = useState(false);
-  const [processingIndex, setProcessingIndex] = useState<number | null>(null);
-  const [processingProgress, setProcessingProgress] = useState(0);
   
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const clientInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const ffmpegRef = useRef(new FFmpeg());
   const isLoadedRef = useRef(false);
-
-  const loadFFmpeg = async () => {
-    if (isLoadedRef.current) return true;
-    if (!window.crossOriginIsolated) return false;
-    const ffmpeg = ffmpegRef.current;
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-    try {
-      await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-      });
-      isLoadedRef.current = true;
-      return true;
-    } catch (e) { return false; }
-  };
 
   const uploadToStorage = async (file: File | Blob, path: string): Promise<string | null> => {
     const fileName = `${Date.now()}_${path}`;
@@ -142,4 +123,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default Admin;
