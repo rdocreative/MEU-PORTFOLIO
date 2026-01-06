@@ -15,6 +15,9 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [showLocalToast, setShowLocalToast] = useState(false);
 
+  // Fallback para o link do twitter caso não venha da config
+  const twitterLink = config.twitterUrl || "https://x.com/rdocreative0";
+
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     setCopiedType(type);
@@ -47,7 +50,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
 
         <div className="grid grid-cols-1 gap-5 mt-10">
           <a
-            href={config.twitterUrl}
+            href={twitterLink}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative flex items-center justify-center gap-4 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#1DA1F2] hover:bg-[#1DA1F2]/5"
