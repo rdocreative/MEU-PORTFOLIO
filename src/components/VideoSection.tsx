@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useMemo, memo } from 'react';
+import React, { useRef, useState, useMemo, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
@@ -52,15 +52,15 @@ const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: stri
 YouTubePreview.displayName = 'YouTubePreview';
 
 // --- Card do Vídeo ---
-const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
+const VideoCard = memo(({ video, onClick, isDragging }: { video: VideoData, onClick: () => void, isDragging: boolean }) => {
   const videoId = getYouTubeId(video.url);
 
   return (
     <div 
       onClick={onClick}
-      className="flex-shrink-0 w-[300px] md:w-[450px] group relative flex flex-col gap-4 p-1 cursor-pointer"
+      className={`flex-shrink-0 w-[300px] md:w-[450px] group relative flex flex-col gap-4 p-1 select-none ${isDragging ? 'cursor-grabbing' : 'cursor-pointer'}`}
     >
-      <div className="aspect-video relative bg-black rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
+      <div className={`aspect-video relative bg-black rounded-[30px] md:rounded-[40px] overflow-hidden shadow-2xl transition-transform duration-300 ${!isDragging && 'group-hover:scale-[1.02]'}`}>
         <div className="absolute inset-0 bg-black flex items-center justify-center">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -74,12 +74,14 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             )}
         </div>
         
-        {/* Overlay do botão WATCH ao passar o mouse */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
-          <span className="text-[10px] bg-white text-black px-6 py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
-            Watch
-          </span>
-        </div>
+        {/* Overlay do botão WATCH ao passar o mouse (apenas se não estiver arrastando) */}
+        {!isDragging && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
+            <span className="text-[10px] bg-white text-black px-6 py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
+              Watch
+            </span>
+          </div>
+        )}
 
         <div className="absolute inset-0 rounded-[40px] border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
       </div>
@@ -92,10 +94,17 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
 
 VideoCard.displayName = 'VideoCard';
 
-// --- Seção Principal com Marquee CSS ---
+// --- Seção Principal com Drag-to-Scroll ---
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  
+  // Drag logic states
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDown, setIsDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const activeVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
@@ -104,45 +113,91 @@ const VideoSection = () => {
 
   if (activeVideos.length === 0) return null;
 
-  // Duplicamos a lista para criar o efeito infinito visual no CSS
-  const marqueeItems = [...activeVideos, ...activeVideos, ...activeVideos];
+  // --- Mouse/Drag Event Handlers ---
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDown(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDown(false);
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDown(false);
+    // Pequeno timeout para evitar clique imediato após soltar
+    setTimeout(() => setIsDragging(false), 50);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Velocidade do scroll
+    
+    // Se moveu mais de 5px, considera como arrasto e desativa cliques
+    if (Math.abs(walk) > 5) {
+      setIsDragging(true);
+    }
+    
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleVideoClick = (video: VideoData) => {
+    if (isDragging) return;
+    setSelectedVideo(video);
+  };
 
   return (
     <>
       <style>{`
-        @keyframes marquee-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.33%); }
+        /* Esconde a scrollbar mas mantem a funcionalidade */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
         }
-        .animate-marquee-infinite {
-          display: flex;
-          width: fit-content;
-          animation: marquee-scroll 40s linear infinite;
-        }
-        .animate-marquee-infinite:hover {
-          animation-play-state: paused;
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
       `}</style>
 
-      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-10 relative">
+      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-10 relative group/section">
         {/* Gradientes laterais para suavizar as bordas */}
         <div 
-          className="absolute left-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
+          className="absolute left-0 top-0 bottom-0 w-12 md:w-32 z-20 pointer-events-none transition-opacity duration-300"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
         />
         <div 
-          className="absolute right-0 top-0 bottom-0 w-24 md:w-60 z-20 pointer-events-none"
+          className="absolute right-0 top-0 bottom-0 w-12 md:w-32 z-20 pointer-events-none transition-opacity duration-300"
           style={{ background: `linear-gradient(to left, ${config.backgroundColor}, transparent)` }}
         />
 
-        <div className="animate-marquee-infinite gap-8 px-4">
-          {marqueeItems.map((video, idx) => (
+        {/* Container Scrollável */}
+        <div 
+          ref={scrollRef}
+          className={`
+            flex gap-6 md:gap-8 px-4 md:px-12 overflow-x-auto scrollbar-hide pb-8 items-center
+            ${isDown ? 'cursor-grabbing' : 'cursor-grab'}
+          `}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        >
+          {activeVideos.map((video, idx) => (
             <VideoCard 
               key={`${video.id}-${idx}`} 
               video={video} 
-              onClick={() => setSelectedVideo(video)} 
+              isDragging={isDragging}
+              onClick={() => handleVideoClick(video)} 
             />
           ))}
+          
+          {/* Spacer final para garantir que o ultimo item não fique colado */}
+          <div className="w-1 md:w-4 flex-shrink-0" />
         </div>
       </Reveal>
 
