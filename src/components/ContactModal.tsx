@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Twitter, Mail, MessageSquare, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useConfig } from '@/context/ConfigContext';
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface ContactModalProps {
 }
 
 const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
+  const { config } = useConfig();
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [showLocalToast, setShowLocalToast] = useState(false);
 
@@ -45,7 +47,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
 
         <div className="grid grid-cols-1 gap-5 mt-10">
           <a
-            href="https://x.com/rdocreative"
+            href={config.twitterUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative flex items-center justify-center gap-4 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#1DA1F2] hover:bg-[#1DA1F2]/5"
@@ -79,7 +81,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
           </button>
 
           <button
-            onClick={() => handleCopy('rdovfx1@gmail.com', 'email')}
+            onClick={() => handleCopy(config.email, 'email')}
             className="group relative flex flex-col items-center justify-center gap-3 w-full py-6 px-6 rounded-2xl bg-zinc-900/50 border-2 border-zinc-700 transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-white/40 hover:bg-white/5"
           >
             <div className="flex items-center gap-4">
@@ -90,7 +92,7 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
             </div>
             <div className="flex items-center gap-3 mt-1 bg-black/40 px-4 py-2 rounded-lg border border-zinc-800 group-hover:border-white/20">
               <span className="text-white text-[9px] font-['Press_Start_2P'] lowercase tracking-tighter">
-                rdovfx1@gmail.com
+                {config.email}
               </span>
               {copiedType === 'email' ? (
                 <Check className="w-4 h-4 text-green-400" />

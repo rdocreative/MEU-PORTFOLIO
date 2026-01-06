@@ -61,7 +61,7 @@ const defaultConfig: ConfigData = {
   secondaryColor: "#a1a1aa", 
   backgroundColor: "#0a0a0a", 
   cardColor: "#111111", 
-  twitterUrl: "https://twitter.com",
+  twitterUrl: "https://x.com/rdocreative0",
   discordUrl: "https://discord.com",
   email: "void@example.com",
   clients: [],
