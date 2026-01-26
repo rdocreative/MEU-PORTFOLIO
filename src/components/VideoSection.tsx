@@ -5,6 +5,12 @@ import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Reveal } from './Reveal';
+import AutoScroll from "embla-carousel-auto-scroll";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 const getYouTubeId = (url: string) => {
   if (!url) return null;
@@ -58,8 +64,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
   return (
     <div 
       onClick={onClick}
-      // Aumentado para 85vw no mobile para uma visualização muito mais imersiva
-      className="flex-shrink-0 w-[85vw] md:w-[450px] group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer"
+      className="group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer w-full"
     >
       <div className="aspect-video relative bg-black rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
@@ -75,7 +80,6 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             )}
         </div>
         
-        {/* Overlay do botão WATCH ao passar o mouse */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px] z-40 pointer-events-none">
           <span className="text-[8px] md:text-[10px] bg-white text-black px-4 md:px-6 py-1.5 md:py-2 rounded-full font-bold uppercase tracking-[0.2em] shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-transform duration-300">
             Watch
@@ -93,7 +97,7 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
 
 VideoCard.displayName = 'VideoCard';
 
-// --- Seção Principal com Marquee Infinito ---
+// --- Seção Principal ---
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
@@ -103,31 +107,20 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
-  if (activeVideos.length === 0) return null;
+  const plugin = useRef(
+    AutoScroll({ 
+      speed: 1,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+    })
+  );
 
-  // Duplicamos a lista para criar o efeito infinito visual no CSS
-  const marqueeItems = activeVideos.length > 4 ? [...activeVideos, ...activeVideos] : [...activeVideos, ...activeVideos, ...activeVideos, ...activeVideos];
+  if (activeVideos.length === 0) return null;
 
   return (
     <>
-      <style>{`
-        @keyframes marquee-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee-infinite {
-          display: flex;
-          width: fit-content;
-          animation: marquee-scroll 40s linear infinite;
-        }
-        /* Pausa a animação ao passar o mouse para facilitar o clique */
-        .animate-marquee-infinite:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
-
-      <Reveal width="100%" delay={0.2} className="w-full overflow-hidden py-6 md:py-10 relative group/section">
-        {/* Gradientes laterais para suavizar as bordas */}
+      <Reveal width="100%" delay={0.2} className="w-full relative group/section">
+        {/* Gradientes laterais */}
         <div 
           className="absolute left-0 top-0 bottom-0 w-8 md:w-60 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
@@ -137,16 +130,30 @@ const VideoSection = () => {
           style={{ background: `linear-gradient(to left, ${config.backgroundColor}, transparent)` }}
         />
 
-        {/* Container Marquee */}
-        <div className="animate-marquee-infinite gap-6 md:gap-8 px-4 md:px-4">
-          {marqueeItems.map((video, idx) => (
-            <VideoCard 
-              key={`${video.id}-${idx}`} 
-              video={video} 
-              onClick={() => setSelectedVideo(video)} 
-            />
-          ))}
-        </div>
+        <Carousel
+          plugins={[plugin.current]}
+          opts={{
+            align: "start",
+            loop: true,
+            dragFree: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4 md:-ml-8 items-center py-6 md:py-10">
+            {activeVideos.map((video, idx) => (
+              <CarouselItem 
+                key={`${video.id}-${idx}`} 
+                // Mantendo o tamanho solicitado: 85vw no mobile e fixo no desktop
+                className="pl-4 md:pl-8 basis-[85vw] md:basis-[450px]"
+              >
+                <VideoCard 
+                  video={video} 
+                  onClick={() => setSelectedVideo(video)} 
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       </Reveal>
 
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
