@@ -27,6 +27,7 @@ export interface PortfolioConfig {
   profileName: string;
   description: string;
   profileImage: string;
+  profileVideo?: string; // Novo campo
   primaryColor: string;
   secondaryColor: string;
   backgroundColor: string;
@@ -100,6 +101,7 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
           setConfig({
             ...defaultConfig,
             ...data,
+            profileVideo: data.profile_video, // Mapeando do DB
             clients: data.clients || [],
             featuredVideos: data.featured_videos || defaultConfig.featuredVideos,
             shortsVideos: data.shorts_videos || defaultConfig.shortsVideos,
@@ -130,6 +132,7 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         profile_name: config.profileName,
         description: config.description,
         profile_image: config.profileImage,
+        profile_video: config.profileVideo, // Salvando no DB
         primary_color: config.primaryColor,
         secondary_color: config.secondaryColor,
         background_color: config.backgroundColor,

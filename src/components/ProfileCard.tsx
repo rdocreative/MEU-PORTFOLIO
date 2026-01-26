@@ -42,16 +42,27 @@ const ProfileCard = memo(() => {
           <div className="scanline z-0"></div>
           
           <div className="relative w-32 h-32 mb-6 z-20">
-            <div style={{ borderColor: config.secondaryColor }} className="absolute inset-0 border-4 rounded-full animate-pulse"></div>
-            {/* Otimização: fetchPriority="high" pois é a imagem principal (LCP) */}
-            <img 
-              src={config.profileImage} 
-              alt="Profile" 
-              fetchPriority="high"
-              width={128}
-              height={128}
-              className="w-full h-full p-2 bg-black rounded-full object-cover"
-            />
+            <div style={{ borderColor: config.secondaryColor }} className="absolute inset-0 border-4 rounded-full animate-pulse z-30 pointer-events-none"></div>
+            {/* Renderização condicional: Vídeo ou Imagem */}
+            {config.profileVideo ? (
+              <video
+                src={config.profileVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full p-2 bg-black rounded-full object-cover"
+              />
+            ) : (
+              <img 
+                src={config.profileImage} 
+                alt="Profile" 
+                fetchPriority="high"
+                width={128}
+                height={128}
+                className="w-full h-full p-2 bg-black rounded-full object-cover"
+              />
+            )}
           </div>
           
           <h1 

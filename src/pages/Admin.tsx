@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,7 @@ const Admin = () => {
   
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const uploadToStorage = async (file: File | Blob, path: string): Promise<string | null> => {
     const fileName = `${Date.now()}_${path}`;
@@ -120,13 +121,44 @@ const Admin = () => {
           {/* Perfil */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="flex flex-col items-center gap-6">
-                <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" />
-                <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black text-[8px] w-full rounded-full">CHANGE_AVATAR</Button>
-                <input type="file" ref={fileInputRef} onChange={async (e) => {
+                <div className="relative group">
+                  {config.profileVideo ? (
+                    <video src={config.profileVideo} className="w-32 h-32 rounded-full border-4 border-white object-cover" autoPlay loop muted />
+                  ) : (
+                    <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" />
+                  )}
+                  {config.profileVideo && (
+                    <button 
+                      onClick={() => updateLocalConfig({ profileVideo: undefined })}
+                      className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors"
+                      title="Remove Video"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black text-[8px] w-full rounded-full">CHANGE_IMAGE</Button>
+                  <Button onClick={() => videoInputRef.current?.click()} className="bg-zinc-800 text-white text-[8px] w-full rounded-full flex items-center gap-2 justify-center">
+                    <Film className="w-3 h-3" />
+                    {config.profileVideo ? 'CHANGE_VIDEO' : 'UPLOAD_VIDEO'}
+                  </Button>
+                </div>
+
+                <input type="file" ref={fileInputRef} accept="image/*" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
                     const url = await uploadToStorage(file, 'avatar.png');
-                    if (url) updateLocalConfig({ profileImage: url });
+                    if (url) updateLocalConfig({ profileImage: url, profileVideo: undefined });
+                  }
+                }} className="hidden" />
+
+                <input type="file" ref={videoInputRef} accept="video/mp4,video/webm" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const url = await uploadToStorage(file, 'avatar_video.mp4');
+                    if (url) updateLocalConfig({ profileVideo: url });
                   }
                 }} className="hidden" />
               </div>
