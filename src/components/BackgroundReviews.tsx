@@ -1,56 +1,80 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 
 const BackgroundReviews = () => {
   const { config } = useConfig();
-  
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Utiliza requestAnimationFrame para performance suave
+      requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+      });
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   if (!config.reviews || config.reviews.length === 0) return null;
 
-  // Posições fixas espalhadas pela página para os 6 slots
-  const positions = [
-    // Topo Esquerda (perto do título)
-    { top: '15%', left: '5%', rotation: '-15deg', scale: 0.9, blur: '1px' },
-    // Topo Direita
-    { top: '20%', right: '5%', rotation: '15deg', scale: 1.1, blur: '0px' },
-    // Meio Esquerda (perto dos vídeos)
-    { top: '45%', left: '-5%', rotation: '10deg', scale: 0.8, blur: '2px' },
-    // Meio Direita
-    { top: '55%', right: '-2%', rotation: '-10deg', scale: 1.0, blur: '1px' },
-    // Fundo Esquerda (perto do rodapé)
-    { top: '80%', left: '10%', rotation: '-5deg', scale: 0.9, blur: '1px' },
-    // Fundo Direita
-    { top: '85%', right: '15%', rotation: '5deg', scale: 0.8, blur: '2px' },
-  ];
+  // Pegamos apenas os primeiros 6 reviews
+  const reviews = config.reviews.slice(0, 6);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-      {config.reviews.slice(0, 6).map((review, index) => {
-        const pos = positions[index];
-        if (!pos) return null;
+    <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
+      {reviews.map((review, index) => {
+        const isLeft = index % 2 === 0;
         
+        // Posição vertical base distribuída ao longo da página
+        const baseTop = 10 + (index * 12); 
+        
+        // Efeito Paralaxe:
+        // O elemento se move a uma velocidade diferente do scroll (factor 0.2)
+        // Isso cria a sensação de profundidade/3D
+        const parallaxY = scrollY * 0.15;
+        
+        // Adicionamos um deslocamento inicial para variar a "altura" visual
+        const initialOffset = index * 50;
+
         return (
           <div
             key={review.id}
-            className="absolute transition-all duration-700 ease-in-out opacity-20 hover:opacity-40"
+            // 'hidden xl:block' garante que só apareça em telas grandes onde há espaço nas laterais
+            // Isso evita que fique atrás de componentes ou cortado em telas menores
+            className="absolute hidden xl:block transition-transform duration-100 ease-out will-change-transform"
             style={{
-              top: pos.top,
-              left: pos.left,
-              right: pos.right,
-              transform: `perspective(1000px) rotateY(${pos.rotation}) rotateX(5deg) scale(${pos.scale})`,
-              filter: `blur(${pos.blur})`,
+              top: `${baseTop}%`,
+              // Posiciona bem nas extremidades para não colidir com o conteúdo central (max-w-7xl)
+              [isLeft ? 'left' : 'right']: '2%', 
               width: '335px',
               height: '88px',
+              transform: `
+                translate3d(0, ${parallaxY - initialOffset}px, 0) 
+                perspective(1000px) 
+                rotateY(${isLeft ? '25deg' : '-25deg'}) 
+                rotateX(10deg)
+              `,
+              zIndex: 0
             }}
           >
-            <img 
-              src={review.url} 
-              alt="Client Review" 
-              className="w-full h-full object-cover rounded-lg shadow-2xl border border-white/10"
-            />
-            {/* Efeito de brilho/reflexo */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent rounded-lg" />
+            {/* Container interno para o efeito visual do print */}
+            <div className="relative w-full h-full group">
+              <div 
+                className="absolute inset-0 bg-black/40 rounded-xl transform translate-y-4 translate-x-2 blur-md" 
+                aria-hidden="true" 
+              />
+              <img 
+                src={review.url} 
+                alt="Client Review" 
+                className="relative w-full h-full object-cover rounded-xl shadow-2xl border border-white/10 opacity-60 group-hover:opacity-100 transition-opacity duration-500"
+              />
+              {/* Brilho especular para reforçar o efeito 3D */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+            </div>
           </div>
         );
       })}
