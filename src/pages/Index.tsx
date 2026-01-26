@@ -8,6 +8,7 @@ import ClientsSection from "@/components/ClientsSection";
 import ContactModal from "@/components/ContactModal";
 import { useConfig } from "@/context/ConfigContext";
 import { Reveal } from "@/components/Reveal";
+import BackgroundReviews from "@/components/BackgroundReviews";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
@@ -23,6 +24,7 @@ const Index = () => {
       className="min-h-screen flex flex-col relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
       <StarsBackground />
+      <BackgroundReviews />
 
       {/* Styles for the optimized animations */}
       <style jsx global>{`

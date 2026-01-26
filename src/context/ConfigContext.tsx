@@ -17,6 +17,11 @@ export interface Client {
   subscribers?: string;
 }
 
+export interface ReviewImage {
+  id: string;
+  url: string;
+}
+
 interface PortfolioConfig {
   profileName: string;
   description: string;
@@ -32,6 +37,7 @@ interface PortfolioConfig {
   featuredVideos: VideoData[];
   shortsVideos: VideoData[];
   subscribers: string;
+  reviews: ReviewImage[];
 }
 
 interface ConfigContextType {
@@ -55,7 +61,8 @@ const defaultConfig: PortfolioConfig = {
   clients: [],
   featuredVideos: [],
   shortsVideos: [],
-  subscribers: "0"
+  subscribers: "0",
+  reviews: []
 };
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -75,11 +82,21 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         if (data) {
           setConfig({
             ...defaultConfig,
-            ...data,
-            // Garantindo que campos JSON sejam arrays se vierem nulos
+            profileName: data.profile_name || defaultConfig.profileName,
+            description: data.description || defaultConfig.description,
+            profileImage: data.profile_image || defaultConfig.profileImage,
+            primaryColor: data.primary_color || defaultConfig.primaryColor,
+            secondaryColor: data.secondary_color || defaultConfig.secondaryColor,
+            backgroundColor: data.background_color || defaultConfig.backgroundColor,
+            cardColor: data.card_color || defaultConfig.cardColor,
+            twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
+            discordUrl: data.discord_url || defaultConfig.discordUrl,
+            email: data.email || defaultConfig.email,
             clients: data.clients || [],
             featuredVideos: data.featured_videos || [],
             shortsVideos: data.shorts_videos || [],
+            subscribers: data.subscribers || "0",
+            reviews: data.reviews || []
           });
         }
       } catch (err) {
@@ -98,28 +115,55 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const saveConfigToDb = async () => {
     try {
-      const { error } = await supabase
-        .from('portfolio_config')
-        .update({
-          profile_name: config.profileName,
-          description: config.description,
-          profile_image: config.profileImage,
-          primary_color: config.primaryColor,
-          secondary_color: config.secondaryColor,
-          background_color: config.backgroundColor,
-          card_color: config.cardColor,
-          twitter_url: config.twitterUrl,
-          discord_url: config.discordUrl,
-          email: config.email,
-          clients: config.clients,
-          featured_videos: config.featuredVideos,
-          shorts_videos: config.shortsVideos,
-          subscribers: config.subscribers
-        })
-        .eq('id', (await supabase.from('portfolio_config').select('id').single()).data?.id);
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return false;
 
-      return !error;
+      // Primeiro verifica se existe um registro
+      const { data: existingData } = await supabase
+        .from('portfolio_config')
+        .select('id')
+        .single();
+
+      let error;
+      
+      const payload = {
+        profile_name: config.profileName,
+        description: config.description,
+        profile_image: config.profileImage,
+        primary_color: config.primaryColor,
+        secondary_color: config.secondaryColor,
+        background_color: config.backgroundColor,
+        card_color: config.cardColor,
+        twitter_url: config.twitterUrl,
+        discord_url: config.discordUrl,
+        email: config.email,
+        clients: config.clients,
+        featured_videos: config.featuredVideos,
+        shorts_videos: config.shortsVideos,
+        subscribers: config.subscribers,
+        reviews: config.reviews
+      };
+
+      if (existingData) {
+        const result = await supabase
+          .from('portfolio_config')
+          .update(payload)
+          .eq('id', existingData.id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from('portfolio_config')
+          .insert([payload]);
+        error = result.error;
+      }
+
+      if (error) {
+        console.error("Error saving:", error);
+        return false;
+      }
+      return true;
     } catch (err) {
+      console.error("Exception saving:", err);
       return false;
     }
   };

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
-import { useConfig, VideoData, Client } from '@/context/ConfigContext';
+import { useConfig, VideoData, Client, ReviewImage } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -56,6 +56,28 @@ const Admin = () => {
     updateLocalConfig({ clients: config.clients.filter(c => c.id !== id) });
   };
 
+  const handleReviewUpload = async (file: File, index: number) => {
+    const url = await uploadToStorage(file, `review_${index}.png`);
+    if (url) {
+      const newReviews = [...(config.reviews || [])];
+      // Garante que o array tem o tamanho necessário preenchendo com placeholders se preciso, 
+      // mas aqui vamos apenas adicionar/substituir no índice correto
+      while (newReviews.length <= index) {
+        newReviews.push({ id: crypto.randomUUID(), url: '' });
+      }
+      newReviews[index] = { id: newReviews[index]?.id || crypto.randomUUID(), url };
+      // Limpa arrays vazios ou inválidos
+      const cleanReviews = newReviews.filter(r => r && r.url);
+      updateLocalConfig({ reviews: cleanReviews });
+    }
+  };
+
+  const removeReview = (index: number) => {
+    const newReviews = [...(config.reviews || [])];
+    newReviews.splice(index, 1);
+    updateLocalConfig({ reviews: newReviews });
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     const success = await saveConfigToDb();
@@ -102,6 +124,51 @@ const Admin = () => {
                   <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 min-h-[100px]" placeholder="DESCRIPTION" />
                 </div>
               </div>
+          </div>
+
+          {/* Background Reviews */}
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
+            <h2 className="text-[12px] uppercase flex items-center gap-4"><Star className="w-5 h-5" /> Background_Reviews (335x88)</h2>
+            <p className="text-[8px] text-zinc-500">Upload up to 6 prints of reviews to be displayed in the background.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[0, 1, 2, 3, 4, 5].map((index) => {
+                const review = config.reviews?.[index];
+                return (
+                  <div key={index} className="aspect-[335/88] border-2 border-zinc-800 border-dashed rounded-lg flex items-center justify-center relative bg-black/30 overflow-hidden group">
+                    {review ? (
+                      <>
+                        <img src={review.url} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => removeReview(index)}
+                            className="h-8 w-8 p-0 rounded-full"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <label className="cursor-pointer flex flex-col items-center gap-2 text-zinc-500 hover:text-white transition-colors">
+                        <Plus className="w-6 h-6" />
+                        <span className="text-[8px]">UPLOAD</span>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleReviewUpload(file, index);
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Redes Sociais */}
