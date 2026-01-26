@@ -15,41 +15,42 @@ const Index = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div 
-      className="min-h-screen transition-colors duration-500 overflow-x-hidden"
+      className="min-h-screen transition-colors duration-500 overflow-x-hidden selection:bg-white/20"
       style={{ backgroundColor: config.backgroundColor, color: config.primaryColor }}
     >
       <Navbar />
 
-      <main className="container mx-auto px-6 pt-32 pb-20">
-        <div className="flex flex-col lg:flex-row items-center gap-12 mb-24">
-          <Reveal width="100%" delay={0.1} className="lg:w-1/3 flex flex-col items-center">
+      <main className="container mx-auto px-4 md:px-6 pt-24 pb-12">
+        {/* Hero Section - Compactada */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 mb-20 md:mb-32 max-w-5xl mx-auto">
+          <Reveal width="100%" delay={0.1} className="flex-shrink-0">
             <div className="relative group">
-              <div className="absolute -inset-4 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all duration-500" />
+              <div className="absolute -inset-2 bg-white/5 rounded-full blur-xl group-hover:bg-white/10 transition-all duration-500" />
               <img 
                 src={config.profileImage} 
                 alt={config.profileName}
-                className="w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-white relative z-10 object-cover shadow-2xl"
+                className="w-32 h-32 md:w-40 md:h-40 rounded-full border-2 border-white/20 relative z-10 object-cover shadow-2xl"
               />
             </div>
             
-            <div className="mt-8 flex flex-col items-center gap-4">
-              <StatsCard label="SUBSCRIBERS" value={config.subscribers} />
+            <div className="mt-6 flex justify-center">
+              <StatsCard label="SUBS" value={config.subscribers} />
             </div>
           </Reveal>
 
-          <Reveal width="100%" delay={0.2} className="lg:w-2/3 text-center lg:text-left">
-            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black mb-6 tracking-tighter uppercase leading-[0.9]">
+          <Reveal width="100%" delay={0.2} className="text-center md:text-left">
+            <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tighter uppercase leading-tight">
               {config.profileName}
             </h1>
             <p 
-              className="text-lg md:text-xl font-bold uppercase tracking-[0.2em] mb-8"
+              className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] leading-relaxed max-w-lg mx-auto md:mx-0"
               style={{ color: config.secondaryColor }}
             >
               {config.description}
@@ -57,21 +58,25 @@ const Index = () => {
           </Reveal>
         </div>
 
-        <section id="work" className="mb-32">
+        {/* Work Section - Com Carrossel */}
+        <section id="work" className="mb-24 max-w-6xl mx-auto">
           <Reveal width="100%">
-            <div className="flex items-center gap-6 mb-12">
-              <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Selected_Work</h2>
-              <div className="h-[2px] flex-1 bg-white/10" />
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-[1px] w-8 bg-white/20" />
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/60">Selected Work</h2>
+              <div className="h-[1px] flex-1 bg-white/20" />
             </div>
           </Reveal>
           <VideoSection />
         </section>
 
-        <section id="clients" className="mb-32">
+        {/* Partners Section - Com Carrossel Infinito */}
+        <section id="clients" className="mb-20 max-w-6xl mx-auto">
           <Reveal width="100%">
-            <div className="flex items-center gap-6 mb-12">
-              <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">Partnerships</h2>
-              <div className="h-[2px] flex-1 bg-white/10" />
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-[1px] w-8 bg-white/20" />
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/60">Trusted By</h2>
+              <div className="h-[1px] flex-1 bg-white/20" />
             </div>
           </Reveal>
           <ClientSection />
