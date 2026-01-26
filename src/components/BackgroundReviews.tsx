@@ -40,8 +40,15 @@ const BackgroundReviews = () => {
           75% { transform: rotate(-1.5deg) translateY(5px); }
           100% { transform: rotate(0deg) translateY(0); }
         }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
         .animate-wiggle {
           animation: subtle-wiggle 8s ease-in-out infinite;
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
         }
       `}</style>
       
@@ -70,23 +77,33 @@ const BackgroundReviews = () => {
                   rotateY(${isLeft ? '20deg' : '-20deg'}) 
                   rotateX(5deg)
                 `,
-                opacity: 0.55, // Aumentado de 0.4 para 0.55 (~+15%)
+                opacity: 0.70, // Increased from 0.55 (+15%)
                 zIndex: 0
               }}
             >
               <div 
-                className="w-full h-full animate-wiggle"
-                style={{ animationDelay }}
+                className="w-full h-full animate-wiggle p-[1px] rounded-lg overflow-hidden relative"
+                style={{ 
+                  animationDelay,
+                  maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                }}
               >
+                {/* Rotating Border Glow */}
+                <div 
+                  className="absolute inset-[-100%] animate-spin-slow"
+                  style={{
+                    background: 'conic-gradient(from 90deg, transparent 0%, transparent 80%, rgba(255,255,255,0.4) 100%)'
+                  }}
+                />
+                
                 <img 
                   src={review.url} 
                   alt="" 
-                  className="w-full h-auto rounded-lg grayscale" 
+                  className="relative w-full h-auto rounded-lg grayscale z-10" 
                   style={{
-                    maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                    // Adicionado glow sutil
-                    filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.15))'
+                    // Slightly stronger and smoother glow
+                    filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))'
                   }}
                 />
               </div>
