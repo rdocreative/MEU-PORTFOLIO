@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -43,7 +43,12 @@ const Admin = () => {
   };
 
   const addClient = () => {
-    const newClient: Client = { id: crypto.randomUUID(), name: 'NEW CREATOR', image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop' };
+    const newClient: Client = { 
+      id: crypto.randomUUID(), 
+      name: 'NEW CREATOR', 
+      image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop',
+      subscribers: '0'
+    };
     updateLocalConfig({ clients: [...config.clients, newClient] });
   };
 
@@ -150,16 +155,28 @@ const Admin = () => {
                       </label>
                     </div>
                     <div className="flex-1 space-y-2">
-                      <Input 
-                        value={client.name} 
-                        onChange={(e) => handleClientChange(index, 'name', e.target.value)} 
-                        className="bg-black border-zinc-800 text-[8px] h-8" 
-                        placeholder="NAME" 
-                      />
+                      <div className="space-y-1">
+                        <Label className="text-[6px] text-zinc-500">NAME</Label>
+                        <Input 
+                          value={client.name} 
+                          onChange={(e) => handleClientChange(index, 'name', e.target.value)} 
+                          className="bg-black border-zinc-800 text-[8px] h-8" 
+                          placeholder="NAME" 
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[6px] text-zinc-500 flex items-center gap-1"><UserCheck className="w-2 h-2"/> SUBS</Label>
+                        <Input 
+                          value={client.subscribers || ''} 
+                          onChange={(e) => handleClientChange(index, 'subscribers', e.target.value)} 
+                          className="bg-black border-zinc-800 text-[8px] h-8" 
+                          placeholder="EX: 1M" 
+                        />
+                      </div>
                       <Input 
                         value={client.image} 
                         onChange={(e) => handleClientChange(index, 'image', e.target.value)} 
-                        className="bg-black border-zinc-800 text-[6px] h-6 opacity-50" 
+                        className="bg-black border-zinc-800 text-[6px] h-6 opacity-50 hidden" 
                         placeholder="IMAGE_URL" 
                       />
                     </div>
