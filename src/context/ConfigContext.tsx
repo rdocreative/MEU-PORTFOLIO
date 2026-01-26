@@ -3,97 +3,65 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface Client {
-  id: string;
-  image: string;
-  name: string;
-  subtitle?: string; // Novo campo para o subtítulo (ex: inscritos)
-}
-
 export interface VideoData {
   id: string;
   title: string;
   url: string;
   customVideoUrl?: string;
-  views?: string;
-  editTime?: string;
-  deliveryTime?: string;
 }
 
-interface ConfigData {
-  id?: string;
+export interface Client {
+  id: string;
+  name: string;
+  image: string;
+}
+
+interface PortfolioConfig {
   profileName: string;
   description: string;
+  subscribers: string;
   profileImage: string;
-  primaryColor: string; 
-  secondaryColor: string; 
-  backgroundColor: string; 
-  cardColor: string; 
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundColor: string;
+  cardColor: string;
   twitterUrl: string;
   discordUrl: string;
   email: string;
   clients: Client[];
   featuredVideos: VideoData[];
-  shortsVideos: VideoData[];
 }
 
-const defaultFeatured: VideoData[] = Array.from({ length: 6 }).map((_, i) => ({
-  id: `f${i + 1}`,
-  title: "PROJECT_NAME",
-  url: "",
-  customVideoUrl: "",
-  views: "1.2M VIEWS",
-  editTime: "12H EDIT",
-  deliveryTime: "24H DELIVERY"
-}));
-
-const defaultShorts: VideoData[] = Array.from({ length: 6 }).map((_, i) => ({
-  id: `s${i + 1}`,
-  title: "",
-  url: ""
-}));
-
-const defaultConfig: ConfigData = {
-  profileName: "PIXEL OBSERVER",
-  description: "lost in the digital void. searching for bits and stars.",
-  profileImage: "https://api.dicebear.com/7.x/pixel-art/svg?seed=void",
-  primaryColor: "#ffffff", 
-  secondaryColor: "#a1a1aa", 
-  backgroundColor: "#0a0a0a", 
-  cardColor: "#111111", 
-  twitterUrl: "https://x.com/rdocreative0",
-  discordUrl: "https://discord.com",
-  email: "void@example.com",
-  clients: [],
-  featuredVideos: defaultFeatured,
-  shortsVideos: defaultShorts,
-};
-
 interface ConfigContextType {
-  config: ConfigData;
-  updateLocalConfig: (newConfig: Partial<ConfigData>) => void;
+  config: PortfolioConfig;
+  updateLocalConfig: (updates: Partial<PortfolioConfig>) => void;
   saveConfigToDb: () => Promise<boolean>;
-  resetConfig: () => void;
   isLoading: boolean;
 }
 
+const defaultConfig: PortfolioConfig = {
+  profileName: 'RDO CREATIVE',
+  description: 'ESPECIALISTA EM EDIÇÃO DE VÍDEO',
+  subscribers: '1.2M+',
+  profileImage: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop',
+  primaryColor: '#FFFFFF',
+  secondaryColor: '#A1A1AA',
+  backgroundColor: '#000000',
+  cardColor: '#0A0A0A',
+  twitterUrl: '',
+  discordUrl: '',
+  email: '',
+  clients: [],
+  featuredVideos: [
+    { id: '1', title: 'FEATURED_PROJECT_01', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+    { id: '2', title: 'FEATURED_PROJECT_02', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+  ]
+};
+
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'pixel_profile_draft';
-
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [config, setConfig] = useState<ConfigData>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        return saved ? JSON.parse(saved) : defaultConfig;
-      } catch (e) {
-        return defaultConfig;
-      }
-    }
-    return defaultConfig;
-  });
-  
+  const [config, setConfig] = useState<PortfolioConfig>(defaultConfig);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -102,17 +70,13 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(1)
           .maybeSingle();
 
-        if (error) throw error;
-
         if (data) {
-          const loadedConfig = {
-            id: data.id,
+          setConfig({
             profileName: data.profile_name || defaultConfig.profileName,
             description: data.description || defaultConfig.description,
+            subscribers: data.subscribers || defaultConfig.subscribers,
             profileImage: data.profile_image || defaultConfig.profileImage,
             primaryColor: data.primary_color || defaultConfig.primaryColor,
             secondaryColor: data.secondary_color || defaultConfig.secondaryColor,
@@ -121,16 +85,9 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
             discordUrl: data.discord_url || defaultConfig.discordUrl,
             email: data.email || defaultConfig.email,
-            clients: (data.clients as unknown as Client[]) || [],
-            featuredVideos: (data.featured_videos as unknown as VideoData[]) || defaultFeatured,
-            shortsVideos: (data.shorts_videos as unknown as VideoData[]) || defaultShorts,
-          };
-          
-          setConfig(loadedConfig);
-          try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(loadedConfig));
-          } catch (e) {}
-          document.body.style.backgroundColor = loadedConfig.backgroundColor;
+            clients: data.clients || defaultConfig.clients,
+            featuredVideos: data.featured_videos || defaultConfig.featuredVideos,
+          });
         }
       } catch (error) {
         console.error('Error fetching config:', error);
@@ -142,63 +99,38 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     fetchConfig();
   }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
-    } catch (e) {
-      console.warn("LocalStorage quota exceeded. Draft not saved locally.");
-    }
-    if (config.backgroundColor) {
-      document.body.style.backgroundColor = config.backgroundColor;
-    }
-  }, [config]);
-
-  const updateLocalConfig = (newConfig: Partial<ConfigData>) => {
-    setConfig(prev => ({ ...prev, ...newConfig }));
+  const updateLocalConfig = (updates: Partial<PortfolioConfig>) => {
+    setConfig(prev => ({ ...prev, ...updates }));
   };
 
   const saveConfigToDb = async () => {
     try {
-      const dbPayload = {
+      const { data: existing } = await supabase.from('portfolio_config').select('id').maybeSingle();
+      
+      const dbData = {
         profile_name: config.profileName,
         description: config.description,
+        subscribers: config.subscribers,
         profile_image: config.profileImage,
         primary_color: config.primaryColor,
         secondary_color: config.secondaryColor,
         background_color: config.backgroundColor,
-        card_color: config.cardColor || '#111111',
+        card_color: config.cardColor,
         twitter_url: config.twitterUrl,
         discord_url: config.discordUrl,
         email: config.email,
         clients: config.clients,
         featured_videos: config.featuredVideos,
-        shorts_videos: config.shortsVideos,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
-      let result;
-      if (config.id) {
-        result = await supabase
-          .from('portfolio_config')
-          .update(dbPayload)
-          .eq('id', config.id);
+      if (existing) {
+        const { error } = await supabase.from('portfolio_config').update(dbData).eq('id', existing.id);
+        if (error) throw error;
       } else {
-        result = await supabase
-          .from('portfolio_config')
-          .insert([dbPayload])
-          .select()
-          .single();
+        const { error } = await supabase.from('portfolio_config').insert([dbData]);
+        if (error) throw error;
       }
-
-      if (result.error) {
-        console.error('Supabase error:', result.error);
-        throw result.error;
-      }
-      
-      if (!config.id && 'data' in result && result.data) {
-        setConfig(prev => ({ ...prev, id: result.data.id }));
-      }
-      
       return true;
     } catch (error) {
       console.error('Error saving config:', error);
@@ -206,19 +138,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const resetConfig = () => {
-    setConfig(defaultConfig);
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-  };
-
   return (
-    <ConfigContext.Provider value={{ 
-      config, 
-      updateLocalConfig, 
-      saveConfigToDb,
-      resetConfig, 
-      isLoading
-    }}>
+    <ConfigContext.Provider value={{ config, updateLocalConfig, saveConfigToDb, isLoading }}>
       {children}
     </ConfigContext.Provider>
   );
@@ -226,6 +147,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useConfig = () => {
   const context = useContext(ConfigContext);
-  if (!context) throw new Error("useConfig must be used within ConfigProvider");
+  if (context === undefined) {
+    throw new Error('useConfig must be used within a ConfigProvider');
+  }
   return context;
 };

@@ -3,12 +3,12 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
@@ -92,9 +92,15 @@ const Admin = () => {
                   <Label className="text-[8px]">PROFILE_NAME</Label>
                   <Input name="profileName" value={config.profileName} onChange={handleChange} className="bg-black border-zinc-800" placeholder="NAME" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[8px]">BIO_DESCRIPTION</Label>
-                  <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 min-h-[100px]" placeholder="DESCRIPTION" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[8px]">SUBSCRIBERS_COUNT</Label>
+                    <Input name="subscribers" value={config.subscribers} onChange={handleChange} className="bg-black border-zinc-800" placeholder="e.g. 1.2M+" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[8px]">BIO_DESCRIPTION</Label>
+                    <Input name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800" placeholder="DESCRIPTION" />
+                  </div>
                 </div>
               </div>
           </div>
