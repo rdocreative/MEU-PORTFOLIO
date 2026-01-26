@@ -53,7 +53,6 @@ const BackgroundReviews = () => {
           const topPosition = 10 + (index * 18); 
           const parallaxOffset = scrollY * -0.08; 
           
-          // Variação no tempo da animação para não ficarem sincronizados
           const animationDelay = `${index * 1.5}s`;
 
           return (
@@ -63,7 +62,7 @@ const BackgroundReviews = () => {
               style={{
                 top: `${topPosition}vh`,
                 [isLeft ? 'left' : 'right']: '-2%', 
-                width: '345px', // Aumentado em 15% (era 300px)
+                width: '345px', 
                 height: 'auto',
                 transform: `
                   translate3d(0, ${parallaxOffset}px, 0) 
@@ -71,11 +70,10 @@ const BackgroundReviews = () => {
                   rotateY(${isLeft ? '20deg' : '-20deg'}) 
                   rotateX(5deg)
                 `,
-                opacity: 0.4,
+                opacity: 0.55, // Aumentado de 0.4 para 0.55 (~+15%)
                 zIndex: 0
               }}
             >
-              {/* Container interno para a animação de wiggle sem conflitar com transform do pai */}
               <div 
                 className="w-full h-full animate-wiggle"
                 style={{ animationDelay }}
@@ -86,7 +84,9 @@ const BackgroundReviews = () => {
                   className="w-full h-auto rounded-lg grayscale" 
                   style={{
                     maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                    // Adicionado glow sutil
+                    filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.15))'
                   }}
                 />
               </div>
