@@ -58,10 +58,10 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
   return (
     <div 
       onClick={onClick}
-      // Aumentado de 44vw para 65vw no mobile (~40% maior)
-      className="flex-shrink-0 w-[65vw] md:w-[450px] group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer"
+      // Aumentado para 85vw no mobile para uma visualização muito mais imersiva
+      className="flex-shrink-0 w-[85vw] md:w-[450px] group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer"
     >
-      <div className="aspect-video relative bg-black rounded-[20px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
+      <div className="aspect-video relative bg-black rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
@@ -82,9 +82,9 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
           </span>
         </div>
 
-        <div className="absolute inset-0 rounded-[20px] md:rounded-[40px] border-2 md:border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
+        <div className="absolute inset-0 rounded-[24px] md:rounded-[40px] border-2 md:border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
       </div>
-      <h3 className="text-[8px] md:text-[10px] text-white/60 uppercase tracking-[0.2em] font-bold text-center group-hover:text-white transition-colors truncate px-2">
+      <h3 className="text-[9px] md:text-[10px] text-white/60 uppercase tracking-[0.2em] font-bold text-center group-hover:text-white transition-colors truncate px-2">
         {video.title}
       </h3>
     </div>
@@ -138,8 +138,7 @@ const VideoSection = () => {
         />
 
         {/* Container Marquee */}
-        {/* Ajustado gap para mobile para acompanhar o aumento do card */}
-        <div className="animate-marquee-infinite gap-4 md:gap-8 px-2 md:px-4">
+        <div className="animate-marquee-infinite gap-6 md:gap-8 px-4 md:px-4">
           {marqueeItems.map((video, idx) => (
             <VideoCard 
               key={`${video.id}-${idx}`} 
