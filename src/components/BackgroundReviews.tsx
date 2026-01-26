@@ -7,72 +7,75 @@ const BackgroundReviews = () => {
   const { config } = useConfig();
   const [scrollY, setScrollY] = useState(0);
 
-  // Escuta o scroll para o efeito paralaxe
   useEffect(() => {
+    // Usando requestAnimationFrame para garantir que a atualização acompanhe a taxa de atualização do monitor
+    let ticking = false;
+
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollY(window.scrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     
-    // Seta o valor inicial
+    // Inicializa
     handleScroll();
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Verifica se há reviews definidos
-  if (!config.reviews || config.reviews.length === 0) {
-    return null;
-  }
-
-  // Verifica se pelo menos UM review tem URL válida (já que agora permitimos slots vazios)
+  if (!config.reviews || config.reviews.length === 0) return null;
   const hasAnyValidReview = config.reviews.some(r => r && r.url);
   if (!hasAnyValidReview) return null;
 
   return (
-    // 'pointer-events-none' garante que não bloqueie cliques
-    // 'hidden lg:block' permite aparecer em laptops (1024px+)
     <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
       {config.reviews.slice(0, 6).map((review, index) => {
-        // Se o slot estiver vazio ou sem URL, não renderiza nada
         if (!review || !review.url) return null;
 
         const isLeft = index % 2 === 0;
-        const topPosition = 15 + (index * 15); 
-        const parallaxOffset = scrollY * -0.1; 
+        // Distribuição vertical
+        const topPosition = 10 + (index * 18); 
+        
+        // Fator de paralaxe suave
+        const parallaxOffset = scrollY * -0.08; 
 
         return (
           <div
             key={review.id || index}
-            className="absolute hidden lg:block transition-all duration-700 ease-in-out"
+            className="absolute hidden lg:block will-change-transform" // will-change otimiza a renderização
             style={{
               top: `${topPosition}vh`,
-              [isLeft ? 'left' : 'right']: '2%', // Posição lateral
-              width: '335px',
-              height: '88px',
+              // Puxa um pouco para fora da tela para ficar apenas como "moldura"
+              [isLeft ? 'left' : 'right']: '-2%', 
+              width: '300px',
+              height: 'auto',
+              // Transformação direta sem transição CSS para evitar delay
               transform: `
-                translateY(${parallaxOffset}px) 
+                translate3d(0, ${parallaxOffset}px, 0) 
                 perspective(1000px) 
-                rotateY(${isLeft ? '25deg' : '-25deg'}) 
-                rotateX(10deg)
+                rotateY(${isLeft ? '20deg' : '-20deg'}) 
+                rotateX(5deg)
               `,
-              opacity: 0.8, // Aumentei um pouco a opacidade para garantir visibilidade
+              opacity: 0.15, // Bem sutil (15%)
               zIndex: 0
             }}
           >
-            <div className="relative w-full h-full group">
-              {/* Sombra suave atrás */}
-              <div className="absolute inset-0 bg-black/60 rounded-xl transform translate-y-2 translate-x-2 blur-sm" />
-              
-              <img 
-                src={review.url} 
-                alt={`Review ${index + 1}`} 
-                className="relative w-full h-full object-cover rounded-xl border border-white/10 shadow-2xl"
-              />
-              
-              {/* Brilho de reflexo */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-            </div>
+            {/* Imagem limpa, sem bordas, em escala de cinza */}
+            <img 
+              src={review.url} 
+              alt="" 
+              className="w-full h-auto rounded-lg grayscale opacity-80"
+              style={{
+                // Máscara suave para integrar com o fundo
+                maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
+              }}
+            />
           </div>
         );
       })}
