@@ -108,7 +108,7 @@ const ProfileCard = memo(() => {
                 {displayedClients.map((client: any, index: number) => (
                   <div 
                     key={index} 
-                    className="w-7 h-7 rounded-full border border-black/50 overflow-hidden bg-zinc-800 transition-transform hover:scale-110 hover:z-10 relative ring-2 ring-black/20"
+                    className="w-8 h-8 rounded-full border border-black/50 overflow-hidden bg-zinc-800 transition-transform hover:scale-110 hover:z-10 relative ring-2 ring-black/20"
                     title={client.name}
                   >
                     <img 
