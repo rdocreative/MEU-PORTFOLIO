@@ -76,11 +76,9 @@ const BackgroundReviews = () => {
           return (
             <div
               key={review.id || index}
-              className="absolute hidden lg:block will-change-transform"
+              className={`absolute block will-change-transform w-[200px] sm:w-[280px] lg:w-[345px] ${isLeft ? 'left-[-12%] sm:left-[-5%] lg:left-[-2%]' : 'right-[-12%] sm:right-[-5%] lg:right-[-2%]'}`}
               style={{
                 top: `${topPosition}vh`,
-                [isLeft ? 'left' : 'right']: '-2%', 
-                width: '345px', 
                 height: 'auto',
                 transform: `
                   translate3d(0, ${parallaxOffset}px, 0) 
