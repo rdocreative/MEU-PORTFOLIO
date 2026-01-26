@@ -77,7 +77,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
-          .single();
+          .limit(1)
+          .maybeSingle();
 
         if (data) {
           setConfig({
@@ -92,11 +93,11 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
             discordUrl: data.discord_url || defaultConfig.discordUrl,
             email: data.email || defaultConfig.email,
-            clients: data.clients || [],
-            featuredVideos: data.featured_videos || [],
-            shortsVideos: data.shorts_videos || [],
+            clients: (data.clients as unknown as Client[]) || [],
+            featuredVideos: (data.featured_videos as unknown as VideoData[]) || [],
+            shortsVideos: (data.shorts_videos as unknown as VideoData[]) || [],
             subscribers: data.subscribers || "0",
-            reviews: data.reviews || []
+            reviews: (data.reviews as unknown as ReviewImage[]) || []
           });
         }
       } catch (err) {
@@ -115,16 +116,17 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const saveConfigToDb = async () => {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return false;
-
-      // Primeiro verifica se existe um registro
-      const { data: existingData } = await supabase
+      // Verifica se existe algum registro
+      const { data: existingData, error: fetchError } = await supabase
         .from('portfolio_config')
         .select('id')
-        .single();
+        .limit(1)
+        .maybeSingle();
 
-      let error;
+      if (fetchError) {
+        console.error("Error fetching existing config:", fetchError);
+        return false;
+      }
       
       const payload = {
         profile_name: config.profileName,
@@ -144,13 +146,17 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         reviews: config.reviews
       };
 
-      if (existingData) {
+      let error;
+
+      if (existingData?.id) {
+        // Atualiza
         const result = await supabase
           .from('portfolio_config')
           .update(payload)
           .eq('id', existingData.id);
         error = result.error;
       } else {
+        // Insere novo
         const result = await supabase
           .from('portfolio_config')
           .insert([payload]);
@@ -158,9 +164,10 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
 
       if (error) {
-        console.error("Error saving:", error);
+        console.error("Error saving to DB:", error);
         return false;
       }
+
       return true;
     } catch (err) {
       console.error("Exception saving:", err);
