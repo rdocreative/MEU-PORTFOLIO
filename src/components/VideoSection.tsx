@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useMemo, memo } from 'react';
+import React, { useRef, useState, useMemo, memo, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
@@ -10,6 +10,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 
 const getYouTubeId = (url: string) => {
@@ -19,10 +20,8 @@ const getYouTubeId = (url: string) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-// --- Componente de Vídeo (Custom) ---
 const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-
   return (
     <video 
       ref={videoRef}
@@ -38,7 +37,6 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 
 VideoLoop.displayName = 'VideoLoop';
 
-// --- Componente YouTube (Preview) ---
 const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
   return (
     <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
@@ -57,10 +55,8 @@ const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: stri
 
 YouTubePreview.displayName = 'YouTubePreview';
 
-// --- Card do Vídeo ---
 const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
-
   return (
     <div 
       onClick={onClick}
@@ -85,7 +81,6 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
             Watch
           </span>
         </div>
-
         <div className="absolute inset-0 rounded-[24px] md:rounded-[40px] border-2 md:border-4 border-white/5 z-30 group-hover:border-white/20 transition-colors" />
       </div>
       <h3 className="text-[9px] md:text-[10px] text-white/60 uppercase tracking-[0.2em] font-bold text-center group-hover:text-white transition-colors truncate px-2">
@@ -97,10 +92,10 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
 
 VideoCard.displayName = 'VideoCard';
 
-// --- Seção Principal ---
 const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [api, setApi] = useState<CarouselApi>();
 
   const activeVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
@@ -115,12 +110,31 @@ const VideoSection = () => {
     })
   );
 
+  useEffect(() => {
+    if (!api) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // DeltaY < 0 é scroll para cima -> Direita (Next)
+      // DeltaY > 0 é scroll para baixo -> Esquerda (Prev)
+      if (Math.abs(e.deltaY) < 10) return; // Filtro de sensibilidade
+      
+      if (e.deltaY < 0) {
+        api.scrollNext();
+      } else {
+        api.scrollPrev();
+      }
+    };
+
+    const rootNode = api.rootNode();
+    rootNode.addEventListener('wheel', onWheel, { passive: true });
+    return () => rootNode.removeEventListener('wheel', onWheel);
+  }, [api]);
+
   if (activeVideos.length === 0) return null;
 
   return (
     <>
       <Reveal width="100%" delay={0.2} className="w-full relative group/section">
-        {/* Gradientes laterais */}
         <div 
           className="absolute left-0 top-0 bottom-0 w-8 md:w-60 z-20 pointer-events-none"
           style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
@@ -131,6 +145,7 @@ const VideoSection = () => {
         />
 
         <Carousel
+          setApi={setApi}
           plugins={[plugin.current]}
           opts={{
             align: "start",
@@ -143,7 +158,6 @@ const VideoSection = () => {
             {activeVideos.map((video, idx) => (
               <CarouselItem 
                 key={`${video.id}-${idx}`} 
-                // Mantendo o tamanho solicitado: 85vw no mobile e fixo no desktop
                 className="pl-4 md:pl-8 basis-[85vw] md:basis-[450px]"
               >
                 <VideoCard 

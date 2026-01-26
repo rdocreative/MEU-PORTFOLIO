@@ -1,17 +1,19 @@
 "use client";
 
-import React, { useRef, memo } from 'react';
+import React, { useRef, memo, useState, useEffect } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import AutoScroll from "embla-carousel-auto-scroll";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { Reveal } from './Reveal';
 
 const ClientsSection = memo(() => {
   const { config } = useConfig();
+  const [api, setApi] = useState<CarouselApi>();
 
   const plugin = useRef(
     AutoScroll({ 
@@ -20,6 +22,24 @@ const ClientsSection = memo(() => {
       stopOnMouseEnter: false, 
     })
   );
+
+  useEffect(() => {
+    if (!api) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 10) return;
+      
+      if (e.deltaY < 0) {
+        api.scrollNext();
+      } else {
+        api.scrollPrev();
+      }
+    };
+
+    const rootNode = api.rootNode();
+    rootNode.addEventListener('wheel', onWheel, { passive: true });
+    return () => rootNode.removeEventListener('wheel', onWheel);
+  }, [api]);
 
   if (!config.clients || config.clients.length === 0) return null;
 
@@ -42,6 +62,7 @@ const ClientsSection = memo(() => {
 
       <div className="w-full">
         <Carousel
+          setApi={setApi}
           plugins={[plugin.current]}
           opts={{
             align: "start",
