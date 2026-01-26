@@ -59,22 +59,29 @@ const Admin = () => {
   const handleReviewUpload = async (file: File, index: number) => {
     const url = await uploadToStorage(file, `review_${index}.png`);
     if (url) {
+      // Cria uma cópia ou inicia um novo array se não existir
       const newReviews = [...(config.reviews || [])];
-      // Garante que o array tem o tamanho necessário preenchendo com placeholders se preciso, 
-      // mas aqui vamos apenas adicionar/substituir no índice correto
+      
+      // Preenche com objetos vazios até chegar no índice desejado, se necessário
       while (newReviews.length <= index) {
         newReviews.push({ id: crypto.randomUUID(), url: '' });
       }
+      
+      // Atualiza o slot específico
       newReviews[index] = { id: newReviews[index]?.id || crypto.randomUUID(), url };
-      // Limpa arrays vazios ou inválidos
-      const cleanReviews = newReviews.filter(r => r && r.url);
-      updateLocalConfig({ reviews: cleanReviews });
+      
+      // NÃO filtramos mais os vazios para manter a posição fixa no grid (0-5)
+      updateLocalConfig({ reviews: newReviews });
     }
   };
 
   const removeReview = (index: number) => {
     const newReviews = [...(config.reviews || [])];
-    newReviews.splice(index, 1);
+    // Em vez de remover o item do array (splice), apenas limpamos a URL
+    // Isso mantém a "casa" vazia no grid em vez de puxar os próximos itens
+    if (newReviews[index]) {
+      newReviews[index] = { ...newReviews[index], url: '' };
+    }
     updateLocalConfig({ reviews: newReviews });
   };
 
@@ -129,14 +136,16 @@ const Admin = () => {
           {/* Background Reviews */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
             <h2 className="text-[12px] uppercase flex items-center gap-4"><Star className="w-5 h-5" /> Background_Reviews (335x88)</h2>
-            <p className="text-[8px] text-zinc-500">Upload up to 6 prints of reviews to be displayed in the background.</p>
+            <p className="text-[8px] text-zinc-500">Upload up to 6 prints. The position here corresponds to the position on the site.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[0, 1, 2, 3, 4, 5].map((index) => {
                 const review = config.reviews?.[index];
+                const hasUrl = review && review.url && review.url !== '';
+                
                 return (
                   <div key={index} className="aspect-[335/88] border-2 border-zinc-800 border-dashed rounded-lg flex items-center justify-center relative bg-black/30 overflow-hidden group">
-                    {review ? (
+                    {hasUrl ? (
                       <>
                         <img src={review.url} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -153,7 +162,7 @@ const Admin = () => {
                     ) : (
                       <label className="cursor-pointer flex flex-col items-center gap-2 text-zinc-500 hover:text-white transition-colors">
                         <Plus className="w-6 h-6" />
-                        <span className="text-[8px]">UPLOAD</span>
+                        <span className="text-[8px]">SLOT {index + 1}</span>
                         <input 
                           type="file" 
                           className="hidden" 

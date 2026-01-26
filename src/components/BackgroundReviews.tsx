@@ -20,34 +20,34 @@ const BackgroundReviews = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Se não houver reviews, não renderiza nada
+  // Verifica se há reviews definidos
   if (!config.reviews || config.reviews.length === 0) {
     return null;
   }
 
+  // Verifica se pelo menos UM review tem URL válida (já que agora permitimos slots vazios)
+  const hasAnyValidReview = config.reviews.some(r => r && r.url);
+  if (!hasAnyValidReview) return null;
+
   return (
-    // Container fixo que cobre toda a viewport, mas deixa os cliques passarem (pointer-events-none)
-    // z-0 garante que fique atrás do conteúdo principal (que geralmente tem z-10 ou mais)
+    // 'pointer-events-none' garante que não bloqueie cliques
+    // 'hidden lg:block' permite aparecer em laptops (1024px+)
     <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
       {config.reviews.slice(0, 6).map((review, index) => {
-        // Alterna entre esquerda e direita
-        const isLeft = index % 2 === 0;
-        
-        // Posição vertical base distribuída uniformemente na tela
-        // Usamos 'vh' para garantir que se espalhem pela altura da viewport
-        const topPosition = 15 + (index * 15); 
+        // Se o slot estiver vazio ou sem URL, não renderiza nada
+        if (!review || !review.url) return null;
 
-        // Efeito Paralaxe: Move o elemento levemente contra o scroll
-        // Fator negativo faz com que eles subam mais devagar que a página, criando profundidade
+        const isLeft = index % 2 === 0;
+        const topPosition = 15 + (index * 15); 
         const parallaxOffset = scrollY * -0.1; 
 
         return (
           <div
             key={review.id || index}
-            className="absolute hidden xl:block transition-opacity duration-700 ease-in-out"
+            className="absolute hidden lg:block transition-all duration-700 ease-in-out"
             style={{
-              top: `${topPosition}vh`, // Usando vh para posicionamento relativo à viewport
-              [isLeft ? 'left' : 'right']: '2%', // Margem lateral
+              top: `${topPosition}vh`,
+              [isLeft ? 'left' : 'right']: '2%', // Posição lateral
               width: '335px',
               height: '88px',
               transform: `
@@ -56,21 +56,22 @@ const BackgroundReviews = () => {
                 rotateY(${isLeft ? '25deg' : '-25deg'}) 
                 rotateX(10deg)
               `,
-              opacity: 0.6, // Opacidade base para não distrair muito
+              opacity: 0.8, // Aumentei um pouco a opacidade para garantir visibilidade
+              zIndex: 0
             }}
           >
-            {/* Efeito de vidro/fundo do review */}
             <div className="relative w-full h-full group">
-              <div 
-                className="absolute inset-0 bg-black/80 rounded-xl transform translate-y-2 translate-x-2 blur-sm" 
-              />
+              {/* Sombra suave atrás */}
+              <div className="absolute inset-0 bg-black/60 rounded-xl transform translate-y-2 translate-x-2 blur-sm" />
+              
               <img 
                 src={review.url} 
                 alt={`Review ${index + 1}`} 
                 className="relative w-full h-full object-cover rounded-xl border border-white/10 shadow-2xl"
               />
-              {/* Brilho suave */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/5 to-transparent" />
+              
+              {/* Brilho de reflexo */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
             </div>
           </div>
         );
