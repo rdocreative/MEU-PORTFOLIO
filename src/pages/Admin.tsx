@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,12 +40,6 @@ const Admin = () => {
     const newList = [...config.clients];
     newList[index] = { ...newList[index], [field]: value };
     updateLocalConfig({ clients: newList });
-  };
-
-  const handleReviewChange = (index: number, url: string) => {
-    const newReviews = [...config.reviews];
-    newReviews[index] = url;
-    updateLocalConfig({ reviews: newReviews });
   };
 
   const addClient = () => {
@@ -108,48 +102,6 @@ const Admin = () => {
                   <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 min-h-[100px]" placeholder="DESCRIPTION" />
                 </div>
               </div>
-          </div>
-
-          {/* BACKGROUND REVIEWS (PRINTS) */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Star className="w-5 h-5 text-yellow-500" /> Trust_Signals (Prints)</h2>
-            <p className="text-[8px] text-zinc-500">Upload 6 review screenshots (Recommended: 335x88px) to appear in the background.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[0, 1, 2, 3, 4, 5].map((idx) => (
-                <div key={idx} className="p-4 border-2 border-zinc-800 rounded-2xl bg-black/30 space-y-4">
-                  <Label className="text-[6px]">PRINT_SLOT_{idx + 1}</Label>
-                  <div className="relative aspect-[335/88] bg-zinc-900 rounded border border-dashed border-zinc-700 overflow-hidden flex items-center justify-center">
-                    {config.reviews[idx] ? (
-                      <div className="relative w-full h-full">
-                        <img src={config.reviews[idx]} className="w-full h-full object-cover" />
-                        <button 
-                          onClick={() => handleReviewChange(idx, "")}
-                          className="absolute top-1 right-1 bg-red-500 p-1 rounded-full"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="cursor-pointer flex flex-col items-center gap-2">
-                        <UploadCloud className="w-6 h-6 text-zinc-500" />
-                        <span className="text-[6px]">UPLOAD</span>
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const url = await uploadToStorage(file, `review_${idx}.png`);
-                              if (url) handleReviewChange(idx, url);
-                            }
-                          }} 
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Redes Sociais */}
@@ -221,6 +173,12 @@ const Admin = () => {
                           placeholder="EX: 1M" 
                         />
                       </div>
+                      <Input 
+                        value={client.image} 
+                        onChange={(e) => handleClientChange(index, 'image', e.target.value)} 
+                        className="bg-black border-zinc-800 text-[6px] h-6 opacity-50 hidden" 
+                        placeholder="IMAGE_URL" 
+                      />
                     </div>
                   </div>
                 </div>

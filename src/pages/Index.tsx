@@ -6,7 +6,6 @@ import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
 import ClientsSection from "@/components/ClientsSection";
 import ContactModal from "@/components/ContactModal";
-import BackgroundReviews from "@/components/BackgroundReviews";
 import { useConfig } from "@/context/ConfigContext";
 import { Reveal } from "@/components/Reveal";
 
@@ -24,7 +23,6 @@ const Index = () => {
       className="min-h-screen flex flex-col relative overflow-x-hidden transition-colors duration-500 selection:bg-white selection:text-black"
     >
       <StarsBackground />
-      <BackgroundReviews />
 
       {/* Styles for the optimized animations */}
       <style jsx global>{`
