@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client, ReviewImage } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,6 +36,12 @@ const Admin = () => {
     updateLocalConfig({ featuredVideos: newList });
   };
 
+  const handleShortChange = (index: number, field: keyof VideoData, value: string) => {
+    const newList = [...(config.shortsVideos || [])];
+    newList[index] = { ...newList[index], [field]: value };
+    updateLocalConfig({ shortsVideos: newList });
+  };
+
   const handleClientChange = (index: number, field: keyof Client, value: string) => {
     const newList = [...config.clients];
     newList[index] = { ...newList[index], [field]: value };
@@ -59,26 +65,17 @@ const Admin = () => {
   const handleReviewUpload = async (file: File, index: number) => {
     const url = await uploadToStorage(file, `review_${index}.png`);
     if (url) {
-      // Cria uma cópia ou inicia um novo array se não existir
       const newReviews = [...(config.reviews || [])];
-      
-      // Preenche com objetos vazios até chegar no índice desejado, se necessário
       while (newReviews.length <= index) {
         newReviews.push({ id: crypto.randomUUID(), url: '' });
       }
-      
-      // Atualiza o slot específico
       newReviews[index] = { id: newReviews[index]?.id || crypto.randomUUID(), url };
-      
-      // NÃO filtramos mais os vazios para manter a posição fixa no grid (0-5)
       updateLocalConfig({ reviews: newReviews });
     }
   };
 
   const removeReview = (index: number) => {
     const newReviews = [...(config.reviews || [])];
-    // Em vez de remover o item do array (splice), apenas limpamos a URL
-    // Isso mantém a "casa" vazia no grid em vez de puxar os próximos itens
     if (newReviews[index]) {
       newReviews[index] = { ...newReviews[index], url: '' };
     }
@@ -249,12 +246,6 @@ const Admin = () => {
                           placeholder="EX: 1M" 
                         />
                       </div>
-                      <Input 
-                        value={client.image} 
-                        onChange={(e) => handleClientChange(index, 'image', e.target.value)} 
-                        className="bg-black border-zinc-800 text-[6px] h-6 opacity-50 hidden" 
-                        placeholder="IMAGE_URL" 
-                      />
                     </div>
                   </div>
                 </div>
@@ -262,19 +253,38 @@ const Admin = () => {
             </div>
           </div>
 
-          {/* Vídeos */}
+          {/* Vídeos Longos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Video className="w-5 h-5" /> Featured_Content</h2>
+            <h2 className="text-[12px] uppercase flex items-center gap-4"><Video className="w-5 h-5" /> Featured_Videos</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => (
                 <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
                   <div className="space-y-2">
-                    <Label className="text-[8px]">VIDEO_TITLE</Label>
+                    <Label className="text-[8px]">TITLE</Label>
                     <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[8px]">YOUTUBE_URL</Label>
                     <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="YOUTUBE URL" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Shorts Videos */}
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
+            <h2 className="text-[12px] uppercase flex items-center gap-4"><Smartphone className="w-5 h-5" /> Shorts_Content</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {(config.shortsVideos || []).map((short, index) => (
+                <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
+                  <div className="space-y-2">
+                    <Label className="text-[8px]">SHORT_TITLE</Label>
+                    <Input value={short.title} onChange={(e) => handleShortChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[8px]">URL (Shorts)</Label>
+                    <Input value={short.url} onChange={(e) => handleShortChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="https://youtube.com/shorts/..." />
                   </div>
                 </div>
               ))}

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import ProfileCard from "@/components/ProfileCard";
 import StarsBackground from "@/components/StarsBackground";
 import VideoSection from "@/components/VideoSection";
+import ShortsSection from "@/components/ShortsSection";
 import ClientsSection from "@/components/ClientsSection";
 import ContactModal from "@/components/ContactModal";
 import { useConfig } from "@/context/ConfigContext";
@@ -26,7 +27,6 @@ const Index = () => {
       <StarsBackground />
       <BackgroundReviews />
 
-      {/* Styles for the optimized animations */}
       <style jsx global>{`
         @keyframes subtle-float {
           0%, 100% { transform: translateY(0); }
@@ -50,10 +50,8 @@ const Index = () => {
         }
       `}</style>
 
-      {/* Container Principal */}
       <main className="flex-grow z-10 w-full flex flex-col items-center px-4 pt-20 pb-16 gap-20">
         
-        {/* Frase de Destaque - TOPO */}
         <div className="w-full max-w-5xl text-center px-4 perspective-1000">
           <h1 
             className="text-sm md:text-xl lg:text-2xl leading-loose uppercase tracking-widest font-bold flex flex-col gap-4 md:gap-6 animate-float-optimized"
@@ -73,12 +71,10 @@ const Index = () => {
           </h1>
         </div>
         
-        {/* Seção 1: Perfil */}
         <div className="flex flex-col items-center justify-center w-full max-w-7xl">
           <ProfileCard />
         </div>
 
-        {/* Seção 2: Videos (com Reveal) */}
         <div className="w-full max-w-7xl flex flex-col items-center gap-16">
           <Reveal>
             <h2 
@@ -94,12 +90,13 @@ const Index = () => {
           <VideoSection />
         </div>
 
-        {/* Seção 3: Clientes (com Reveal) */}
         <div className="w-full max-w-7xl flex justify-center -mt-8">
           <ClientsSection />
         </div>
 
-        {/* CTA FINAL */}
+        {/* Nova seção de Shorts */}
+        <ShortsSection />
+
         <div className="w-full flex flex-col items-center gap-12 mt-12 mb-8">
           <Reveal variant="fade-up" delay={0.3}>
             <button 
@@ -119,7 +116,6 @@ const Index = () => {
       </main>
 
       <footer className="z-10 pb-16 flex flex-col items-center gap-6">
-        {/* Detalhe Premium no Final */}
         <Reveal variant="fade">
           <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold border-b border-zinc-800 pb-1">
             Editing focused on retention.

@@ -7,7 +7,7 @@ export interface VideoData {
   id: string;
   title: string;
   url: string;
-  customVideoUrl?: string;
+  thumbnail?: string;
 }
 
 export interface Client {
@@ -22,7 +22,7 @@ export interface ReviewImage {
   url: string;
 }
 
-interface PortfolioConfig {
+export interface PortfolioConfig {
   profileName: string;
   description: string;
   profileImage: string;
@@ -35,7 +35,7 @@ interface PortfolioConfig {
   email: string;
   clients: Client[];
   featuredVideos: VideoData[];
-  shortsVideos: VideoData[];
+  shortsVideos: VideoData[]; // Adicionado campo para Shorts
   subscribers: string;
   reviews: ReviewImage[];
 }
@@ -49,25 +49,32 @@ interface ConfigContextType {
 
 const defaultConfig: PortfolioConfig = {
   profileName: "EDITOR_NAME",
-  description: "HIGH PERFORMANCE VIDEO EDITOR",
+  description: "Specialized in high-retention video editing for top-tier creators.",
   profileImage: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
   primaryColor: "#ffffff",
   secondaryColor: "#71717a",
   backgroundColor: "#000000",
-  cardColor: "#0a0a0a",
+  cardColor: "#09090b",
   twitterUrl: "",
   discordUrl: "",
   email: "",
   clients: [],
-  featuredVideos: [],
-  shortsVideos: [],
+  featuredVideos: [
+    { id: '1', title: 'FEATURED_01', url: '' },
+    { id: '2', title: 'FEATURED_02', url: '' }
+  ],
+  shortsVideos: [ // Inicializando com 3 slots vazios
+    { id: 's1', title: 'SHORT_01', url: '' },
+    { id: 's2', title: 'SHORT_02', url: '' },
+    { id: 's3', title: 'SHORT_03', url: '' }
+  ],
   subscribers: "0",
   reviews: []
 };
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
-export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ConfigProvider: ({ children }: { children: React.ReactNode }) => React.JSX.Element = ({ children }) => {
   const [config, setConfig] = useState<PortfolioConfig>(defaultConfig);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -77,27 +84,16 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
-          .limit(1)
-          .maybeSingle();
+          .single();
 
-        if (data) {
+        if (data && !error) {
           setConfig({
             ...defaultConfig,
-            profileName: data.profile_name || defaultConfig.profileName,
-            description: data.description || defaultConfig.description,
-            profileImage: data.profile_image || defaultConfig.profileImage,
-            primaryColor: data.primary_color || defaultConfig.primaryColor,
-            secondaryColor: data.secondary_color || defaultConfig.secondaryColor,
-            backgroundColor: data.background_color || defaultConfig.backgroundColor,
-            cardColor: data.card_color || defaultConfig.cardColor,
-            twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
-            discordUrl: data.discord_url || defaultConfig.discordUrl,
-            email: data.email || defaultConfig.email,
-            clients: (data.clients as unknown as Client[]) || [],
-            featuredVideos: (data.featured_videos as unknown as VideoData[]) || [],
-            shortsVideos: (data.shorts_videos as unknown as VideoData[]) || [],
-            subscribers: data.subscribers || "0",
-            reviews: (data.reviews as unknown as ReviewImage[]) || []
+            ...data,
+            clients: data.clients || [],
+            featuredVideos: data.featured_videos || defaultConfig.featuredVideos,
+            shortsVideos: data.shorts_videos || defaultConfig.shortsVideos,
+            reviews: data.reviews || []
           });
         }
       } catch (err) {
@@ -116,19 +112,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const saveConfigToDb = async () => {
     try {
-      // Verifica se existe algum registro
-      const { data: existingData, error: fetchError } = await supabase
-        .from('portfolio_config')
-        .select('id')
-        .limit(1)
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error("Error fetching existing config:", fetchError);
-        return false;
-      }
-      
-      const payload = {
+      const dbData = {
         profile_name: config.profileName,
         description: config.description,
         profile_image: config.profileImage,
@@ -142,35 +126,19 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         clients: config.clients,
         featured_videos: config.featuredVideos,
         shorts_videos: config.shortsVideos,
-        subscribers: config.subscribers,
-        reviews: config.reviews
+        reviews: config.reviews,
+        updated_at: new Date().toISOString()
       };
 
-      let error;
+      const { error } = await supabase
+        .from('portfolio_config')
+        .update(dbData)
+        .eq('id', '61d9a56c-0f9c-4e8a-861c-8e4040578672'); // ID fixo para este portfólio
 
-      if (existingData?.id) {
-        // Atualiza
-        const result = await supabase
-          .from('portfolio_config')
-          .update(payload)
-          .eq('id', existingData.id);
-        error = result.error;
-      } else {
-        // Insere novo
-        const result = await supabase
-          .from('portfolio_config')
-          .insert([payload]);
-        error = result.error;
-      }
-
-      if (error) {
-        console.error("Error saving to DB:", error);
-        return false;
-      }
-
+      if (error) throw error;
       return true;
     } catch (err) {
-      console.error("Exception saving:", err);
+      console.error("Error saving config:", err);
       return false;
     }
   };
@@ -184,8 +152,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useConfig = () => {
   const context = useContext(ConfigContext);
-  if (context === undefined) {
-    throw new Error('useConfig must be used within a ConfigProvider');
-  }
+  if (!context) throw new Error("useConfig must be used within ConfigProvider");
   return context;
 };
