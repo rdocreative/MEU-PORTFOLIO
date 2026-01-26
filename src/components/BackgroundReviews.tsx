@@ -61,6 +61,7 @@ const BackgroundReviews = () => {
               className="absolute hidden lg:block will-change-transform"
               style={{
                 top: `${topPosition}vh`,
+                // Ajustado para não cortar tanto na borda
                 [isLeft ? 'left' : 'right']: '0%', 
                 width: '345px',
                 height: 'auto',
@@ -70,7 +71,7 @@ const BackgroundReviews = () => {
                   rotateY(${isLeft ? '20deg' : '-20deg'}) 
                   rotateX(5deg)
                 `,
-                opacity: 0.55, // Aumentado de 0.4 para 0.55 (15% mais claro)
+                opacity: 0.4,
                 zIndex: 0
               }}
             >
@@ -83,12 +84,11 @@ const BackgroundReviews = () => {
                   alt="" 
                   className="w-full h-auto rounded-lg grayscale" 
                   style={{
+                    // Máscara mais suave para evitar o corte seco na lateral
                     maskImage: `linear-gradient(${isLeft ? 'to right' : 'to left'}, black 60%, transparent 100%), linear-gradient(to bottom, black 80%, transparent 100%)`,
                     WebkitMaskImage: `linear-gradient(${isLeft ? 'to right' : 'to left'}, black 60%, transparent 100%), linear-gradient(to bottom, black 80%, transparent 100%)`,
                     maskComposite: 'intersect',
-                    WebkitMaskComposite: 'source-in',
-                    // Adicionando um glow suave de 3%
-                    filter: 'grayscale(100%) drop-shadow(0 0 10px rgba(255, 255, 255, 0.03))'
+                    WebkitMaskComposite: 'source-in'
                   }}
                 />
               </div>
