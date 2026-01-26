@@ -93,31 +93,43 @@ const BackgroundReviews = () => {
               }}
             >
               <div 
-                className="w-full h-full animate-wiggle p-[2px] rounded-lg overflow-hidden relative bg-transparent"
+                className="w-full h-full animate-wiggle p-[1px] rounded-lg overflow-hidden relative bg-transparent"
                 style={{ 
                   animationDelay,
                   maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                 }}
               >
-                {/* Rotating Border Glow */}
+                {/* Rotating Border Glow - Comet Style */}
                 <div 
                   className={`absolute inset-[-100%] ${spinDirection}`}
                   style={{
                     animationDuration: `${spinDuration}s`,
-                    // Feixe muito mais estreito (aprox 40 graus) para evitar duplicação nos cantos.
-                    // Começa transparente, vai ao branco intenso e volta a transparente suavemente.
-                    background: 'conic-gradient(transparent 0deg, transparent 320deg, rgba(255,255,255,1) 340deg, transparent 360deg)',
-                    filter: 'blur(8px)', 
+                    // Feixe mais curto (aprox 60 graus) e totalmente branco no final
+                    // O blur reduzido (3px) ajuda a manter a forma de "stroke" mas ainda com um pouco de brilho
+                    background: 'conic-gradient(transparent 0deg, transparent 300deg, rgba(255,255,255,1) 360deg)',
+                    filter: 'blur(3px)', 
+                  }}
+                />
+                
+                {/* Camada extra para o núcleo branco brilhante (opcional, mas ajuda na definição) */}
+                <div 
+                  className={`absolute inset-[-100%] ${spinDirection}`}
+                  style={{
+                    animationDuration: `${spinDuration}s`,
+                    background: 'conic-gradient(transparent 0deg, transparent 340deg, #ffffff 360deg)',
+                    filter: 'blur(0px)', // Núcleo nítido
+                    opacity: 0.8
                   }}
                 />
                 
                 <img 
                   src={review.url} 
                   alt="" 
-                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/80" 
+                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black" 
                   style={{
-                    filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))'
+                    // Pequena sombra interna/externa na imagem para destacar o stroke
+                    boxShadow: 'inset 0 0 20px rgba(0,0,0,1)'
                   }}
                 />
               </div>
