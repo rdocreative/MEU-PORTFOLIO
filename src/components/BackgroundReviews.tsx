@@ -53,7 +53,6 @@ const BackgroundReviews = () => {
           const topPosition = 10 + (index * 18); 
           const parallaxOffset = scrollY * -0.08; 
           
-          // Variação no tempo da animação para não ficarem sincronizados
           const animationDelay = `${index * 1.5}s`;
 
           return (
@@ -62,11 +61,12 @@ const BackgroundReviews = () => {
               className="absolute hidden lg:block will-change-transform"
               style={{
                 top: `${topPosition}vh`,
-                [isLeft ? 'left' : 'right']: '-2%', 
-                width: '345px', // Aumentado em 15% (era 300px)
+                // Ajustado para não cortar tanto na borda
+                [isLeft ? 'left' : 'right']: '0%', 
+                width: '345px',
                 height: 'auto',
                 transform: `
-                  translate3d(0, ${parallaxOffset}px, 0) 
+                  translate3d(${isLeft ? '-20%' : '20%'}, ${parallaxOffset}px, 0) 
                   perspective(1000px) 
                   rotateY(${isLeft ? '20deg' : '-20deg'}) 
                   rotateX(5deg)
@@ -75,7 +75,6 @@ const BackgroundReviews = () => {
                 zIndex: 0
               }}
             >
-              {/* Container interno para a animação de wiggle sem conflitar com transform do pai */}
               <div 
                 className="w-full h-full animate-wiggle"
                 style={{ animationDelay }}
@@ -85,8 +84,11 @@ const BackgroundReviews = () => {
                   alt="" 
                   className="w-full h-auto rounded-lg grayscale" 
                   style={{
-                    maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+                    // Máscara mais suave para evitar o corte seco na lateral
+                    maskImage: `linear-gradient(${isLeft ? 'to right' : 'to left'}, black 60%, transparent 100%), linear-gradient(to bottom, black 80%, transparent 100%)`,
+                    WebkitMaskImage: `linear-gradient(${isLeft ? 'to right' : 'to left'}, black 60%, transparent 100%), linear-gradient(to bottom, black 80%, transparent 100%)`,
+                    maskComposite: 'intersect',
+                    WebkitMaskComposite: 'source-in'
                   }}
                 />
               </div>

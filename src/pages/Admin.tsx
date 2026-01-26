@@ -3,20 +3,21 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client, ReviewImage } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone } from 'lucide-react';
+import { Save, ArrowLeft, Video as VideoIcon, Trash2, Loader2, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, FileVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState<string | null>(null);
   
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const uploadToStorage = async (file: File | Blob, path: string): Promise<string | null> => {
     const fileName = `${Date.now()}_${path}`;
@@ -26,60 +27,51 @@ const Admin = () => {
     return publicUrl;
   };
 
+  const handleVideoUpload = async (file: File, index: number, type: 'featured' | 'shorts') => {
+    setIsUploading(`${type}_${index}`);
+    const url = await uploadToStorage(file, `${type}_video_${index}.mp4`);
+    if (url) {
+      if (type === 'featured') {
+        const newList = [...config.featuredVideos];
+        newList[index] = { ...newList[index], url, isDirectUpload: true };
+        updateLocalConfig({ featuredVideos: newList });
+      } else {
+        const newList = [...(config.shortsVideos || [])];
+        newList[index] = { ...newList[index], url, isDirectUpload: true };
+        updateLocalConfig({ shortsVideos: newList });
+      }
+      showSuccess("VIDEO UPLOADED!");
+    } else {
+      showError("UPLOAD FAILED");
+    }
+    setIsUploading(null);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     updateLocalConfig({ [e.target.name]: e.target.value });
   };
 
   const handleVideoChange = (index: number, field: keyof VideoData, value: string) => {
     const newList = [...config.featuredVideos];
-    newList[index] = { ...newList[index], [field]: value };
+    newList[index] = { ...newList[index], [field]: value, isDirectUpload: false };
     updateLocalConfig({ featuredVideos: newList });
   };
 
   const handleShortChange = (index: number, field: keyof VideoData, value: string) => {
     const newList = [...(config.shortsVideos || [])];
-    newList[index] = { ...newList[index], [field]: value };
+    newList[index] = { ...newList[index], [field]: value, isDirectUpload: false };
     updateLocalConfig({ shortsVideos: newList });
   };
 
-  const handleClientChange = (index: number, field: keyof Client, value: string) => {
-    const newList = [...config.clients];
-    newList[index] = { ...newList[index], [field]: value };
-    updateLocalConfig({ clients: newList });
+  const addShort = () => {
+    const newShort = { id: crypto.randomUUID(), title: 'NEW SHORT', url: '' };
+    updateLocalConfig({ shortsVideos: [...(config.shortsVideos || []), newShort] });
   };
 
-  const addClient = () => {
-    const newClient: Client = { 
-      id: crypto.randomUUID(), 
-      name: 'NEW CREATOR', 
-      image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop',
-      subscribers: '0'
-    };
-    updateLocalConfig({ clients: [...config.clients, newClient] });
-  };
-
-  const removeClient = (id: string) => {
-    updateLocalConfig({ clients: config.clients.filter(c => c.id !== id) });
-  };
-
-  const handleReviewUpload = async (file: File, index: number) => {
-    const url = await uploadToStorage(file, `review_${index}.png`);
-    if (url) {
-      const newReviews = [...(config.reviews || [])];
-      while (newReviews.length <= index) {
-        newReviews.push({ id: crypto.randomUUID(), url: '' });
-      }
-      newReviews[index] = { id: newReviews[index]?.id || crypto.randomUUID(), url };
-      updateLocalConfig({ reviews: newReviews });
-    }
-  };
-
-  const removeReview = (index: number) => {
-    const newReviews = [...(config.reviews || [])];
-    if (newReviews[index]) {
-      newReviews[index] = { ...newReviews[index], url: '' };
-    }
-    updateLocalConfig({ reviews: newReviews });
+  const removeShort = (index: number) => {
+    const newList = [...(config.shortsVideos || [])];
+    newList.splice(index, 1);
+    updateLocalConfig({ shortsVideos: newList });
   };
 
   const handleSave = async () => {
@@ -87,7 +79,6 @@ const Admin = () => {
     const success = await saveConfigToDb();
     if (success) {
       showSuccess("SAVED!");
-      setTimeout(() => navigate('/'), 1000);
     } else showError("ERROR SAVING");
     setIsSaving(false);
   };
@@ -102,6 +93,9 @@ const Admin = () => {
             <button onClick={() => navigate('/')} className="hover:opacity-50"><ArrowLeft /></button>
             <h1 className="text-lg">ADMIN_TERMINAL</h1>
           </div>
+          <Button disabled={isSaving} onClick={handleSave} className="bg-white text-black text-[10px] h-12 px-8 rounded-full">
+            {isSaving ? "SAVING..." : "SAVE"}
+          </Button>
         </div>
 
         <div className="space-y-10 bg-[#0a0a0a] p-10 border-4 border-white rounded-[40px]">
@@ -109,8 +103,8 @@ const Admin = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="flex flex-col items-center gap-6">
                 <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" />
-                <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black text-[8px] w-full rounded-full">CHANGE_AVATAR</Button>
-                <input type="file" ref={fileInputRef} onChange={async (e) => {
+                <Button onClick={() => avatarInputRef.current?.click()} className="bg-white text-black text-[8px] w-full rounded-full">CHANGE_AVATAR</Button>
+                <input type="file" ref={avatarInputRef} onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
                     const url = await uploadToStorage(file, 'avatar.png');
@@ -130,132 +124,9 @@ const Admin = () => {
               </div>
           </div>
 
-          {/* Background Reviews */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Star className="w-5 h-5" /> Background_Reviews (335x88)</h2>
-            <p className="text-[8px] text-zinc-500">Upload up to 6 prints. The position here corresponds to the position on the site.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[0, 1, 2, 3, 4, 5].map((index) => {
-                const review = config.reviews?.[index];
-                const hasUrl = review && review.url && review.url !== '';
-                
-                return (
-                  <div key={index} className="aspect-[335/88] border-2 border-zinc-800 border-dashed rounded-lg flex items-center justify-center relative bg-black/30 overflow-hidden group">
-                    {hasUrl ? (
-                      <>
-                        <img src={review.url} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => removeReview(index)}
-                            className="h-8 w-8 p-0 rounded-full"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <label className="cursor-pointer flex flex-col items-center gap-2 text-zinc-500 hover:text-white transition-colors">
-                        <Plus className="w-6 h-6" />
-                        <span className="text-[8px]">SLOT {index + 1}</span>
-                        <input 
-                          type="file" 
-                          className="hidden" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleReviewUpload(file, index);
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Redes Sociais */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Globe className="w-5 h-5" /> Social_Links</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label className="text-[8px] flex items-center gap-2"><Globe className="w-3 h-3"/> Twitter URL</Label>
-                <Input name="twitterUrl" value={config.twitterUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" placeholder="https://x.com/..." />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[8px] flex items-center gap-2"><MessageSquare className="w-3 h-3"/> Discord Tag</Label>
-                <Input name="discordUrl" value={config.discordUrl} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" placeholder="user#0000" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[8px] flex items-center gap-2"><Mail className="w-3 h-3"/> Contact Email</Label>
-                <Input name="email" value={config.email} onChange={handleChange} className="bg-black border-zinc-800 text-[10px]" placeholder="email@example.com" />
-              </div>
-            </div>
-          </div>
-
-          {/* Criadores (CLIENTS) */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[12px] uppercase flex items-center gap-4"><Users className="w-5 h-5" /> Creators_Worked_With</h2>
-              <Button onClick={addClient} className="bg-white text-black text-[8px] h-8 rounded-full flex items-center gap-2">
-                <Plus className="w-3 h-3" /> ADD_CREATOR
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {config.clients.map((client, index) => (
-                <div key={client.id} className="p-4 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
-                  <button 
-                    onClick={() => removeClient(client.id)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                  <div className="flex items-center gap-4">
-                    <div className="relative group/avatar">
-                      <img src={client.image} className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700" />
-                      <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover/avatar:opacity-100 cursor-pointer">
-                        <UploadCloud className="w-4 h-4" />
-                        <input type="file" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const url = await uploadToStorage(file, `client_${index}.png`);
-                            if (url) handleClientChange(index, 'image', url);
-                          }
-                        }} />
-                      </label>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="space-y-1">
-                        <Label className="text-[6px] text-zinc-500">NAME</Label>
-                        <Input 
-                          value={client.name} 
-                          onChange={(e) => handleClientChange(index, 'name', e.target.value)} 
-                          className="bg-black border-zinc-800 text-[8px] h-8" 
-                          placeholder="NAME" 
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[6px] text-zinc-500 flex items-center gap-1"><UserCheck className="w-2 h-2"/> SUBS</Label>
-                        <Input 
-                          value={client.subscribers || ''} 
-                          onChange={(e) => handleClientChange(index, 'subscribers', e.target.value)} 
-                          className="bg-black border-zinc-800 text-[8px] h-8" 
-                          placeholder="EX: 1M" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Vídeos Longos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Video className="w-5 h-5" /> Featured_Videos</h2>
+            <h2 className="text-[12px] uppercase flex items-center gap-4"><VideoIcon className="w-5 h-5" /> Featured_Videos</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => (
                 <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
@@ -264,8 +135,17 @@ const Admin = () => {
                     <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[8px]">YOUTUBE_URL</Label>
-                    <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="YOUTUBE URL" />
+                    <Label className="text-[8px]">YOUTUBE_URL OR UPLOAD</Label>
+                    <div className="flex gap-2">
+                      <Input value={video.isDirectUpload ? "Uploaded File" : video.url} disabled={video.isDirectUpload} onChange={(e) => handleVideoChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px] flex-1" placeholder="YOUTUBE URL" />
+                      <label className="cursor-pointer bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 transition-colors">
+                        {isUploading === `featured_${index}` ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud className="w-5 h-5" />}
+                        <input type="file" accept="video/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleVideoUpload(e.target.files[0], index, 'featured')} />
+                      </label>
+                      {video.isDirectUpload && (
+                        <Button variant="destructive" size="sm" onClick={() => handleVideoChange(index, 'url', '')} className="p-2"><X className="w-4 h-4" /></Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -274,27 +154,33 @@ const Admin = () => {
 
           {/* Shorts Videos */}
           <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Smartphone className="w-5 h-5" /> Shorts_Content</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-[12px] uppercase flex items-center gap-4"><Smartphone className="w-5 h-5" /> Shorts_Content</h2>
+              <Button onClick={addShort} variant="outline" className="text-[8px] h-8 border-white">ADD_SHORT</Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {(config.shortsVideos || []).map((short, index) => (
-                <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
+                <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
+                   <button onClick={() => removeShort(index)} className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
                   <div className="space-y-2">
-                    <Label className="text-[8px]">SHORT_TITLE</Label>
+                    <Label className="text-[8px]">TITLE</Label>
                     <Input value={short.title} onChange={(e) => handleShortChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[8px]">URL (Shorts)</Label>
-                    <Input value={short.url} onChange={(e) => handleShortChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="https://youtube.com/shorts/..." />
+                    <Label className="text-[8px]">URL OR UPLOAD</Label>
+                    <div className="flex gap-2">
+                      <Input value={short.isDirectUpload ? "Uploaded File" : short.url} disabled={short.isDirectUpload} onChange={(e) => handleShortChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px] flex-1" placeholder="SHORTS URL" />
+                      <label className="cursor-pointer bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 transition-colors">
+                        {isUploading === `shorts_${index}` ? <Loader2 className="w-5 h-5 animate-spin" /> : <UploadCloud className="w-5 h-5" />}
+                        <input type="file" accept="video/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleVideoUpload(e.target.files[0], index, 'shorts')} />
+                      </label>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
-        <Button disabled={isSaving} onClick={handleSave} className="w-full bg-white text-black text-[10px] h-16 rounded-full border-b-8 border-r-8 border-zinc-400">
-          {isSaving ? "SAVING..." : "SAVE_ALL_CHANGES"}
-        </Button>
       </div>
     </div>
   );
