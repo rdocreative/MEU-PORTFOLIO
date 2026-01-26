@@ -8,7 +8,7 @@ export interface VideoData {
   title: string;
   url: string;
   thumbnail?: string;
-  customVideoUrl?: string; // Adicionado para manter compatibilidade com o código existente
+  customVideoUrl?: string;
 }
 
 export interface Client {
@@ -24,10 +24,11 @@ export interface ReviewImage {
 }
 
 export interface PortfolioConfig {
+  id?: string; // Adicionado ID para controle interno
   profileName: string;
   description: string;
   profileImage: string;
-  profileVideo?: string; // Novo campo
+  profileVideo?: string;
   primaryColor: string;
   secondaryColor: string;
   backgroundColor: string;
@@ -95,22 +96,42 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
+          // Ordena pelo ID ou criado em para pegar sempre o mesmo registro se houver mais de um
+          .limit(1)
           .single();
 
         if (data && !error) {
+          // Mapeamento explícito de snake_case (DB) para camelCase (App)
           setConfig({
-            ...defaultConfig,
-            ...data,
-            profileVideo: data.profile_video, // Mapeando do DB
+            id: data.id,
+            profileName: data.profile_name || defaultConfig.profileName,
+            description: data.description || defaultConfig.description,
+            profileImage: data.profile_image || defaultConfig.profileImage,
+            profileVideo: data.profile_video,
+            primaryColor: data.primary_color || defaultConfig.primaryColor,
+            secondaryColor: data.secondary_color || defaultConfig.secondaryColor,
+            backgroundColor: data.background_color || defaultConfig.backgroundColor,
+            cardColor: data.card_color || defaultConfig.cardColor,
+            twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
+            discordUrl: data.discord_url || defaultConfig.discordUrl,
+            email: data.email || defaultConfig.email,
+            subscribers: data.subscribers || defaultConfig.subscribers,
+            
+            // Arrays e JSON
             clients: data.clients || [],
             featuredVideos: data.featured_videos || defaultConfig.featuredVideos,
             shortsVideos: data.shorts_videos || defaultConfig.shortsVideos,
             reviews: data.reviews || [],
-            showShorts: data.show_shorts !== undefined ? data.show_shorts : true,
-            showClients: data.show_clients !== undefined ? data.show_clients : true,
-            showFeaturedVideos: data.show_featured_videos !== undefined ? data.show_featured_videos : true,
-            showReviews: data.show_reviews !== undefined ? data.show_reviews : true,
+            
+            // Flags booleanas (usando ?? para aceitar false)
+            showShorts: data.show_shorts ?? true,
+            showClients: data.show_clients ?? true,
+            showFeaturedVideos: data.show_featured_videos ?? true,
+            showReviews: data.show_reviews ?? true,
           });
+        } else if (error && error.code !== 'PGRST116') {
+          // PGRST116 significa que não encontrou nenhum registro (o que é ok, usaremos default)
+          console.error("Error fetching config:", error);
         }
       } catch (err) {
         console.error("Error fetching config:", err);
@@ -128,11 +149,12 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
 
   const saveConfigToDb = async () => {
     try {
+      // Prepara objeto para o formato do banco (snake_case)
       const dbData = {
         profile_name: config.profileName,
         description: config.description,
         profile_image: config.profileImage,
-        profile_video: config.profileVideo, // Salvando no DB
+        profile_video: config.profileVideo,
         primary_color: config.primaryColor,
         secondary_color: config.secondaryColor,
         background_color: config.backgroundColor,
@@ -151,10 +173,28 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('portfolio_config')
-        .update(dbData)
-        .eq('id', '61d9a56c-0f9c-4e8a-861c-8e4040578672');
+      let error;
+
+      if (config.id) {
+        // Se já temos um ID, atualizamos esse registro específico
+        const result = await supabase
+          .from('portfolio_config')
+          .update(dbData)
+          .eq('id', config.id);
+        error = result.error;
+      } else {
+        // Se não temos ID, criamos um novo registro
+        const result = await supabase
+          .from('portfolio_config')
+          .insert(dbData)
+          .select()
+          .single();
+        
+        if (result.data) {
+          setConfig(prev => ({ ...prev, id: result.data.id }));
+        }
+        error = result.error;
+      }
 
       if (error) throw error;
       return true;
