@@ -1,100 +1,46 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useConfig } from '@/context/ConfigContext';
 
 const BackgroundReviews = () => {
   const { config } = useConfig();
-  const [scrollY, setScrollY] = useState(0);
+  const reviews = config.reviews || [];
 
-  useEffect(() => {
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setScrollY(window.scrollY);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    
-    handleScroll();
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  if (!config.reviews || config.reviews.length === 0) return null;
-  const hasAnyValidReview = config.reviews.some(r => r && r.url);
-  if (!hasAnyValidReview) return null;
+  const positions = [
+    { top: '10%', left: '2%', transform: 'rotate(-15deg)' },
+    { top: '20%', right: '2%', transform: 'rotate(15deg)' },
+    { top: '45%', left: '3%', transform: 'rotate(-10deg)' },
+    { top: '55%', right: '3%', transform: 'rotate(10deg)' },
+    { top: '80%', left: '2%', transform: 'rotate(-12deg)' },
+    { top: '85%', right: '2%', transform: 'rotate(12deg)' },
+  ];
 
   return (
-    <>
-      <style jsx>{`
-        @keyframes subtle-wiggle {
-          0% { transform: rotate(0deg) translateY(0); }
-          25% { transform: rotate(1.5deg) translateY(-5px); }
-          50% { transform: rotate(0deg) translateY(0); }
-          75% { transform: rotate(-1.5deg) translateY(5px); }
-          100% { transform: rotate(0deg) translateY(0); }
-        }
-        .animate-wiggle {
-          animation: subtle-wiggle 8s ease-in-out infinite;
-        }
-      `}</style>
-      
-      <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        {config.reviews.slice(0, 6).map((review, index) => {
-          if (!review || !review.url) return null;
+    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0">
+      {positions.map((pos, index) => {
+        const review = reviews[index];
+        if (!review || !review.url) return null;
 
-          const isLeft = index % 2 === 0;
-          const topPosition = 10 + (index * 18); 
-          const parallaxOffset = scrollY * -0.08; 
-          
-          const animationDelay = `${index * 1.5}s`;
-
-          return (
-            <div
-              key={review.id || index}
-              className="absolute hidden lg:block will-change-transform"
-              style={{
-                top: `${topPosition}vh`,
-                [isLeft ? 'left' : 'right']: '-2%', 
-                width: '345px', 
-                height: 'auto',
-                transform: `
-                  translate3d(0, ${parallaxOffset}px, 0) 
-                  perspective(1000px) 
-                  rotateY(${isLeft ? '20deg' : '-20deg'}) 
-                  rotateX(5deg)
-                `,
-                opacity: 0.55, // Aumentado de 0.4 para 0.55 (~+15%)
-                zIndex: 0
-              }}
-            >
-              <div 
-                className="w-full h-full animate-wiggle"
-                style={{ animationDelay }}
-              >
-                <img 
-                  src={review.url} 
-                  alt="" 
-                  className="w-full h-auto rounded-lg grayscale" 
-                  style={{
-                    maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                    // Adicionado glow sutil
-                    filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.15))'
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </>
+        return (
+          <div
+            key={review.id || index}
+            className="absolute w-[250px] md:w-[350px] transition-all duration-1000"
+            style={{
+              ...pos,
+              opacity: 0.25, // Aumentado para ~25% (mais claro)
+              filter: `drop-shadow(0 0 30px ${config.primaryColor}08)`, // Glow suave com ~3% de opacidade
+            }}
+          >
+            <img 
+              src={review.url} 
+              alt="Review" 
+              className="w-full h-auto rounded-lg"
+            />
+          </div>
+        );
+      })}
+    </div>
   );
 };
 
