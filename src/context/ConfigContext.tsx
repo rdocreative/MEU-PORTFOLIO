@@ -8,6 +8,7 @@ export interface VideoData {
   title: string;
   url: string;
   thumbnail?: string;
+  customVideoUrl?: string; // Adicionado para manter compatibilidade com o código existente
 }
 
 export interface Client {
@@ -35,9 +36,14 @@ export interface PortfolioConfig {
   email: string;
   clients: Client[];
   featuredVideos: VideoData[];
-  shortsVideos: VideoData[]; // Adicionado campo para Shorts
+  shortsVideos: VideoData[];
   subscribers: string;
   reviews: ReviewImage[];
+  // Visibility Flags
+  showShorts: boolean;
+  showClients: boolean;
+  showFeaturedVideos: boolean;
+  showReviews: boolean;
 }
 
 interface ConfigContextType {
@@ -63,13 +69,17 @@ const defaultConfig: PortfolioConfig = {
     { id: '1', title: 'FEATURED_01', url: '' },
     { id: '2', title: 'FEATURED_02', url: '' }
   ],
-  shortsVideos: [ // Inicializando com 3 slots vazios
+  shortsVideos: [
     { id: 's1', title: 'SHORT_01', url: '' },
     { id: 's2', title: 'SHORT_02', url: '' },
     { id: 's3', title: 'SHORT_03', url: '' }
   ],
   subscribers: "0",
-  reviews: []
+  reviews: [],
+  showShorts: true,
+  showClients: true,
+  showFeaturedVideos: true,
+  showReviews: true
 };
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -93,7 +103,11 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
             clients: data.clients || [],
             featuredVideos: data.featured_videos || defaultConfig.featuredVideos,
             shortsVideos: data.shorts_videos || defaultConfig.shortsVideos,
-            reviews: data.reviews || []
+            reviews: data.reviews || [],
+            showShorts: data.show_shorts !== undefined ? data.show_shorts : true,
+            showClients: data.show_clients !== undefined ? data.show_clients : true,
+            showFeaturedVideos: data.show_featured_videos !== undefined ? data.show_featured_videos : true,
+            showReviews: data.show_reviews !== undefined ? data.show_reviews : true,
           });
         }
       } catch (err) {
@@ -127,13 +141,17 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         featured_videos: config.featuredVideos,
         shorts_videos: config.shortsVideos,
         reviews: config.reviews,
+        show_shorts: config.showShorts,
+        show_clients: config.showClients,
+        show_featured_videos: config.showFeaturedVideos,
+        show_reviews: config.showReviews,
         updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
         .from('portfolio_config')
         .update(dbData)
-        .eq('id', '61d9a56c-0f9c-4e8a-861c-8e4040578672'); // ID fixo para este portfólio
+        .eq('id', '61d9a56c-0f9c-4e8a-861c-8e4040578672');
 
       if (error) throw error;
       return true;

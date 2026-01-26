@@ -51,6 +51,7 @@ const ClientsSection = memo(() => {
     return () => rootNode.removeEventListener('wheel', onWheel);
   }, [api]);
 
+  if (!config.showClients) return null;
   if (!config.clients || config.clients.length === 0) return null;
 
   const displayClients = config.clients.length < 10 

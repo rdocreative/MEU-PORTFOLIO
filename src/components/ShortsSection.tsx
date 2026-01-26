@@ -7,6 +7,8 @@ import { Reveal } from './Reveal';
 const ShortsSection = () => {
   const { config } = useConfig();
   
+  if (!config.showShorts) return null;
+
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
     try {

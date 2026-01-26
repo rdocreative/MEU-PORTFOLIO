@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
-import { useConfig, VideoData, Client, ReviewImage } from '@/context/ConfigContext';
+import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Loader2, Wand2, AlertTriangle, UploadCloud, Users, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { showSuccess, showError, showLoading, dismissToast } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
@@ -92,6 +92,18 @@ const Admin = () => {
     setIsSaving(false);
   };
 
+  const VisibilityToggle = ({ isVisible, onToggle, label }: { isVisible: boolean, onToggle: () => void, label: string }) => (
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      onClick={onToggle}
+      className={`gap-2 text-[10px] ${isVisible ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300'}`}
+    >
+      {isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+      {isVisible ? 'VISIBLE' : 'HIDDEN'}
+    </Button>
+  );
+
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">LOADING...</div>;
 
   return (
@@ -131,9 +143,16 @@ const Admin = () => {
           </div>
 
           {/* Background Reviews */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Star className="w-5 h-5" /> Background_Reviews (335x88)</h2>
-            <p className="text-[8px] text-zinc-500">Upload up to 6 prints. The position here corresponds to the position on the site.</p>
+          <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showReviews ? 'opacity-50 grayscale' : ''}`}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-[12px] uppercase flex items-center gap-4"><Star className="w-5 h-5" /> Background_Reviews</h2>
+              <VisibilityToggle 
+                isVisible={config.showReviews} 
+                onToggle={() => updateLocalConfig({ showReviews: !config.showReviews })} 
+                label="Reviews"
+              />
+            </div>
+            <p className="text-[8px] text-zinc-500">Upload up to 6 prints. (335x88)</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[0, 1, 2, 3, 4, 5].map((index) => {
@@ -197,12 +216,19 @@ const Admin = () => {
           </div>
 
           {/* Criadores (CLIENTS) */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
+          <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showClients ? 'opacity-50 grayscale' : ''}`}>
             <div className="flex items-center justify-between">
               <h2 className="text-[12px] uppercase flex items-center gap-4"><Users className="w-5 h-5" /> Creators_Worked_With</h2>
-              <Button onClick={addClient} className="bg-white text-black text-[8px] h-8 rounded-full flex items-center gap-2">
-                <Plus className="w-3 h-3" /> ADD_CREATOR
-              </Button>
+              <div className="flex items-center gap-2">
+                <VisibilityToggle 
+                  isVisible={config.showClients} 
+                  onToggle={() => updateLocalConfig({ showClients: !config.showClients })} 
+                  label="Clients"
+                />
+                <Button onClick={addClient} className="bg-white text-black text-[8px] h-8 rounded-full flex items-center gap-2">
+                  <Plus className="w-3 h-3" /> ADD
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {config.clients.map((client, index) => (
@@ -254,8 +280,15 @@ const Admin = () => {
           </div>
 
           {/* Vídeos Longos */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Video className="w-5 h-5" /> Featured_Videos</h2>
+          <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showFeaturedVideos ? 'opacity-50 grayscale' : ''}`}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-[12px] uppercase flex items-center gap-4"><Video className="w-5 h-5" /> Featured_Videos</h2>
+              <VisibilityToggle 
+                isVisible={config.showFeaturedVideos} 
+                onToggle={() => updateLocalConfig({ showFeaturedVideos: !config.showFeaturedVideos })} 
+                label="Videos"
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => (
                 <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
@@ -273,8 +306,15 @@ const Admin = () => {
           </div>
 
           {/* Shorts Videos */}
-          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
-            <h2 className="text-[12px] uppercase flex items-center gap-4"><Smartphone className="w-5 h-5" /> Shorts_Content</h2>
+          <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showShorts ? 'opacity-50 grayscale' : ''}`}>
+             <div className="flex items-center justify-between">
+              <h2 className="text-[12px] uppercase flex items-center gap-4"><Smartphone className="w-5 h-5" /> Shorts_Content</h2>
+              <VisibilityToggle 
+                isVisible={config.showShorts} 
+                onToggle={() => updateLocalConfig({ showShorts: !config.showShorts })} 
+                label="Shorts"
+              />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {(config.shortsVideos || []).map((short, index) => (
                 <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">

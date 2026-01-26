@@ -75,26 +75,27 @@ const Index = () => {
           <ProfileCard />
         </div>
 
-        <div className="w-full max-w-7xl flex flex-col items-center gap-16">
-          <Reveal>
-            <h2 
-              style={{ 
-                color: config.primaryColor,
-                textShadow: `0 0 20px ${config.primaryColor}80`
-              }} 
-              className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default"
-            >
-              VIDEOS
-            </h2>
-          </Reveal>
-          <VideoSection />
-        </div>
+        {config.showFeaturedVideos && (
+          <div className="w-full max-w-7xl flex flex-col items-center gap-16">
+            <Reveal>
+              <h2 
+                style={{ 
+                  color: config.primaryColor,
+                  textShadow: `0 0 20px ${config.primaryColor}80`
+                }} 
+                className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default"
+              >
+                VIDEOS
+              </h2>
+            </Reveal>
+            <VideoSection />
+          </div>
+        )}
 
         <div className="w-full max-w-7xl flex justify-center -mt-8">
           <ClientsSection />
         </div>
 
-        {/* Nova seção de Shorts */}
         <ShortsSection />
 
         <div className="w-full flex flex-col items-center gap-12 mt-12 mb-8">

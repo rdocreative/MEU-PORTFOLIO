@@ -26,6 +26,7 @@ const BackgroundReviews = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  if (!config.showReviews) return null;
   if (!config.reviews || config.reviews.length === 0) return null;
   const hasAnyValidReview = config.reviews.some(r => r && r.url);
   if (!hasAnyValidReview) return null;
