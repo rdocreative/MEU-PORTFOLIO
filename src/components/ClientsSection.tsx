@@ -81,16 +81,16 @@ const ClientsSection = memo(() => {
 
                     <div className="flex flex-col items-center gap-1 text-center">
                       <span 
-                        className="text-[10px] md:text-xs text-white font-bold tracking-wider uppercase opacity-80"
+                        className="text-[9px] md:text-[10px] text-white font-bold tracking-wider uppercase opacity-80"
                       >
                         {client.name}
                       </span>
                       
-                      {client.subtitle && (
+                      {client.subscribers && (
                         <span 
-                          className="text-[8px] md:text-[9px] text-zinc-500 font-normal tracking-wide uppercase line-clamp-1"
+                          className="text-[7px] md:text-[8px] text-zinc-500 font-normal tracking-widest uppercase"
                         >
-                          {client.subtitle}
+                          {client.subscribers} SUBS
                         </span>
                       )}
                     </div>
