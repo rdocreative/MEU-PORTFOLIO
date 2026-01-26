@@ -100,26 +100,15 @@ const BackgroundReviews = () => {
                   WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                 }}
               >
-                {/* Rotating Border Glow - Comet Style */}
+                {/* Rotating Border Glow - Single Layer */}
                 <div 
-                  className={`absolute inset-[-100%] ${spinDirection}`}
+                  className={`absolute inset-[-200%] ${spinDirection} will-change-transform`}
                   style={{
                     animationDuration: `${spinDuration}s`,
-                    // Feixe mais curto (aprox 60 graus) e totalmente branco no final
-                    // O blur reduzido (3px) ajuda a manter a forma de "stroke" mas ainda com um pouco de brilho
-                    background: 'conic-gradient(transparent 0deg, transparent 300deg, rgba(255,255,255,1) 360deg)',
+                    // Feixe único: transparente até perto do fim, depois um gradiente suave até o branco
+                    background: 'conic-gradient(from 0deg, transparent 0deg, transparent 300deg, white 360deg)',
+                    // Reduzi o blur para deixar o traço mais definido, mas ainda com leve glow
                     filter: 'blur(3px)', 
-                  }}
-                />
-                
-                {/* Camada extra para o núcleo branco brilhante (opcional, mas ajuda na definição) */}
-                <div 
-                  className={`absolute inset-[-100%] ${spinDirection}`}
-                  style={{
-                    animationDuration: `${spinDuration}s`,
-                    background: 'conic-gradient(transparent 0deg, transparent 340deg, #ffffff 360deg)',
-                    filter: 'blur(0px)', // Núcleo nítido
-                    opacity: 0.8
                   }}
                 />
                 
@@ -128,7 +117,6 @@ const BackgroundReviews = () => {
                   alt="" 
                   className="relative w-full h-auto rounded-lg grayscale z-10 bg-black" 
                   style={{
-                    // Pequena sombra interna/externa na imagem para destacar o stroke
                     boxShadow: 'inset 0 0 20px rgba(0,0,0,1)'
                   }}
                 />
