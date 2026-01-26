@@ -57,19 +57,8 @@ const ClientsSection = memo(() => {
     ? [...config.clients, ...config.clients, ...config.clients] 
     : config.clients;
 
-  const bgColor = config.backgroundColor || "#09090b";
-
   return (
     <div className="w-full py-12 relative overflow-hidden">
-      <div 
-        className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
-        style={{ background: `linear-gradient(to right, ${bgColor}, transparent)` }}
-      />
-      <div 
-        className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none"
-        style={{ background: `linear-gradient(to left, ${bgColor}, transparent)` }}
-      />
-
       <div className="w-full">
         <Carousel
           setApi={setApi}
@@ -80,6 +69,10 @@ const ClientsSection = memo(() => {
             dragFree: true,
           }}
           className="w-full max-w-[1400px] mx-auto"
+          style={{
+            maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+          }}
         >
           <CarouselContent className="-ml-0 items-center py-4">
             {displayClients.map((client, idx) => (

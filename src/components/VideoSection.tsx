@@ -143,15 +143,6 @@ const VideoSection = () => {
   return (
     <>
       <Reveal width="100%" delay={0.2} className="w-full relative group/section">
-        <div 
-          className="absolute left-0 top-0 bottom-0 w-8 md:w-60 z-20 pointer-events-none"
-          style={{ background: `linear-gradient(to right, ${config.backgroundColor}, transparent)` }}
-        />
-        <div 
-          className="absolute right-0 top-0 bottom-0 w-8 md:w-60 z-20 pointer-events-none"
-          style={{ background: `linear-gradient(to left, ${config.backgroundColor}, transparent)` }}
-        />
-
         <Carousel
           setApi={setApi}
           plugins={[plugin.current]}
@@ -161,6 +152,10 @@ const VideoSection = () => {
             dragFree: true,
           }}
           className="w-full"
+          style={{
+            maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+            WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+          }}
         >
           <CarouselContent className="-ml-4 md:-ml-8 items-center py-6 md:py-10">
             {activeVideos.map((video, idx) => (
