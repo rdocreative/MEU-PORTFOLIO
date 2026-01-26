@@ -58,8 +58,8 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
   return (
     <div 
       onClick={onClick}
-      // Alterado w-[300px] para w-[44vw] no mobile para caber 2 lado a lado (considerando gap)
-      className="flex-shrink-0 w-[44vw] md:w-[450px] group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer"
+      // Aumentado de 44vw para 65vw no mobile (~40% maior)
+      className="flex-shrink-0 w-[65vw] md:w-[450px] group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer"
     >
       <div className="aspect-video relative bg-black rounded-[20px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
@@ -138,8 +138,8 @@ const VideoSection = () => {
         />
 
         {/* Container Marquee */}
-        {/* Alterado gap-8 para gap-3 no mobile */}
-        <div className="animate-marquee-infinite gap-3 md:gap-8 px-2 md:px-4">
+        {/* Ajustado gap para mobile para acompanhar o aumento do card */}
+        <div className="animate-marquee-infinite gap-4 md:gap-8 px-2 md:px-4">
           {marqueeItems.map((video, idx) => (
             <VideoCard 
               key={`${video.id}-${idx}`} 
