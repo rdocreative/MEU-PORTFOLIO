@@ -40,15 +40,22 @@ const BackgroundReviews = () => {
           75% { transform: rotate(-1.5deg) translateY(5px); }
           100% { transform: rotate(0deg) translateY(0); }
         }
-        @keyframes spin-border {
+        @keyframes spin-cw {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes spin-ccw {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(-360deg); }
         }
         .animate-wiggle {
           animation: subtle-wiggle 8s ease-in-out infinite;
         }
-        .animate-spin-border {
-          animation: spin-border 3s linear infinite; /* Faster rotation (3s) */
+        .animate-spin-cw {
+          animation: spin-cw linear infinite;
+        }
+        .animate-spin-ccw {
+          animation: spin-ccw linear infinite;
         }
       `}</style>
       
@@ -61,6 +68,12 @@ const BackgroundReviews = () => {
           const parallaxOffset = scrollY * -0.08; 
           
           const animationDelay = `${index * 1.5}s`;
+          
+          // Directions & Speeds
+          // Even indexes rotate Clockwise (cw), Odd rotate Counter-Clockwise (ccw)
+          // Speed varies between 3s and 5s
+          const spinDirection = index % 2 === 0 ? 'animate-spin-cw' : 'animate-spin-ccw';
+          const spinDuration = 3 + (index % 3); // 3s, 4s, 5s
 
           return (
             <div
@@ -82,27 +95,30 @@ const BackgroundReviews = () => {
               }}
             >
               <div 
-                className="w-full h-full animate-wiggle p-[2px] rounded-lg overflow-hidden relative" // Increased padding to 2px for thicker border
+                className="w-full h-full animate-wiggle p-[2px] rounded-lg overflow-hidden relative bg-transparent"
                 style={{ 
                   animationDelay,
                   maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                 }}
               >
-                {/* Rotating Border Glow - Brighter and Faster */}
+                {/* Rotating Border Glow */}
                 <div 
-                  className="absolute inset-[-100%] animate-spin-border"
+                  className={`absolute inset-[-100%] ${spinDirection}`}
                   style={{
-                    background: 'conic-gradient(from 90deg, transparent 0%, transparent 50%, rgba(255,255,255,0.9) 100%)' // Increased opacity to 0.9
+                    animationDuration: `${spinDuration}s`,
+                    // Gradient transparent at both ends to prevent "cut" + blurred for glow
+                    background: 'conic-gradient(transparent 0deg, transparent 60deg, rgba(255,255,255,1) 180deg, transparent 300deg, transparent 360deg)',
+                    filter: 'blur(8px)', // Adds the "glow" to the light beam
                   }}
                 />
                 
                 <img 
                   src={review.url} 
                   alt="" 
-                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/50" // Added bg to prevent transparency issues
+                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/80" 
                   style={{
-                    filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.15))'
+                    filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))'
                   }}
                 />
               </div>
