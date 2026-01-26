@@ -40,15 +40,15 @@ const BackgroundReviews = () => {
           75% { transform: rotate(-1.5deg) translateY(5px); }
           100% { transform: rotate(0deg) translateY(0); }
         }
-        @keyframes spin-slow {
+        @keyframes spin-border {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
         .animate-wiggle {
           animation: subtle-wiggle 8s ease-in-out infinite;
         }
-        .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
+        .animate-spin-border {
+          animation: spin-border 3s linear infinite; /* Faster rotation (3s) */
         }
       `}</style>
       
@@ -77,33 +77,32 @@ const BackgroundReviews = () => {
                   rotateY(${isLeft ? '20deg' : '-20deg'}) 
                   rotateX(5deg)
                 `,
-                opacity: 0.70, // Increased from 0.55 (+15%)
+                opacity: 0.70,
                 zIndex: 0
               }}
             >
               <div 
-                className="w-full h-full animate-wiggle p-[1px] rounded-lg overflow-hidden relative"
+                className="w-full h-full animate-wiggle p-[2px] rounded-lg overflow-hidden relative" // Increased padding to 2px for thicker border
                 style={{ 
                   animationDelay,
                   maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
                 }}
               >
-                {/* Rotating Border Glow */}
+                {/* Rotating Border Glow - Brighter and Faster */}
                 <div 
-                  className="absolute inset-[-100%] animate-spin-slow"
+                  className="absolute inset-[-100%] animate-spin-border"
                   style={{
-                    background: 'conic-gradient(from 90deg, transparent 0%, transparent 80%, rgba(255,255,255,0.4) 100%)'
+                    background: 'conic-gradient(from 90deg, transparent 0%, transparent 50%, rgba(255,255,255,0.9) 100%)' // Increased opacity to 0.9
                   }}
                 />
                 
                 <img 
                   src={review.url} 
                   alt="" 
-                  className="relative w-full h-auto rounded-lg grayscale z-10" 
+                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/50" // Added bg to prevent transparency issues
                   style={{
-                    // Slightly stronger and smoother glow
-                    filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))'
+                    filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.15))'
                   }}
                 />
               </div>
