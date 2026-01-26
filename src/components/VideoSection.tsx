@@ -114,19 +114,21 @@ const VideoSection = () => {
     if (!api) return;
 
     const onWheel = (e: WheelEvent) => {
-      // DeltaY < 0 é scroll para cima -> Direita (Next)
-      // DeltaY > 0 é scroll para baixo -> Esquerda (Prev)
-      if (Math.abs(e.deltaY) < 10) return; // Filtro de sensibilidade
-      
-      if (e.deltaY < 0) {
-        api.scrollNext();
-      } else {
-        api.scrollPrev();
+      // Impede o scroll da página (vertical) quando o mouse está sobre o carrossel
+      if (Math.abs(e.deltaY) > 5) {
+        e.preventDefault();
+        
+        if (e.deltaY < 0) {
+          api.scrollNext();
+        } else {
+          api.scrollPrev();
+        }
       }
     };
 
     const rootNode = api.rootNode();
-    rootNode.addEventListener('wheel', onWheel, { passive: true });
+    // passive: false é necessário para que e.preventDefault() funcione
+    rootNode.addEventListener('wheel', onWheel, { passive: false });
     return () => rootNode.removeEventListener('wheel', onWheel);
   }, [api]);
 

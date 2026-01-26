@@ -27,17 +27,21 @@ const ClientsSection = memo(() => {
     if (!api) return;
 
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 10) return;
-      
-      if (e.deltaY < 0) {
-        api.scrollNext();
-      } else {
-        api.scrollPrev();
+      // Impede o scroll da página (vertical) quando o mouse está sobre o carrossel
+      if (Math.abs(e.deltaY) > 5) {
+        e.preventDefault();
+        
+        if (e.deltaY < 0) {
+          api.scrollNext();
+        } else {
+          api.scrollPrev();
+        }
       }
     };
 
     const rootNode = api.rootNode();
-    rootNode.addEventListener('wheel', onWheel, { passive: true });
+    // passive: false é necessário para que e.preventDefault() funcione
+    rootNode.addEventListener('wheel', onWheel, { passive: false });
     return () => rootNode.removeEventListener('wheel', onWheel);
   }, [api]);
 
