@@ -1,29 +1,55 @@
 "use client";
 
-import React from 'react';
-import { useConfig } from '@/context/ConfigContext';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
+import { useConfig } from '@/context/ConfigContext';
 
-const Navbar = () => {
+const Navbar = memo(() => {
   const { config } = useConfig();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-8 pointer-events-none">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="pointer-events-auto">
-          <Link to="/" className="text-xl font-black tracking-tighter uppercase">
-            {config.profileName}
+    <nav className="fixed top-8 left-0 w-full z-50 px-6 flex justify-center animate-in slide-in-from-top-full duration-1000 delay-300 fill-mode-backwards pointer-events-none">
+      <div 
+        style={{ 
+          backgroundColor: `${config.cardColor}e6`, 
+          borderColor: config.primaryColor,
+          boxShadow: `0px 5px 0px 0px ${config.primaryColor}4d`
+        }}
+        className="w-full max-w-3xl backdrop-blur-md border-4 flex items-center justify-between p-4 rounded-full pointer-events-auto"
+      >
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-4 group ml-3">
+            <div 
+              style={{ borderColor: config.secondaryColor }}
+              className="relative w-12 h-12 overflow-hidden border-2 rounded-full group-hover:scale-105 transition-transform"
+            >
+              <img 
+                src={config.profileImage} 
+                alt="Home" 
+                className="w-full h-full bg-gray-800 object-cover"
+                width={48}
+                height={48}
+                loading="lazy"
+              />
+            </div>
           </Link>
         </div>
-        
-        <div className="flex gap-8 pointer-events-auto bg-black/50 backdrop-blur-xl px-8 py-3 rounded-full border border-white/10">
-          <a href="#work" className="text-[10px] font-black uppercase tracking-widest hover:opacity-50 transition-opacity">Work</a>
-          <a href="#clients" className="text-[10px] font-black uppercase tracking-widest hover:opacity-50 transition-opacity">Partners</a>
-          <Link to="/admin" className="text-[10px] font-black uppercase tracking-widest opacity-20 hover:opacity-100 transition-opacity">Admin</Link>
-        </div>
+
+        <a 
+          href={`mailto:${config.email}`}
+          style={{ 
+            backgroundColor: config.secondaryColor,
+            borderColor: `${config.secondaryColor}99`
+          }}
+          className="text-white text-[10px] px-8 py-3 border-b-4 border-r-4 rounded-full active:border-0 active:translate-y-[2px] active:translate-x-[2px] transition-all uppercase hover:brightness-110 mr-3"
+        >
+          Contact
+        </a>
       </div>
     </nav>
   );
-};
+});
+
+Navbar.displayName = 'Navbar';
 
 export default Navbar;
