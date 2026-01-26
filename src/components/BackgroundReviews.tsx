@@ -76,7 +76,7 @@ const BackgroundReviews = () => {
           return (
             <div
               key={review.id || index}
-              className={`absolute block will-change-transform w-[200px] sm:w-[280px] lg:w-[345px] ${isLeft ? 'left-[-12%] sm:left-[-5%] lg:left-[-2%]' : 'right-[-12%] sm:right-[-5%] lg:right-[-2%]'}`}
+              className={`absolute block will-change-transform w-[260px] sm:w-[340px] lg:w-[345px] ${isLeft ? 'left-[-15%] sm:left-[-8%] lg:left-[-2%]' : 'right-[-15%] sm:right-[-8%] lg:right-[-2%]'}`}
               style={{
                 top: `${topPosition}vh`,
                 height: 'auto',
@@ -101,7 +101,6 @@ const BackgroundReviews = () => {
                   className={`absolute inset-[-200%] ${spinDirection} will-change-transform`}
                   style={{
                     animationDuration: `${spinDuration}s`,
-                    // Aumentei o rastro para começar em 180deg (antes era 300deg), criando um cometa bem mais longo
                     background: 'conic-gradient(from 0deg, transparent 0deg, transparent 180deg, white 360deg)',
                     filter: 'blur(3px)', 
                   }}
