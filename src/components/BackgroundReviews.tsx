@@ -8,7 +8,6 @@ const BackgroundReviews = () => {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    // Usando requestAnimationFrame para garantir que a atualização acompanhe a taxa de atualização do monitor
     let ticking = false;
 
     const handleScroll = () => {
@@ -21,7 +20,6 @@ const BackgroundReviews = () => {
       }
     };
     
-    // Inicializa
     handleScroll();
     
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -38,42 +36,36 @@ const BackgroundReviews = () => {
         if (!review || !review.url) return null;
 
         const isLeft = index % 2 === 0;
-        // Distribuição vertical
         const topPosition = 10 + (index * 18); 
-        
-        // Fator de paralaxe suave
         const parallaxOffset = scrollY * -0.08; 
 
         return (
           <div
             key={review.id || index}
-            className="absolute hidden lg:block will-change-transform" // will-change otimiza a renderização
+            className="absolute hidden lg:block will-change-transform"
             style={{
               top: `${topPosition}vh`,
-              // Puxa um pouco para fora da tela para ficar apenas como "moldura"
               [isLeft ? 'left' : 'right']: '-2%', 
               width: '300px',
               height: 'auto',
-              // Transformação direta sem transição CSS para evitar delay
               transform: `
                 translate3d(0, ${parallaxOffset}px, 0) 
                 perspective(1000px) 
                 rotateY(${isLeft ? '20deg' : '-20deg'}) 
                 rotateX(5deg)
               `,
-              opacity: 0.15, // Bem sutil (15%)
+              opacity: 0.4, // Aumentado para 40% (mais visível)
               zIndex: 0
             }}
           >
-            {/* Imagem limpa, sem bordas, em escala de cinza */}
             <img 
               src={review.url} 
               alt="" 
-              className="w-full h-auto rounded-lg grayscale opacity-80"
+              className="w-full h-auto rounded-lg grayscale" 
               style={{
-                // Máscara suave para integrar com o fundo
-                maskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 100%)'
+                // Ajustei a máscara para mostrar um pouco mais da imagem antes de desaparecer
+                maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
               }}
             />
           </div>
