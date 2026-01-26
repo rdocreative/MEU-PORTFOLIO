@@ -96,6 +96,7 @@ const VideoSection = () => {
   const { config } = useConfig();
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
   const [api, setApi] = useState<CarouselApi>();
+  const scrollAccumulator = useRef(0);
 
   const activeVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
@@ -114,20 +115,25 @@ const VideoSection = () => {
     if (!api) return;
 
     const onWheel = (e: WheelEvent) => {
-      // Impede o scroll da página (vertical) quando o mouse está sobre o carrossel
-      if (Math.abs(e.deltaY) > 5) {
+      if (Math.abs(e.deltaY) > 2) {
         e.preventDefault();
         
-        if (e.deltaY < 0) {
-          api.scrollNext();
-        } else {
-          api.scrollPrev();
+        // Reduzindo a velocidade/sensibilidade em 20% (multiplicador 0.8)
+        scrollAccumulator.current += e.deltaY * 0.8;
+
+        // Limiar para disparar o scroll (100 unidades de delta)
+        if (Math.abs(scrollAccumulator.current) >= 100) {
+          if (scrollAccumulator.current < 0) {
+            api.scrollNext();
+          } else {
+            api.scrollPrev();
+          }
+          scrollAccumulator.current = 0;
         }
       }
     };
 
     const rootNode = api.rootNode();
-    // passive: false é necessário para que e.preventDefault() funcione
     rootNode.addEventListener('wheel', onWheel, { passive: false });
     return () => rootNode.removeEventListener('wheel', onWheel);
   }, [api]);
