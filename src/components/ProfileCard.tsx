@@ -103,7 +103,7 @@ const ProfileCard = memo(() => {
           </button>
 
           {displayedClients.length > 0 && (
-            <div className="flex flex-col items-center gap-2 z-20 mt-1">
+            <div className="flex flex-col items-center gap-3 z-20 mt-1">
               <div className="flex -space-x-2">
                 {displayedClients.map((client: any, index: number) => (
                   <div 
@@ -120,9 +120,13 @@ const ProfileCard = memo(() => {
                   </div>
                 ))}
               </div>
-              <p className="text-[8px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                Trusted by <span style={{ color: config.primaryColor }}>{config.clients.length > 0 ? config.clients.length + '+' : 'MANY'}</span>
-              </p>
+              <div 
+                className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm"
+              >
+                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-[0.15em]">
+                  Trusted by <span style={{ color: config.primaryColor }} className="ml-1 brightness-110">15+ CLIENTS</span>
+                </p>
+              </div>
             </div>
           )}
         </div>
