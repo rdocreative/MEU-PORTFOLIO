@@ -96,7 +96,6 @@ const BackgroundReviews = () => {
                 className="w-full h-full animate-wiggle p-[1px] rounded-lg overflow-hidden relative bg-transparent"
                 style={{ 
                   animationDelay,
-                  // Removida a maskImage que cortava a parte de baixo
                 }}
               >
                 {/* Rotating Border Glow - Single Layer */}
@@ -104,9 +103,8 @@ const BackgroundReviews = () => {
                   className={`absolute inset-[-200%] ${spinDirection} will-change-transform`}
                   style={{
                     animationDuration: `${spinDuration}s`,
-                    // Feixe único: transparente até perto do fim, depois um gradiente suave até o branco
-                    background: 'conic-gradient(from 0deg, transparent 0deg, transparent 300deg, white 360deg)',
-                    // Reduzi o blur para deixar o traço mais definido, mas ainda com leve glow
+                    // Aumentei o rastro para começar em 180deg (antes era 300deg), criando um cometa bem mais longo
+                    background: 'conic-gradient(from 0deg, transparent 0deg, transparent 180deg, white 360deg)',
                     filter: 'blur(3px)', 
                   }}
                 />
