@@ -96,8 +96,7 @@ const BackgroundReviews = () => {
                 className="w-full h-full animate-wiggle p-[1px] rounded-lg overflow-hidden relative bg-transparent"
                 style={{ 
                   animationDelay,
-                  maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                  // Removida a maskImage que cortava a parte de baixo
                 }}
               >
                 {/* Rotating Border Glow - Single Layer */}
