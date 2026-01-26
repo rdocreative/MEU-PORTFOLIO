@@ -70,8 +70,6 @@ const BackgroundReviews = () => {
           const animationDelay = `${index * 1.5}s`;
           
           // Directions & Speeds
-          // Even indexes rotate Clockwise (cw), Odd rotate Counter-Clockwise (ccw)
-          // Speed varies between 3s and 5s
           const spinDirection = index % 2 === 0 ? 'animate-spin-cw' : 'animate-spin-ccw';
           const spinDuration = 3 + (index % 3); // 3s, 4s, 5s
 
@@ -107,9 +105,10 @@ const BackgroundReviews = () => {
                   className={`absolute inset-[-100%] ${spinDirection}`}
                   style={{
                     animationDuration: `${spinDuration}s`,
-                    // Gradient transparent at both ends to prevent "cut" + blurred for glow
-                    background: 'conic-gradient(transparent 0deg, transparent 60deg, rgba(255,255,255,1) 180deg, transparent 300deg, transparent 360deg)',
-                    filter: 'blur(8px)', // Adds the "glow" to the light beam
+                    // Feixe muito mais estreito (aprox 40 graus) para evitar duplicação nos cantos.
+                    // Começa transparente, vai ao branco intenso e volta a transparente suavemente.
+                    background: 'conic-gradient(transparent 0deg, transparent 320deg, rgba(255,255,255,1) 340deg, transparent 360deg)',
+                    filter: 'blur(8px)', 
                   }}
                 />
                 
