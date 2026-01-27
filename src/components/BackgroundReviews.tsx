@@ -77,7 +77,7 @@ const BackgroundReviews = () => {
           return (
             <div
               key={review.id || index}
-              className={`absolute block will-change-transform w-[260px] sm:w-[340px] lg:w-[345px] ${isLeft ? 'left-[-15%] sm:left-[-8%] lg:left-[-2%]' : 'right-[-15%] sm:right-[-8%] lg:right-[-2%]'}`}
+              className={`absolute block will-change-transform w-[260px] sm:w-[340px] lg:w-[345px] ${isLeft ? 'left-[-15%] sm:left-[-8%] lg:left-[-2%] xl:left-[2%] 2xl:left-[12%]' : 'right-[-15%] sm:right-[-8%] lg:right-[-2%] xl:right-[2%] 2xl:right-[12%]'}`}
               style={{
                 top: `${topPosition}vh`,
                 height: 'auto',
