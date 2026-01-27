@@ -41,11 +41,13 @@ export interface PortfolioConfig {
   shortsVideos: VideoData[];
   subscribers: string;
   reviews: ReviewImage[];
+  aboutText: string;
   // Visibility Flags
   showShorts: boolean;
   showClients: boolean;
   showFeaturedVideos: boolean;
   showReviews: boolean;
+  showAbout: boolean;
 }
 
 interface ConfigContextType {
@@ -78,10 +80,12 @@ const defaultConfig: PortfolioConfig = {
   ],
   subscribers: "0",
   reviews: [],
+  aboutText: "I turn raw footage into compelling stories. With years of experience working with top creators, I understand the pacing, rhythm, and visual language needed to keep viewers watching until the very end.",
   showShorts: true,
   showClients: true,
   showFeaturedVideos: true,
-  showReviews: true
+  showReviews: true,
+  showAbout: true
 };
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -116,6 +120,7 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
             discordUrl: data.discord_url || defaultConfig.discordUrl,
             email: data.email || defaultConfig.email,
             subscribers: data.subscribers || defaultConfig.subscribers,
+            aboutText: data.about_text || defaultConfig.aboutText,
             
             // Arrays e JSON
             clients: data.clients || [],
@@ -128,6 +133,7 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
             showClients: data.show_clients ?? true,
             showFeaturedVideos: data.show_featured_videos ?? true,
             showReviews: data.show_reviews ?? true,
+            showAbout: data.show_about ?? true,
           });
         } else if (error && error.code !== 'PGRST116') {
           // PGRST116 significa que não encontrou nenhum registro (o que é ok, usaremos default)
@@ -166,10 +172,12 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         featured_videos: config.featuredVideos,
         shorts_videos: config.shortsVideos,
         reviews: config.reviews,
+        about_text: config.aboutText,
         show_shorts: config.showShorts,
         show_clients: config.showClients,
         show_featured_videos: config.showFeaturedVideos,
         show_reviews: config.showReviews,
+        show_about: config.showAbout,
         updated_at: new Date().toISOString()
       };
 

@@ -7,6 +7,7 @@ import VideoSection from "@/components/VideoSection";
 import ShortsSection from "@/components/ShortsSection";
 import ClientsSection from "@/components/ClientsSection";
 import ContactModal from "@/components/ContactModal";
+import AboutSection from "@/components/AboutSection";
 import { useConfig } from "@/context/ConfigContext";
 import { Reveal } from "@/components/Reveal";
 import BackgroundReviews from "@/components/BackgroundReviews";
@@ -98,7 +99,9 @@ const Index = () => {
 
         <ShortsSection />
 
-        <div className="w-full flex flex-col items-center gap-12 mt-12 mb-8">
+        <AboutSection />
+
+        <div className="w-full flex flex-col items-center gap-12 mt-4 mb-8">
           <Reveal variant="fade-up" delay={0.3}>
             <button 
               onClick={() => setIsContactOpen(true)}

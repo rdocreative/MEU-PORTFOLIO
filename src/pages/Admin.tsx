@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -172,6 +172,28 @@ const Admin = () => {
                   <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 min-h-[100px]" placeholder="DESCRIPTION" />
                 </div>
               </div>
+          </div>
+
+          {/* About Section Config */}
+          <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showAbout ? 'opacity-50 grayscale' : ''}`}>
+             <div className="flex items-center justify-between">
+              <h2 className="text-[12px] uppercase flex items-center gap-4"><FileText className="w-5 h-5" /> About_Section</h2>
+              <VisibilityToggle 
+                isVisible={config.showAbout} 
+                onToggle={() => updateLocalConfig({ showAbout: !config.showAbout })} 
+                label="About"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[8px]">ABOUT_TEXT (English)</Label>
+              <Textarea 
+                name="aboutText" 
+                value={config.aboutText} 
+                onChange={handleChange} 
+                className="bg-black border-zinc-800 min-h-[150px] font-sans" 
+                placeholder="Write something about yourself in English..." 
+              />
+            </div>
           </div>
 
           {/* Background Reviews */}
