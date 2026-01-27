@@ -29,27 +29,47 @@ const AboutSection = () => {
             {/* Linhas decorativas estilo terminal */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             
-            <div className="flex flex-col gap-6 relative z-10">
-              <h2 
-                style={{ color: config.primaryColor }}
-                className="text-lg md:text-xl font-bold uppercase tracking-[0.3em] flex items-center gap-4"
-              >
-                <span className="w-2 h-2 bg-current rounded-full animate-pulse" />
-                About Me
-              </h2>
+            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start relative z-10">
               
-              <div className="space-y-4">
-                {config.aboutText.split('\n').map((paragraph, idx) => (
-                  <p 
-                    key={idx}
-                    className="text-sm md:text-base leading-relaxed text-zinc-300 font-medium font-sans tracking-wide"
-                  >
-                    {paragraph}
-                  </p>
-                ))}
+              {/* Avatar Section */}
+              <div className="flex-shrink-0 relative group/avatar">
+                 <div 
+                    style={{ borderColor: config.secondaryColor }}
+                    className="absolute inset-0 border-2 rounded-full opacity-20 group-hover/avatar:opacity-100 transition-opacity duration-500 scale-110" 
+                 />
+                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-white/10 shadow-2xl relative bg-black">
+                    <img 
+                      src={config.profileImage} 
+                      alt="About Me" 
+                      className="w-full h-full object-cover grayscale group-hover/avatar:grayscale-0 transition-all duration-500"
+                    />
+                 </div>
               </div>
-              
-              <div className="h-px w-20 bg-gradient-to-r from-white/20 to-transparent mt-2" />
+
+              {/* Text Section */}
+              <div className="flex flex-col gap-6 flex-1 text-center md:text-left">
+                <h2 
+                  style={{ color: config.primaryColor }}
+                  className="text-lg md:text-xl font-bold uppercase tracking-[0.3em] flex items-center justify-center md:justify-start gap-4"
+                >
+                  <span className="w-2 h-2 bg-current rounded-full animate-pulse" />
+                  About Me
+                </h2>
+                
+                <div className="space-y-4">
+                  {config.aboutText.split('\n').map((paragraph, idx) => (
+                    <p 
+                      key={idx}
+                      className="text-sm md:text-base leading-relaxed text-zinc-300 font-medium font-sans tracking-wide"
+                    >
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+                
+                <div className="h-px w-20 bg-gradient-to-r from-white/20 to-transparent mt-2 mx-auto md:mx-0" />
+              </div>
+
             </div>
             
             {/* Elemento decorativo no canto */}
