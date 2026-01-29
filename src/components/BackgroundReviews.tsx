@@ -31,15 +31,15 @@ const BackgroundReviews = () => {
   const hasAnyValidReview = config.reviews.some(r => r && r.url);
   if (!hasAnyValidReview) return null;
 
-  // Configurações "aleatórias" fixas para cada slot para garantir visual agradável
-  // side: -1 (esquerda), 1 (direita)
+  // Posições distribuídas verticalmente para não sobrepor
+  // Side define o lado (left/right)
   const positions = [
-    { top: 5,  side: -1, xOffset: 2,  rotate: 15,  scale: 0.9 },  // Topo Esq
-    { top: 20, side: 1,  xOffset: 5,  rotate: -8,  scale: 1.1 },  // Topo Dir
-    { top: 38, side: -1, xOffset: -5, rotate: -5,  scale: 1.0 },  // Meio Esq
-    { top: 52, side: 1,  xOffset: -2, rotate: 12,  scale: 0.85 }, // Meio Dir
-    { top: 70, side: -1, xOffset: 8,  rotate: 20,  scale: 0.95 }, // Baixo Esq
-    { top: 85, side: 1,  xOffset: 0,  rotate: -15, scale: 1.05 }, // Baixo Dir
+    { top: 8,  side: 'left',  rotate: 6 },
+    { top: 22, side: 'right', rotate: -5 },
+    { top: 40, side: 'left',  rotate: -3 },
+    { top: 58, side: 'right', rotate: 4 },
+    { top: 75, side: 'left',  rotate: 5 },
+    { top: 90, side: 'right', rotate: -4 },
   ];
 
   return (
@@ -47,9 +47,9 @@ const BackgroundReviews = () => {
       <style jsx>{`
         @keyframes subtle-wiggle {
           0% { transform: rotate(0deg) translateY(0); }
-          25% { transform: rotate(1.5deg) translateY(-5px); }
+          25% { transform: rotate(1deg) translateY(-3px); }
           50% { transform: rotate(0deg) translateY(0); }
-          75% { transform: rotate(-1.5deg) translateY(5px); }
+          75% { transform: rotate(-1deg) translateY(3px); }
           100% { transform: rotate(0deg) translateY(0); }
         }
         @keyframes spin-cw {
@@ -76,55 +76,60 @@ const BackgroundReviews = () => {
           if (!review || !review.url) return null;
 
           const pos = positions[index] || positions[0];
-          const isLeft = pos.side === -1;
-          const parallaxOffset = scrollY * -0.05 * (1 + (index * 0.1)); // Velocidades diferentes
+          const isLeft = pos.side === 'left';
+          const parallaxOffset = scrollY * -0.08 * (1 + (index * 0.05));
           
-          const animationDelay = `${index * 1.2}s`;
-          
-          // Directions & Speeds
+          const animationDelay = `${index * 1.5}s`;
           const spinDirection = index % 2 === 0 ? 'animate-spin-cw' : 'animate-spin-ccw';
-          const spinDuration = 3 + (index % 3);
+          const spinDuration = 4 + (index % 3);
 
           return (
             <div
               key={review.id || index}
-              className={`absolute block will-change-transform w-[220px] sm:w-[280px] lg:w-[320px]`}
+              className="absolute block will-change-transform"
               style={{
+                // Posição vertical baseada na viewport height
                 top: `${pos.top}vh`,
-                [isLeft ? 'left' : 'right']: `${pos.xOffset}%`, // Posição base mais variável
-                // Adicionamos margens negativas baseadas no tamanho da tela para controlar a "invasão" na tela
-                marginLeft: isLeft ? (pos.xOffset > 0 ? '2%' : '-10%') : 'auto',
-                marginRight: !isLeft ? (pos.xOffset > 0 ? '2%' : '-10%') : 'auto',
                 
+                // Posição horizontal segura (nunca cola na borda)
+                [isLeft ? 'left' : 'right']: '2%',
+                
+                // Largura responsiva:
+                // Mobile: min 140px
+                // Tablet/Desktop: cresce até 300px baseado na largura da tela
+                width: 'clamp(140px, 25vw, 300px)',
+                
+                // Transformações
                 transform: `
                   translate3d(0, ${parallaxOffset}px, 0) 
-                  rotate(${pos.rotate}deg) 
-                  scale(${pos.scale})
+                  rotate(${pos.rotate}deg)
                 `,
                 opacity: 0.60,
                 zIndex: 0
               }}
             >
               <div 
-                className="w-full h-full animate-wiggle p-[1px] rounded-lg overflow-hidden relative bg-transparent"
+                className="w-full h-auto animate-wiggle p-[1px] rounded-lg overflow-hidden relative bg-transparent"
                 style={{ 
                   animationDelay,
+                  // Garante que a imagem mantenha proporção e não corte
+                  aspectRatio: 'auto' 
                 }}
               >
-                {/* Rotating Border Glow */}
+                {/* Borda brilhante animada */}
                 <div 
-                  className={`absolute inset-[-200%] ${spinDirection} will-change-transform`}
+                  className={`absolute inset-[-150%] ${spinDirection} will-change-transform opacity-50`}
                   style={{
                     animationDuration: `${spinDuration}s`,
-                    background: 'conic-gradient(from 0deg, transparent 0deg, transparent 180deg, white 360deg)',
-                    filter: 'blur(3px)', 
+                    background: 'conic-gradient(from 0deg, transparent 0deg, transparent 90deg, white 360deg)',
+                    filter: 'blur(4px)', 
                   }}
                 />
                 
                 <img 
                   src={review.url} 
                   alt="" 
-                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/90" 
+                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/90 block" 
                   style={{
                     boxShadow: 'inset 0 0 20px rgba(0,0,0,1)'
                   }}
