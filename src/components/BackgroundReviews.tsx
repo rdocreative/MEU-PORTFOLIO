@@ -31,6 +31,17 @@ const BackgroundReviews = () => {
   const hasAnyValidReview = config.reviews.some(r => r && r.url);
   if (!hasAnyValidReview) return null;
 
+  // Configurações "aleatórias" fixas para cada slot para garantir visual agradável
+  // side: -1 (esquerda), 1 (direita)
+  const positions = [
+    { top: 5,  side: -1, xOffset: 2,  rotate: 15,  scale: 0.9 },  // Topo Esq
+    { top: 20, side: 1,  xOffset: 5,  rotate: -8,  scale: 1.1 },  // Topo Dir
+    { top: 38, side: -1, xOffset: -5, rotate: -5,  scale: 1.0 },  // Meio Esq
+    { top: 52, side: 1,  xOffset: -2, rotate: 12,  scale: 0.85 }, // Meio Dir
+    { top: 70, side: -1, xOffset: 8,  rotate: 20,  scale: 0.95 }, // Baixo Esq
+    { top: 85, side: 1,  xOffset: 0,  rotate: -15, scale: 1.05 }, // Baixo Dir
+  ];
+
   return (
     <>
       <style jsx>{`
@@ -64,30 +75,33 @@ const BackgroundReviews = () => {
         {config.reviews.slice(0, 6).map((review, index) => {
           if (!review || !review.url) return null;
 
-          const isLeft = index % 2 === 0;
-          const topPosition = 10 + (index * 18); 
-          const parallaxOffset = scrollY * -0.08; 
+          const pos = positions[index] || positions[0];
+          const isLeft = pos.side === -1;
+          const parallaxOffset = scrollY * -0.05 * (1 + (index * 0.1)); // Velocidades diferentes
           
-          const animationDelay = `${index * 1.5}s`;
+          const animationDelay = `${index * 1.2}s`;
           
           // Directions & Speeds
           const spinDirection = index % 2 === 0 ? 'animate-spin-cw' : 'animate-spin-ccw';
-          const spinDuration = 3 + (index % 3); // 3s, 4s, 5s
+          const spinDuration = 3 + (index % 3);
 
           return (
             <div
               key={review.id || index}
-              className={`absolute block will-change-transform w-[260px] sm:w-[340px] lg:w-[345px] ${isLeft ? 'left-[-15%] sm:left-[-8%] lg:left-[-2%] xl:left-[2%] 2xl:left-[12%]' : 'right-[-15%] sm:right-[-8%] lg:right-[-2%] xl:right-[2%] 2xl:right-[12%]'}`}
+              className={`absolute block will-change-transform w-[220px] sm:w-[280px] lg:w-[320px]`}
               style={{
-                top: `${topPosition}vh`,
-                height: 'auto',
+                top: `${pos.top}vh`,
+                [isLeft ? 'left' : 'right']: `${pos.xOffset}%`, // Posição base mais variável
+                // Adicionamos margens negativas baseadas no tamanho da tela para controlar a "invasão" na tela
+                marginLeft: isLeft ? (pos.xOffset > 0 ? '2%' : '-10%') : 'auto',
+                marginRight: !isLeft ? (pos.xOffset > 0 ? '2%' : '-10%') : 'auto',
+                
                 transform: `
                   translate3d(0, ${parallaxOffset}px, 0) 
-                  perspective(1000px) 
-                  rotateY(${isLeft ? '20deg' : '-20deg'}) 
-                  rotateX(5deg)
+                  rotate(${pos.rotate}deg) 
+                  scale(${pos.scale})
                 `,
-                opacity: 0.70,
+                opacity: 0.60,
                 zIndex: 0
               }}
             >
@@ -97,7 +111,7 @@ const BackgroundReviews = () => {
                   animationDelay,
                 }}
               >
-                {/* Rotating Border Glow - Single Layer */}
+                {/* Rotating Border Glow */}
                 <div 
                   className={`absolute inset-[-200%] ${spinDirection} will-change-transform`}
                   style={{
@@ -110,7 +124,7 @@ const BackgroundReviews = () => {
                 <img 
                   src={review.url} 
                   alt="" 
-                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black" 
+                  className="relative w-full h-auto rounded-lg grayscale z-10 bg-black/90" 
                   style={{
                     boxShadow: 'inset 0 0 20px rgba(0,0,0,1)'
                   }}
