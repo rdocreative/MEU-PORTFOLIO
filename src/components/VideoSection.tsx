@@ -1,29 +1,17 @@
 "use client";
 
-import React, { useRef, useState, useMemo, memo, useEffect } from 'react';
+import React, { useRef, useState, useMemo, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
-import { Reveal } from './Reveal';
 import AutoScroll from "embla-carousel-auto-scroll";
+import { getYouTubeId } from '@/utils/videoUtils';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-
-const getYouTubeId = (url: string) => {
-  if (!url) return null;
-  // Remove espaços em branco
-  const cleanUrl = url.trim();
-  // Regex mais robusto: suporta youtu.be, v/, embed/, watch?v=, live/ e &v=
-  // Usa grupo não-capturante (?:) para os prefixos, então o ID é sempre o grupo 1
-  const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|live\/|&v=)([^#&?]*).*/;
-  const match = cleanUrl.match(regExp);
-  // YouTube IDs têm 11 caracteres
-  return (match && match[1].length === 11) ? match[1] : null;
-};
 
 const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -62,21 +50,26 @@ YouTubePreview.displayName = 'YouTubePreview';
 
 const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
+  
+  // Debug visual: Se não tem ID e nem customVideo, mostra erro
+  const hasContent = video.customVideoUrl || videoId;
+
   return (
     <div 
       onClick={onClick}
       className="group relative flex flex-col gap-2 md:gap-4 p-1 cursor-pointer w-full"
     >
-      <div className="aspect-video relative bg-black rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02]">
+      <div className="aspect-video relative bg-black rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02] border border-zinc-800">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
             {video.customVideoUrl ? (
               <VideoLoop src={video.customVideoUrl} />
             ) : videoId ? (
               <YouTubePreview videoId={videoId} title={video.title} />
             ) : (
-              <div className="flex flex-col items-center justify-center opacity-20 gap-2">
+              <div className="flex flex-col items-center justify-center opacity-50 gap-2 text-red-500">
                 <AlertTriangle className="w-8 h-8" />
-                <span className="text-[8px] uppercase tracking-widest">No Signal</span>
+                <span className="text-[8px] uppercase tracking-widest font-bold">Invalid Link</span>
+                <span className="text-[6px] max-w-[80%] truncate">{video.url}</span>
               </div>
             )}
         </div>
@@ -102,12 +95,13 @@ const VideoSection = () => {
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
   const [api, setApi] = useState<CarouselApi>();
 
+  // Filtro simplificado: Apenas remove vídeos que não tem URL alguma preenchida
+  // Removemos a validação de "link válido" aqui para garantir que o card apareça (mesmo que quebrado)
   const activeVideos = useMemo(() => 
-    config.featuredVideos.filter(v => (v.url && v.url.trim() !== "") || (v.customVideoUrl && v.customVideoUrl.trim() !== "")),
+    config.featuredVideos.filter(v => (v.url && v.url.trim().length > 0) || (v.customVideoUrl && v.customVideoUrl.trim().length > 0)),
     [config.featuredVideos]
   );
 
-  // Só ativa o AutoScroll se houver mais de 1 vídeo
   const shouldLoop = activeVideos.length > 1;
 
   const plugin = useRef(
@@ -122,7 +116,8 @@ const VideoSection = () => {
 
   return (
     <>
-      <Reveal width="100%" delay={0.2} className="w-full relative group/section">
+      {/* Removido o componente Reveal que envolvia o Carousel para evitar problemas de hidratação/visibilidade */}
+      <div className="w-full relative group/section animate-in fade-in duration-700">
         <Carousel
           setApi={setApi}
           plugins={shouldLoop ? [plugin.current] : []}
@@ -151,7 +146,7 @@ const VideoSection = () => {
             ))}
           </CarouselContent>
         </Carousel>
-      </Reveal>
+      </div>
 
       <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
         <DialogContent className="max-w-5xl w-[95vw] aspect-video p-0 bg-black border-none overflow-hidden outline-none">

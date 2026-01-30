@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { showSuccess, showError } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
+import { getYouTubeId } from '@/utils/videoUtils';
 
 const Admin = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
@@ -132,14 +133,6 @@ const Admin = () => {
       {isVisible ? 'VISIBLE' : 'HIDDEN'}
     </Button>
   );
-
-  const getYouTubeId = (url: string) => {
-    if (!url) return null;
-    const cleanUrl = url.trim();
-    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|live\/|&v=)([^#&?]*).*/;
-    const match = cleanUrl.match(regExp);
-    return (match && match[1].length === 11) ? match[1] : null;
-  };
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">LOADING...</div>;
 
