@@ -135,9 +135,10 @@ const Admin = () => {
 
   const getYouTubeId = (url: string) => {
     if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    const cleanUrl = url.trim();
+    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|live\/|&v=)([^#&?]*).*/;
+    const match = cleanUrl.match(regExp);
+    return (match && match[1].length === 11) ? match[1] : null;
   };
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">LOADING...</div>;

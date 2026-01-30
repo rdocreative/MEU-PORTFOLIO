@@ -15,9 +15,14 @@ import {
 
 const getYouTubeId = (url: string) => {
   if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
+  // Remove espaços em branco
+  const cleanUrl = url.trim();
+  // Regex mais robusto: suporta youtu.be, v/, embed/, watch?v=, live/ e &v=
+  // Usa grupo não-capturante (?:) para os prefixos, então o ID é sempre o grupo 1
+  const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|live\/|&v=)([^#&?]*).*/;
+  const match = cleanUrl.match(regExp);
+  // YouTube IDs têm 11 caracteres
+  return (match && match[1].length === 11) ? match[1] : null;
 };
 
 const VideoLoop = memo(({ src }: { src: string }) => {
@@ -102,11 +107,14 @@ const VideoSection = () => {
     [config.featuredVideos]
   );
 
+  // Só ativa o AutoScroll se houver mais de 1 vídeo
+  const shouldLoop = activeVideos.length > 1;
+
   const plugin = useRef(
     AutoScroll({ 
       speed: 1,
       stopOnInteraction: false,
-      stopOnMouseEnter: false, // Alterado para false para não parar ao passar o mouse
+      stopOnMouseEnter: false,
     })
   );
 
@@ -117,10 +125,10 @@ const VideoSection = () => {
       <Reveal width="100%" delay={0.2} className="w-full relative group/section">
         <Carousel
           setApi={setApi}
-          plugins={[plugin.current]}
+          plugins={shouldLoop ? [plugin.current] : []}
           opts={{
             align: "start",
-            loop: true,
+            loop: shouldLoop,
             dragFree: true,
           }}
           className="w-full"
@@ -129,7 +137,7 @@ const VideoSection = () => {
             WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
           }}
         >
-          <CarouselContent className="-ml-4 md:-ml-8 items-center py-6 md:py-10">
+          <CarouselContent className={`-ml-4 md:-ml-8 items-center py-6 md:py-10 ${!shouldLoop ? 'justify-center' : ''}`}>
             {activeVideos.map((video, idx) => (
               <CarouselItem 
                 key={`${video.id}-${idx}`} 
