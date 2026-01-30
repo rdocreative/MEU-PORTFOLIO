@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,9 +37,37 @@ const Admin = () => {
     updateLocalConfig({ featuredVideos: newList });
   };
 
+  const addVideo = () => {
+    const newVideo: VideoData = {
+      id: crypto.randomUUID(),
+      title: 'NEW VIDEO',
+      url: ''
+    };
+    updateLocalConfig({ featuredVideos: [...config.featuredVideos, newVideo] });
+  };
+
+  const removeVideo = (index: number) => {
+    const newList = config.featuredVideos.filter((_, i) => i !== index);
+    updateLocalConfig({ featuredVideos: newList });
+  };
+
   const handleShortChange = (index: number, field: keyof VideoData, value: string) => {
     const newList = [...(config.shortsVideos || [])];
     newList[index] = { ...newList[index], [field]: value };
+    updateLocalConfig({ shortsVideos: newList });
+  };
+  
+  const addShort = () => {
+    const newShort: VideoData = {
+      id: crypto.randomUUID(),
+      title: 'NEW SHORT',
+      url: ''
+    };
+    updateLocalConfig({ shortsVideos: [...(config.shortsVideos || []), newShort] });
+  };
+
+  const removeShort = (index: number) => {
+    const newList = (config.shortsVideos || []).filter((_, i) => i !== index);
     updateLocalConfig({ shortsVideos: newList });
   };
 
@@ -104,6 +132,13 @@ const Admin = () => {
       {isVisible ? 'VISIBLE' : 'HIDDEN'}
     </Button>
   );
+
+  const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">LOADING...</div>;
 
@@ -333,29 +368,56 @@ const Admin = () => {
             </div>
           </div>
 
-          {/* Vídeos Longos */}
+          {/* Vídeos Longos (FEATURED VIDEOS) */}
           <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showFeaturedVideos ? 'opacity-50 grayscale' : ''}`}>
             <div className="flex items-center justify-between">
               <h2 className="text-[12px] uppercase flex items-center gap-4"><Video className="w-5 h-5" /> Featured_Videos</h2>
-              <VisibilityToggle 
-                isVisible={config.showFeaturedVideos} 
-                onToggle={() => updateLocalConfig({ showFeaturedVideos: !config.showFeaturedVideos })} 
-                label="Videos"
-              />
+              <div className="flex items-center gap-2">
+                <VisibilityToggle 
+                  isVisible={config.showFeaturedVideos} 
+                  onToggle={() => updateLocalConfig({ showFeaturedVideos: !config.showFeaturedVideos })} 
+                  label="Videos"
+                />
+                <Button onClick={addVideo} className="bg-white text-black text-[8px] h-8 rounded-full flex items-center gap-2">
+                  <Plus className="w-3 h-3" /> ADD
+                </Button>
+              </div>
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {config.featuredVideos.map((video, index) => (
-                <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
-                  <div className="space-y-2">
-                    <Label className="text-[8px]">TITLE</Label>
-                    <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
+              {config.featuredVideos.map((video, index) => {
+                 const isValidId = getYouTubeId(video.url);
+                 
+                 return (
+                  <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
+                    <button 
+                      onClick={() => removeVideo(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                    
+                    <div className="flex items-center justify-between">
+                       <span className="text-[8px] text-zinc-500">#{index + 1}</span>
+                       {isValidId && <span className="text-[8px] text-green-500 flex items-center gap-1"><Check className="w-3 h-3"/> VALID LINK</span>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[8px]">TITLE</Label>
+                      <Input value={video.title} onChange={(e) => handleVideoChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[8px]">YOUTUBE_URL</Label>
+                      <Input 
+                        value={video.url} 
+                        onChange={(e) => handleVideoChange(index, 'url', e.target.value)} 
+                        className={`bg-black text-[10px] ${video.url && !isValidId ? 'border-red-500 focus-visible:ring-red-500' : 'border-zinc-800'}`}
+                        placeholder="YOUTUBE URL (ex: https://youtube.com/watch?v=...)" 
+                      />
+                      {video.url && !isValidId && <p className="text-[8px] text-red-500">Invalid YouTube URL format</p>}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[8px]">YOUTUBE_URL</Label>
-                    <Input value={video.url} onChange={(e) => handleVideoChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="YOUTUBE URL" />
-                  </div>
-                </div>
-              ))}
+              )})}
             </div>
           </div>
 
@@ -363,25 +425,44 @@ const Admin = () => {
           <div className={`space-y-6 border-t-2 border-zinc-900 pt-10 ${!config.showShorts ? 'opacity-50 grayscale' : ''}`}>
              <div className="flex items-center justify-between">
               <h2 className="text-[12px] uppercase flex items-center gap-4"><Smartphone className="w-5 h-5" /> Shorts_Content</h2>
-              <VisibilityToggle 
-                isVisible={config.showShorts} 
-                onToggle={() => updateLocalConfig({ showShorts: !config.showShorts })} 
-                label="Shorts"
-              />
+              <div className="flex items-center gap-2">
+                <VisibilityToggle 
+                  isVisible={config.showShorts} 
+                  onToggle={() => updateLocalConfig({ showShorts: !config.showShorts })} 
+                  label="Shorts"
+                />
+                <Button onClick={addShort} className="bg-white text-black text-[8px] h-8 rounded-full flex items-center gap-2">
+                  <Plus className="w-3 h-3" /> ADD
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {(config.shortsVideos || []).map((short, index) => (
-                <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30">
-                  <div className="space-y-2">
-                    <Label className="text-[8px]">SHORT_TITLE</Label>
-                    <Input value={short.title} onChange={(e) => handleShortChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
+              {(config.shortsVideos || []).map((short, index) => {
+                 const isValidId = getYouTubeId(short.url);
+                 return (
+                  <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
+                    <button 
+                      onClick={() => removeShort(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+
+                    <div className="space-y-2">
+                      <Label className="text-[8px]">SHORT_TITLE</Label>
+                      <Input value={short.title} onChange={(e) => handleShortChange(index, 'title', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="TITLE" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[8px]">URL (Shorts)</Label>
+                      <Input 
+                        value={short.url} 
+                        onChange={(e) => handleShortChange(index, 'url', e.target.value)} 
+                        className={`bg-black text-[10px] ${short.url && !isValidId ? 'border-red-500 focus-visible:ring-red-500' : 'border-zinc-800'}`}
+                        placeholder="https://youtube.com/shorts/..." 
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[8px]">URL (Shorts)</Label>
-                    <Input value={short.url} onChange={(e) => handleShortChange(index, 'url', e.target.value)} className="bg-black border-zinc-800 text-[10px]" placeholder="https://youtube.com/shorts/..." />
-                  </div>
-                </div>
-              ))}
+              )})}
             </div>
           </div>
         </div>
