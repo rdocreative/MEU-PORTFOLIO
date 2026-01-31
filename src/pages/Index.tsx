@@ -11,6 +11,7 @@ import AboutSection from "@/components/AboutSection";
 import { useConfig } from "@/context/ConfigContext";
 import { Reveal } from "@/components/Reveal";
 import BackgroundReviews from "@/components/BackgroundReviews";
+import AudioPlayer from "@/components/AudioPlayer";
 
 const Index = () => {
   const { config, isLoading } = useConfig();
@@ -74,6 +75,7 @@ const Index = () => {
         
         <div className="flex flex-col items-center justify-center w-full max-w-7xl">
           <ProfileCard />
+          <AudioPlayer />
         </div>
 
         {config.showFeaturedVideos && (

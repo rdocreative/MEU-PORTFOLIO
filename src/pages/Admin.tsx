@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText, Check } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText, Check, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ const Admin = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const musicInputRef = useRef<HTMLInputElement>(null);
 
   const uploadToStorage = async (file: File | Blob, path: string): Promise<string | null> => {
     const fileName = `${Date.now()}_${path}`;
@@ -201,6 +202,55 @@ const Admin = () => {
                   <Textarea name="description" value={config.description} onChange={handleChange} className="bg-black border-zinc-800 min-h-[100px]" placeholder="DESCRIPTION" />
                 </div>
               </div>
+          </div>
+          
+          {/* Background Music Config */}
+          <div className="space-y-6 border-t-2 border-zinc-900 pt-10">
+            <h2 className="text-[12px] uppercase flex items-center gap-4"><Music className="w-5 h-5" /> Background_Music</h2>
+            <div className="flex items-end gap-4">
+              <div className="space-y-2 flex-1">
+                <Label className="text-[8px]">AUDIO URL (MP3/WAV)</Label>
+                <Input 
+                  name="musicUrl" 
+                  value={config.musicUrl || ''} 
+                  onChange={handleChange} 
+                  className="bg-black border-zinc-800 text-[10px]" 
+                  placeholder="https://..." 
+                />
+              </div>
+              <div className="flex gap-2">
+                 <input 
+                  type="file" 
+                  ref={musicInputRef} 
+                  accept="audio/*" 
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const url = await uploadToStorage(file, 'background_music.mp3');
+                      if (url) updateLocalConfig({ musicUrl: url });
+                    }
+                  }} 
+                />
+                <Button onClick={() => musicInputRef.current?.click()} className="bg-white text-black text-[8px] h-10 px-4 rounded-full flex items-center gap-2">
+                  <UploadCloud className="w-3 h-3" /> UPLOAD MP3
+                </Button>
+                {config.musicUrl && (
+                  <Button 
+                    onClick={() => updateLocalConfig({ musicUrl: '' })} 
+                    className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/50 h-10 w-10 p-0 rounded-full"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            {config.musicUrl && (
+              <div className="text-[8px] text-zinc-500 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>ACTIVE AUDIO: {config.musicUrl.split('/').pop()}</span>
+              </div>
+            )}
           </div>
 
           {/* About Section Config */}

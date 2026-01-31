@@ -24,7 +24,7 @@ export interface ReviewImage {
 }
 
 export interface PortfolioConfig {
-  id?: string; // Adicionado ID para controle interno
+  id?: string;
   profileName: string;
   description: string;
   profileImage: string;
@@ -36,6 +36,7 @@ export interface PortfolioConfig {
   twitterUrl: string;
   discordUrl: string;
   email: string;
+  musicUrl?: string; // Novo campo para música
   clients: Client[];
   featuredVideos: VideoData[];
   shortsVideos: VideoData[];
@@ -68,6 +69,7 @@ const defaultConfig: PortfolioConfig = {
   twitterUrl: "",
   discordUrl: "",
   email: "",
+  musicUrl: "",
   clients: [],
   featuredVideos: [
     { id: '1', title: 'FEATURED_01', url: '' },
@@ -100,12 +102,10 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         const { data, error } = await supabase
           .from('portfolio_config')
           .select('*')
-          // Ordena pelo ID ou criado em para pegar sempre o mesmo registro se houver mais de um
           .limit(1)
           .single();
 
         if (data && !error) {
-          // Mapeamento explícito de snake_case (DB) para camelCase (App)
           setConfig({
             id: data.id,
             profileName: data.profile_name || defaultConfig.profileName,
@@ -119,16 +119,15 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
             twitterUrl: data.twitter_url || defaultConfig.twitterUrl,
             discordUrl: data.discord_url || defaultConfig.discordUrl,
             email: data.email || defaultConfig.email,
+            musicUrl: data.music_url || defaultConfig.musicUrl,
             subscribers: data.subscribers || defaultConfig.subscribers,
             aboutText: data.about_text || defaultConfig.aboutText,
             
-            // Arrays e JSON
             clients: data.clients || [],
             featuredVideos: data.featured_videos || defaultConfig.featuredVideos,
             shortsVideos: data.shorts_videos || defaultConfig.shortsVideos,
             reviews: data.reviews || [],
             
-            // Flags booleanas (usando ?? para aceitar false)
             showShorts: data.show_shorts ?? true,
             showClients: data.show_clients ?? true,
             showFeaturedVideos: data.show_featured_videos ?? true,
@@ -136,7 +135,6 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
             showAbout: data.show_about ?? true,
           });
         } else if (error && error.code !== 'PGRST116') {
-          // PGRST116 significa que não encontrou nenhum registro (o que é ok, usaremos default)
           console.error("Error fetching config:", error);
         }
       } catch (err) {
@@ -155,7 +153,6 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
 
   const saveConfigToDb = async () => {
     try {
-      // Prepara objeto para o formato do banco (snake_case)
       const dbData = {
         profile_name: config.profileName,
         description: config.description,
@@ -168,6 +165,7 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         twitter_url: config.twitterUrl,
         discord_url: config.discordUrl,
         email: config.email,
+        music_url: config.musicUrl,
         clients: config.clients,
         featured_videos: config.featuredVideos,
         shorts_videos: config.shortsVideos,
@@ -184,14 +182,12 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
       let error;
 
       if (config.id) {
-        // Se já temos um ID, atualizamos esse registro específico
         const result = await supabase
           .from('portfolio_config')
           .update(dbData)
           .eq('id', config.id);
         error = result.error;
       } else {
-        // Se não temos ID, criamos um novo registro
         const result = await supabase
           .from('portfolio_config')
           .insert(dbData)
