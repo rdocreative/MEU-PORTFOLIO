@@ -15,6 +15,9 @@ import {
 
 const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  if (!src || src.trim() === '') return null;
+
   return (
     <video 
       ref={videoRef}
@@ -50,9 +53,7 @@ YouTubePreview.displayName = 'YouTubePreview';
 
 const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => void }) => {
   const videoId = getYouTubeId(video.url);
-  
-  // Debug visual: Se não tem ID e nem customVideo, mostra erro
-  const hasContent = video.customVideoUrl || videoId;
+  const hasCustomVideo = video.customVideoUrl && video.customVideoUrl.trim() !== '';
 
   return (
     <div 
@@ -61,8 +62,8 @@ const VideoCard = memo(({ video, onClick }: { video: VideoData, onClick: () => v
     >
       <div className="aspect-video relative bg-black rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl transition-all duration-300 group-hover:scale-[1.02] border border-zinc-800">
         <div className="absolute inset-0 bg-black flex items-center justify-center">
-            {video.customVideoUrl ? (
-              <VideoLoop src={video.customVideoUrl} />
+            {hasCustomVideo ? (
+              <VideoLoop src={video.customVideoUrl!} />
             ) : videoId ? (
               <YouTubePreview videoId={videoId} title={video.title} />
             ) : (
@@ -95,8 +96,6 @@ const VideoSection = () => {
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
   const [api, setApi] = useState<CarouselApi>();
 
-  // Filtro simplificado: Apenas remove vídeos que não tem URL alguma preenchida
-  // Removemos a validação de "link válido" aqui para garantir que o card apareça (mesmo que quebrado)
   const activeVideos = useMemo(() => 
     config.featuredVideos.filter(v => (v.url && v.url.trim().length > 0) || (v.customVideoUrl && v.customVideoUrl.trim().length > 0)),
     [config.featuredVideos]
@@ -116,7 +115,6 @@ const VideoSection = () => {
 
   return (
     <>
-      {/* Removido o componente Reveal que envolvia o Carousel para evitar problemas de hidratação/visibilidade */}
       <div className="w-full relative group/section animate-in fade-in duration-700">
         <Carousel
           setApi={setApi}
@@ -152,12 +150,12 @@ const VideoSection = () => {
         <DialogContent className="max-w-5xl w-[95vw] aspect-video p-0 bg-black border-none overflow-hidden outline-none">
            <div className="relative w-full h-full bg-black group/modal">
               {selectedVideo && (
-                selectedVideo.customVideoUrl ? (
+                selectedVideo.customVideoUrl && selectedVideo.customVideoUrl.trim() !== '' ? (
                   <video src={selectedVideo.customVideoUrl} className="w-full h-full object-contain" autoPlay controls />
                 ) : (
                   <iframe
                     className="w-full h-full"
-                    src={`https://www.youtube.com/embed/${getYouTubeId(selectedVideo.url)}?autoplay=1&controls=1`}
+                    src={`https://www.youtube.com/embed/${getYouTubeId(selectedVideo?.url || '')}?autoplay=1&controls=1`}
                     allowFullScreen
                   />
                 )

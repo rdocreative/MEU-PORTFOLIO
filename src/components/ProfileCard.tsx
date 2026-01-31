@@ -12,10 +12,13 @@ const ProfileCard = memo(() => {
   const cardStyle = { 
     backgroundColor: config.cardColor ? `${config.cardColor}D9` : '#09090bD9', 
     borderColor: config.primaryColor,
-    boxShadow: `0 0 30px -10px ${config.primaryColor}26` // Glow sutil atrás do card
+    boxShadow: `0 0 30px -10px ${config.primaryColor}26` 
   };
 
   const displayedClients = config.clients ? [...config.clients].reverse().slice(0, 4) : [];
+  
+  // Verificação de segurança para o vídeo
+  const hasProfileVideo = config.profileVideo && config.profileVideo.trim() !== '';
 
   return (
     <>
@@ -32,7 +35,7 @@ const ProfileCard = memo(() => {
           style={cardStyle} 
           className="relative overflow-hidden backdrop-blur-xl border-2 p-8 rounded-[32px] w-full flex flex-col items-center transition-all duration-500 hover:scale-[1.01]"
         >
-          {/* Shimmer Effect - Mais suave */}
+          {/* Shimmer Effect */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-[32px] z-10">
               <div 
                 style={{ animation: 'shimmer 6s infinite linear' }}
@@ -50,7 +53,7 @@ const ProfileCard = memo(() => {
             ></div>
             
             <div className="w-full h-full rounded-full overflow-hidden border-2 border-black/50 bg-black relative shadow-xl">
-               {config.profileVideo ? (
+               {hasProfileVideo ? (
                 <video
                   src={config.profileVideo}
                   autoPlay

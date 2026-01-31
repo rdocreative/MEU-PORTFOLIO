@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useConfig } from '@/context/ConfigContext';
-import { Volume2, VolumeX, Music, Play, Pause } from 'lucide-react';
+import { Volume2, VolumeX, Play } from 'lucide-react';
 import { Reveal } from './Reveal';
 
 const AudioPlayer = () => {
@@ -10,11 +10,13 @@ const AudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [hasInteracted, setHasInteracted] = useState(false);
+
+  // Verificação de segurança: só renderiza se tiver URL válida
+  const hasMusic = config.musicUrl && config.musicUrl.trim() !== '';
 
   useEffect(() => {
-    if (config.musicUrl && audioRef.current) {
-      audioRef.current.volume = 0.4; // Volume inicial agradável (40%)
+    if (hasMusic && audioRef.current) {
+      audioRef.current.volume = 0.4; // Volume inicial
       
       const playPromise = audioRef.current.play();
       
@@ -24,13 +26,13 @@ const AudioPlayer = () => {
             setIsPlaying(true);
           })
           .catch((error) => {
-            // Autoplay foi bloqueado pelo navegador
-            console.log("Autoplay blocked, waiting for interaction");
+            // Autoplay bloqueado é normal, não é erro crítico
+            console.log("Autoplay waiting for interaction");
             setIsPlaying(false);
           });
       }
     }
-  }, [config.musicUrl]);
+  }, [hasMusic, config.musicUrl]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -41,7 +43,6 @@ const AudioPlayer = () => {
     } else {
       audioRef.current.play();
       setIsPlaying(true);
-      setHasInteracted(true);
     }
   };
 
@@ -52,7 +53,7 @@ const AudioPlayer = () => {
     setIsMuted(!isMuted);
   };
 
-  if (!config.musicUrl) return null;
+  if (!hasMusic) return null;
 
   return (
     <Reveal delay={0.2} width="100%" className="flex justify-center mt-4">
@@ -68,7 +69,7 @@ const AudioPlayer = () => {
             boxShadow: isPlaying ? `0 0 15px ${config.primaryColor}30` : 'none'
           }}
         >
-          {/* Ícone de status (Play/Pause ou Equalizador) */}
+          {/* Visualizer / Play Icon */}
           <div className="relative w-4 h-4 flex items-center justify-center">
             {isPlaying ? (
               <div className="flex items-end gap-[2px] h-3">
