@@ -11,32 +11,78 @@ const AudioPlayer = () => {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Verificação de segurança: só renderiza se tiver URL válida
-  const hasMusic = config.musicUrl && config.musicUrl.trim() !== '';
+  // Verificação de segurança
+  const musicUrl = config.musicUrl?.trim();
+  if (!musicUrl) return null;
 
+  // Verifica se é um link do Spotify
+  const isSpotify = musicUrl.includes('spotify.com');
+
+  // Lógica para extrair o ID do Spotify e montar o link de Embed
+  const getSpotifyEmbedUrl = (url: string) => {
+    try {
+      // Suporta links do tipo:
+      // https://open.spotify.com/track/123...
+      // https://open.spotify.com/playlist/123...
+      // https://open.spotify.com/album/123...
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/').filter(Boolean); // remove vazios
+      
+      // Geralmente [type, id] ex: ['track', '4cOdK2...']
+      if (pathParts.length >= 2) {
+        const type = pathParts[pathParts.length - 2];
+        const id = pathParts[pathParts.length - 1];
+        return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // --- RENDERIZAÇÃO SPOTIFY ---
+  if (isSpotify) {
+    const embedUrl = getSpotifyEmbedUrl(musicUrl);
+    if (!embedUrl) return null;
+
+    return (
+      <Reveal delay={0.2} width="100%" className="flex justify-center mt-6 mb-2">
+        <div className="w-full max-w-sm rounded-[12px] overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.3)] border border-white/10 relative z-30 bg-black">
+          <iframe 
+            style={{ borderRadius: '12px' }} 
+            src={embedUrl} 
+            width="100%" 
+            height="152" 
+            frameBorder="0" 
+            allowFullScreen 
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+            loading="lazy"
+          />
+        </div>
+      </Reveal>
+    );
+  }
+
+  // --- RENDERIZAÇÃO MP3 (Nativo) ---
+
+  // Efeitos apenas para o player nativo
   useEffect(() => {
-    if (hasMusic && audioRef.current) {
-      audioRef.current.volume = 0.4; // Volume inicial
-      
+    if (!isSpotify && musicUrl && audioRef.current) {
+      audioRef.current.volume = 0.4;
       const playPromise = audioRef.current.play();
-      
       if (playPromise !== undefined) {
         playPromise
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch((error) => {
-            // Autoplay bloqueado é normal, não é erro crítico
-            console.log("Autoplay waiting for interaction");
+          .then(() => setIsPlaying(true))
+          .catch(() => {
+            console.log("Autoplay blocked");
             setIsPlaying(false);
           });
       }
     }
-  }, [hasMusic, config.musicUrl]);
+  }, [musicUrl, isSpotify]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
-    
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
@@ -53,12 +99,10 @@ const AudioPlayer = () => {
     setIsMuted(!isMuted);
   };
 
-  if (!hasMusic) return null;
-
   return (
     <Reveal delay={0.2} width="100%" className="flex justify-center mt-4">
       <div className="relative group z-30">
-        <audio ref={audioRef} src={config.musicUrl} loop playsInline />
+        <audio ref={audioRef} src={musicUrl} loop playsInline />
         
         <button
           onClick={togglePlay}
@@ -69,7 +113,6 @@ const AudioPlayer = () => {
             boxShadow: isPlaying ? `0 0 15px ${config.primaryColor}30` : 'none'
           }}
         >
-          {/* Visualizer / Play Icon */}
           <div className="relative w-4 h-4 flex items-center justify-center">
             {isPlaying ? (
               <div className="flex items-end gap-[2px] h-3">
@@ -91,7 +134,7 @@ const AudioPlayer = () => {
               {isPlaying ? 'Now Playing' : 'Paused'}
             </span>
             <span className="text-[7px] text-zinc-500 font-mono">
-              BACKGROUND_AUDIO.mp3
+              BACKGROUND_AUDIO
             </span>
           </div>
 

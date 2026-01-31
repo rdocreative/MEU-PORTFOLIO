@@ -211,13 +211,13 @@ const Admin = () => {
             <h2 className="text-[12px] uppercase flex items-center gap-4"><Music className="w-5 h-5" /> Background_Music</h2>
             <div className="flex items-end gap-4">
               <div className="space-y-2 flex-1">
-                <Label className="text-[8px]">AUDIO URL (MP3/WAV)</Label>
+                <Label className="text-[8px]">Spotify URL or MP3 Link</Label>
                 <Input 
                   name="musicUrl" 
                   value={config.musicUrl || ''} 
                   onChange={handleChange} 
                   className="bg-black border-zinc-800 text-[10px]" 
-                  placeholder="https://..." 
+                  placeholder="https://open.spotify.com/track/..." 
                 />
               </div>
               <div className="flex gap-2">
@@ -250,7 +250,7 @@ const Admin = () => {
             {config.musicUrl && (
               <div className="text-[8px] text-zinc-500 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span>ACTIVE AUDIO: {config.musicUrl.split('/').pop()}</span>
+                <span className="truncate max-w-[200px]">ACTIVE: {config.musicUrl}</span>
               </div>
             )}
           </div>
