@@ -58,14 +58,18 @@ interface ConfigContextType {
   isLoading: boolean;
 }
 
+// Paleta baseada na imagem (Money Heist Dark Theme)
 const defaultConfig: PortfolioConfig = {
   profileName: "EDITOR_NAME",
   description: "Specialized in high-retention video editing for top-tier creators.",
   profileImage: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop",
-  primaryColor: "#ffffff",
-  secondaryColor: "#71717a",
-  backgroundColor: "#000000",
-  cardColor: "#09090b",
+  
+  // Cores atualizadas baseadas na imagem
+  primaryColor: "#f1f5f9",    // Branco frio (Máscara)
+  secondaryColor: "#475569",  // Cinza azulado escuro (Sombras/Metais)
+  backgroundColor: "#020408", // Preto profundo azulado (Ambiente escuro)
+  cardColor: "#0a0f16",       // Azul escuro profundo (Roupas/Caixas na sombra)
+  
   twitterUrl: "",
   discordUrl: "",
   email: "",
@@ -112,6 +116,8 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
             description: data.description || defaultConfig.description,
             profileImage: data.profile_image || defaultConfig.profileImage,
             profileVideo: data.profile_video,
+            // Prioriza as cores do banco, mas se o banco tiver cores antigas/default, 
+            // o usuário pode precisar atualizar no admin ou resetar.
             primaryColor: data.primary_color || defaultConfig.primaryColor,
             secondaryColor: data.secondary_color || defaultConfig.secondaryColor,
             backgroundColor: data.background_color || defaultConfig.backgroundColor,
