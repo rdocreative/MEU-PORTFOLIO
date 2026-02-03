@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useMemo, memo } from 'react';
+import React, { useRef, useState, useMemo, memo, useEffect } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
@@ -16,6 +16,13 @@ import {
 const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
+  const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (e.currentTarget.currentTime >= 20) {
+      e.currentTarget.currentTime = 0;
+      e.currentTarget.play();
+    }
+  };
+  
   if (!src || src.trim() === '') return null;
 
   return (
@@ -27,6 +34,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
       autoPlay
       preload="auto"
       controls={false}
+      onTimeUpdate={handleTimeUpdate}
     />
   );
 });
@@ -34,10 +42,21 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 VideoLoop.displayName = 'VideoLoop';
 
 const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
+  const [key, setKey] = useState(0);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setKey(prev => prev + 1);
+    }, 20000); // Reset every 20 seconds
+    
+    return () => clearInterval(timer);
+  }, [videoId]);
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
       <iframe
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1`}
+        key={key}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1&end=20`}
         className="w-full h-full pointer-events-none" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         tabIndex={-1}
