@@ -172,6 +172,7 @@ export const ConfigProvider: ({ children }: { children: React.ReactNode }) => Re
         discord_url: config.discordUrl,
         email: config.email,
         music_url: config.musicUrl,
+        subscribers: config.subscribers,
         clients: config.clients,
         featured_videos: config.featuredVideos,
         shorts_videos: config.shortsVideos,
