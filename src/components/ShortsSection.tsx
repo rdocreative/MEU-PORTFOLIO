@@ -14,10 +14,6 @@ interface PlayerProps {
 const ShortsPlayer = ({ videoId, title, isMuted, onToggleAudio }: { videoId: string, title: string } & PlayerProps) => {
   const [key, setKey] = useState(0);
 
-  // Removido o intervalo de 20s.
-  // Mantemos apenas a atualização quando o mute muda para garantir que o parametro de URL seja aplicado se necessário,
-  // embora o loop agora seja gerido pelo player do youtube via playlist parameter.
-
   useEffect(() => {
     setKey(prev => prev + 1);
   }, [isMuted]);
@@ -50,9 +46,8 @@ const LocalShortsPlayer = ({ src, isMuted, onToggleAudio }: { src: string } & Pl
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    // Só faz loop manual se estiver mutado (visualização de fundo)
-    // Se estiver com som, deixa o comportamento nativo de loop ou o usuário controla
-    if (isMuted && e.currentTarget.currentTime >= 20) {
+    // Loop forçado de 20 segundos para manter previews curtos
+    if (e.currentTarget.currentTime >= 20) {
       e.currentTarget.currentTime = 0;
       e.currentTarget.play();
     }
@@ -97,20 +92,30 @@ const ShortsSection = () => {
   
   if (!config.showShorts) return null;
 
-  // Filtra e depois ordena: primeiro os que NÃO têm customVideoUrl (YouTube), depois os que têm (Uploads)
-  const validShorts = (config.shortsVideos?.filter(v => 
+  // Filtra vídeos válidos e remove duplicatas
+  const allShorts = config.shortsVideos?.filter(v => 
     (v.url !== '' && v.url !== undefined) || (v.customVideoUrl && v.customVideoUrl !== '')
-  ) || []).sort((a, b) => {
+  ) || [];
+
+  // Deduplicação baseada em URL
+  const seen = new Set();
+  const uniqueShorts = allShorts.filter(v => {
+    const identifier = v.customVideoUrl || v.url;
+    if (!identifier) return false;
+    const isDuplicate = seen.has(identifier);
+    seen.add(identifier);
+    return !isDuplicate;
+  });
+
+  // Ordenação: YouTube primeiro, Uploads depois
+  const sortedShorts = uniqueShorts.sort((a, b) => {
     const aIsUploaded = !!a.customVideoUrl;
     const bIsUploaded = !!b.customVideoUrl;
-    
-    // Se ambos forem iguais (ambos YT ou ambos Upload), mantém a ordem
     if (aIsUploaded === bIsUploaded) return 0;
-    // Se 'a' for upload, vai para o final (1). Se 'a' for YT, vai para o começo (-1)
     return aIsUploaded ? 1 : -1;
   });
 
-  if (validShorts.length === 0) return null;
+  if (sortedShorts.length === 0) return null;
 
   const toggleAudio = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -135,7 +140,7 @@ const ShortsSection = () => {
           </Reveal>
           
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 w-full mx-auto">
-            {validShorts.map((short, index) => {
+            {sortedShorts.map((short, index) => {
               const videoId = getYouTubeId(short.url);
               if (!videoId && !short.customVideoUrl) return null;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useMemo, memo, useEffect } from 'react';
+import React, { useRef, useState, useMemo, memo } from 'react';
 import { useConfig, VideoData } from '@/context/ConfigContext';
 import { AlertTriangle, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
@@ -17,6 +17,7 @@ const VideoLoop = memo(({ src }: { src: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    // Loop forçado nos 20 segundos para previews
     if (e.currentTarget.currentTime >= 20) {
       e.currentTarget.currentTime = 0;
       e.currentTarget.play();
@@ -104,10 +105,18 @@ const VideoSection = () => {
   const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
   const [api, setApi] = useState<CarouselApi>();
 
-  const activeVideos = useMemo(() => 
-    config.featuredVideos.filter(v => (v.url && v.url.trim().length > 0) || (v.customVideoUrl && v.customVideoUrl.trim().length > 0)),
-    [config.featuredVideos]
-  );
+  const activeVideos = useMemo(() => {
+    const videos = config.featuredVideos.filter(v => (v.url && v.url.trim().length > 0) || (v.customVideoUrl && v.customVideoUrl.trim().length > 0));
+    
+    // Deduplicação por ID e URL para evitar repetições
+    const seen = new Set();
+    return videos.filter(v => {
+      const identifier = v.customVideoUrl || v.url;
+      const duplicate = seen.has(identifier);
+      seen.add(identifier);
+      return !duplicate;
+    });
+  }, [config.featuredVideos]);
 
   const shouldLoop = activeVideos.length > 1;
 
