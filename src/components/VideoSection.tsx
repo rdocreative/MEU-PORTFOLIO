@@ -42,21 +42,10 @@ const VideoLoop = memo(({ src }: { src: string }) => {
 VideoLoop.displayName = 'VideoLoop';
 
 const YouTubePreview = memo(({ videoId, title }: { videoId: string, title?: string }) => {
-  const [key, setKey] = useState(0);
-  
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setKey(prev => prev + 1);
-    }, 20000); // Reset every 20 seconds
-    
-    return () => clearInterval(timer);
-  }, [videoId]);
-
   return (
     <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
       <iframe
-        key={key}
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1&end=20`}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&rel=0&showinfo=0&iv_load_policy=3&modestbranding=1&disablekb=1`}
         className="w-full h-full pointer-events-none" 
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         tabIndex={-1}

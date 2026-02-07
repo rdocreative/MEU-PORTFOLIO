@@ -14,19 +14,12 @@ interface PlayerProps {
 const ShortsPlayer = ({ videoId, title, isMuted, onToggleAudio }: { videoId: string, title: string } & PlayerProps) => {
   const [key, setKey] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setKey(prev => prev + 1);
-    }, 20000); // Reseta a cada 20 segundos para manter o loop
-    return () => clearInterval(timer);
-  }, [videoId]);
+  // Removido o intervalo de 20s.
+  // Mantemos apenas a atualização quando o mute muda para garantir que o parametro de URL seja aplicado se necessário,
+  // embora o loop agora seja gerido pelo player do youtube via playlist parameter.
 
-  // Se o áudio estiver ativado, não atualizamos a key automaticamente para não cortar o áudio no meio
-  // O usuário terá que dar replay ou o vídeo vai parar (comportamento padrão do youtube embed)
   useEffect(() => {
-    if (!isMuted) {
-      setKey(prev => prev + 1); // Força recarregar com som ao ativar
-    }
+    setKey(prev => prev + 1);
   }, [isMuted]);
 
   return (
