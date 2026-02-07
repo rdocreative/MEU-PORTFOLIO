@@ -594,16 +594,41 @@ const Admin = () => {
                                   const file = e.target.files?.[0];
                                   if (file) {
                                     if (file.size > 70 * 1024 * 1024) {
-                                      showError("FILE SIZE LIMIT: 70MB");
-                                      return;
+                                       showError(`FILE TOO LARGE: ${(file.size / (1024 * 1024)).toFixed(2)}MB. Limit is 70MB.`);
+                                       return;
                                     }
+
                                     startUpload(uploadId);
-                                    const url = await uploadToStorage(file, `shorts_${short.id}_${Date.now()}.mp4`);
-                                    if (url) {
-                                        handleShortChange(index, 'customVideoUrl', url);
-                                        showSuccess("Short Video Uploaded");
-                                    } else showError("Upload Failed");
-                                    endUpload(uploadId);
+                                    try {
+                                      const fileName = `${Date.now()}_shorts_${short.id}.mp4`;
+                                      
+                                      // First try to upload
+                                      const { data, error } = await supabase.storage.from('portfolio').upload(fileName, file, {
+                                        cacheControl: '3600',
+                                        upsert: false
+                                      });
+                                      
+                                      if (error) {
+                                        console.error("Supabase Storage Error:", error);
+                                        showError(`UPLOAD FAILED: ${error.message} (Code: ${error.statusCode || 'N/A'})`);
+                                        return;
+                                      }
+                                      
+                                      // If upload success, get URL
+                                      const { data: { publicUrl } } = supabase.storage.from('portfolio').getPublicUrl(fileName);
+                                      
+                                      if (publicUrl) {
+                                          handleShortChange(index, 'customVideoUrl', publicUrl);
+                                          showSuccess("Short Video Uploaded Successfully");
+                                      } else {
+                                          showError("Failed to retrieve public URL");
+                                      }
+                                    } catch (err: any) {
+                                       console.error("Unexpected upload error:", err);
+                                       showError(`SYSTEM ERROR: ${err.message || 'Check console'}`);
+                                    } finally {
+                                      endUpload(uploadId);
+                                    }
                                   }
                                 }} 
                               />
