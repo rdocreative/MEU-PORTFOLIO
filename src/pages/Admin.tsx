@@ -485,6 +485,8 @@ const Admin = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {config.featuredVideos.map((video, index) => {
                  const isValidId = getYouTubeId(video.url);
+                 const uploadId = `featured-${video.id}`;
+                 const isUploading = uploadingState[uploadId];
                  
                  return (
                   <div key={video.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
@@ -513,6 +515,87 @@ const Admin = () => {
                         placeholder="YOUTUBE URL (ex: https://youtube.com/watch?v=...)" 
                       />
                       {video.url && !isValidId && <p className="text-[8px] text-red-500">Invalid YouTube URL format</p>}
+                    </div>
+
+                     {/* CUSTOM VIDEO UPLOAD FOR FEATURED */}
+                    <div className="space-y-2 border-t border-zinc-800 pt-4 mt-2">
+                       <Label className="text-[8px] flex items-center gap-2 text-zinc-400">OR UPLOAD VIDEO FILE</Label>
+                       
+                       <div className="w-full">
+                          {video.customVideoUrl ? (
+                            <div className="flex flex-col gap-2">
+                                <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-zinc-700 group/preview">
+                                    <video 
+                                        src={video.customVideoUrl} 
+                                        className="w-full h-full object-cover" 
+                                        controls 
+                                    />
+                                    <button 
+                                        onClick={() => handleVideoChange(index, 'customVideoUrl', '')}
+                                        className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors z-10"
+                                        title="Remove Video"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/30 w-fit">
+                                    <span className="text-[8px] text-green-500 flex items-center gap-1 font-bold">
+                                        <Check className="w-3 h-3"/> UPLOADED
+                                    </span>
+                                </div>
+                            </div>
+                          ) : (
+                            <label className={`cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white text-[8px] h-8 px-4 rounded-full flex items-center gap-2 justify-center transition-all w-full border border-zinc-700 hover:border-zinc-500 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UploadCloud className="w-3 h-3" />}
+                              {isUploading ? 'UPLOADING...' : 'UPLOAD MP4'}
+                              <input 
+                                type="file" 
+                                accept="video/mp4,video/webm" 
+                                className="hidden"
+                                disabled={isUploading}
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    if (file.size > 70 * 1024 * 1024) {
+                                       showError(`FILE TOO LARGE: ${(file.size / (1024 * 1024)).toFixed(2)}MB. Limit is 70MB.`);
+                                       return;
+                                    }
+
+                                    startUpload(uploadId);
+                                    try {
+                                      const fileName = `${Date.now()}_featured_${video.id}.mp4`;
+                                      
+                                      const { data, error } = await supabase.storage.from('portfolio').upload(fileName, file, {
+                                        cacheControl: '3600',
+                                        upsert: false
+                                      });
+                                      
+                                      if (error) {
+                                        console.error("Supabase Storage Error:", error);
+                                        showError(`UPLOAD FAILED: ${error.message} (Code: ${error.statusCode || 'N/A'})`);
+                                        return;
+                                      }
+                                      
+                                      const { data: { publicUrl } } = supabase.storage.from('portfolio').getPublicUrl(fileName);
+                                      
+                                      if (publicUrl) {
+                                          handleVideoChange(index, 'customVideoUrl', publicUrl);
+                                          showSuccess("Video Uploaded Successfully");
+                                      } else {
+                                          showError("Failed to retrieve public URL");
+                                      }
+                                    } catch (err: any) {
+                                       console.error("Unexpected upload error:", err);
+                                       showError(`SYSTEM ERROR: ${err.message || 'Check console'}`);
+                                    } finally {
+                                      endUpload(uploadId);
+                                    }
+                                  }
+                                }} 
+                              />
+                            </label>
+                          )}
+                       </div>
                     </div>
                   </div>
               )})}
@@ -611,7 +694,6 @@ const Admin = () => {
                                     try {
                                       const fileName = `${Date.now()}_shorts_${short.id}.mp4`;
                                       
-                                      // First try to upload
                                       const { data, error } = await supabase.storage.from('portfolio').upload(fileName, file, {
                                         cacheControl: '3600',
                                         upsert: false
@@ -623,7 +705,6 @@ const Admin = () => {
                                         return;
                                       }
                                       
-                                      // If upload success, get URL
                                       const { data: { publicUrl } } = supabase.storage.from('portfolio').getPublicUrl(fileName);
                                       
                                       if (publicUrl) {
