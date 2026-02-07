@@ -104,9 +104,18 @@ const ShortsSection = () => {
   
   if (!config.showShorts) return null;
 
-  const validShorts = config.shortsVideos?.filter(v => 
+  // Filtra e depois ordena: primeiro os que NÃO têm customVideoUrl (YouTube), depois os que têm (Uploads)
+  const validShorts = (config.shortsVideos?.filter(v => 
     (v.url !== '' && v.url !== undefined) || (v.customVideoUrl && v.customVideoUrl !== '')
-  ) || [];
+  ) || []).sort((a, b) => {
+    const aIsUploaded = !!a.customVideoUrl;
+    const bIsUploaded = !!b.customVideoUrl;
+    
+    // Se ambos forem iguais (ambos YT ou ambos Upload), mantém a ordem
+    if (aIsUploaded === bIsUploaded) return 0;
+    // Se 'a' for upload, vai para o final (1). Se 'a' for YT, vai para o começo (-1)
+    return aIsUploaded ? 1 : -1;
+  });
 
   if (validShorts.length === 0) return null;
 
