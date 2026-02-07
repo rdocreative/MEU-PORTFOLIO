@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { useConfig, VideoData, Client } from '@/context/ConfigContext';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText, Check, Music } from 'lucide-react';
+import { Save, ArrowLeft, Video, Trash2, Plus, X, Globe, Mail, MessageSquare, UserCheck, Star, Smartphone, UploadCloud, Eye, EyeOff, Users, Film, FileText, Check, Music, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,11 +15,15 @@ import { getYouTubeId } from '@/utils/videoUtils';
 const Admin = () => {
   const { config, updateLocalConfig, saveConfigToDb, isLoading } = useConfig();
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [uploadingState, setUploadingState] = useState<Record<string, boolean>>({});
+
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const musicInputRef = useRef<HTMLInputElement>(null);
+
+  const startUpload = (id: string) => setUploadingState(prev => ({...prev, [id]: true}));
+  const endUpload = (id: string) => setUploadingState(prev => ({...prev, [id]: false}));
 
   const uploadToStorage = async (file: File | Blob, path: string): Promise<string | null> => {
     const fileName = `${Date.now()}_${path}`;
@@ -94,6 +98,8 @@ const Admin = () => {
   };
 
   const handleReviewUpload = async (file: File, index: number) => {
+    const id = `review-${index}`;
+    startUpload(id);
     const url = await uploadToStorage(file, `review_${index}.png`);
     if (url) {
       const newReviews = [...(config.reviews || [])];
@@ -102,7 +108,11 @@ const Admin = () => {
       }
       newReviews[index] = { id: newReviews[index]?.id || crypto.randomUUID(), url };
       updateLocalConfig({ reviews: newReviews });
+      showSuccess("Review Image Uploaded");
+    } else {
+      showError("Upload Failed");
     }
+    endUpload(id);
   };
 
   const removeReview = (index: number) => {
@@ -154,12 +164,16 @@ const Admin = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="flex flex-col items-center gap-6">
                 <div className="relative group">
-                  {hasProfileVideo ? (
+                  {uploadingState['avatar'] ? (
+                     <div className="w-32 h-32 rounded-full border-4 border-white flex items-center justify-center bg-zinc-800">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                     </div>
+                  ) : hasProfileVideo ? (
                     <video src={config.profileVideo} className="w-32 h-32 rounded-full border-4 border-white object-cover" autoPlay loop muted />
                   ) : (
                     <img src={config.profileImage} className="w-32 h-32 rounded-full border-4 border-white object-cover" />
                   )}
-                  {hasProfileVideo && (
+                  {hasProfileVideo && !uploadingState['avatar'] && (
                     <button 
                       onClick={() => updateLocalConfig({ profileVideo: undefined })}
                       className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition-colors"
@@ -171,26 +185,36 @@ const Admin = () => {
                 </div>
 
                 <div className="flex flex-col gap-3 w-full">
-                  <Button onClick={() => fileInputRef.current?.click()} className="bg-white text-black text-[8px] w-full rounded-full">CHANGE_IMAGE</Button>
-                  <Button onClick={() => videoInputRef.current?.click()} className="bg-zinc-800 text-white text-[8px] w-full rounded-full flex items-center gap-2 justify-center">
-                    <Film className="w-3 h-3" />
-                    {hasProfileVideo ? 'CHANGE_VIDEO' : 'UPLOAD_VIDEO'}
+                  <Button disabled={uploadingState['avatar']} onClick={() => fileInputRef.current?.click()} className="bg-white text-black text-[8px] w-full rounded-full">CHANGE_IMAGE</Button>
+                  <Button disabled={uploadingState['avatar']} onClick={() => videoInputRef.current?.click()} className="bg-zinc-800 text-white text-[8px] w-full rounded-full flex items-center gap-2 justify-center">
+                    {uploadingState['avatar'] ? <Loader2 className="w-3 h-3 animate-spin"/> : <Film className="w-3 h-3" />}
+                    {uploadingState['avatar'] ? 'UPLOADING...' : (hasProfileVideo ? 'CHANGE_VIDEO' : 'UPLOAD_VIDEO')}
                   </Button>
                 </div>
 
                 <input type="file" ref={fileInputRef} accept="image/*" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    startUpload('avatar');
                     const url = await uploadToStorage(file, 'avatar.png');
-                    if (url) updateLocalConfig({ profileImage: url, profileVideo: undefined });
+                    if (url) {
+                        updateLocalConfig({ profileImage: url, profileVideo: undefined });
+                        showSuccess("Image Uploaded");
+                    } else showError("Upload Failed");
+                    endUpload('avatar');
                   }
                 }} className="hidden" />
 
                 <input type="file" ref={videoInputRef} accept="video/mp4,video/webm" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    startUpload('avatar');
                     const url = await uploadToStorage(file, 'avatar_video.mp4');
-                    if (url) updateLocalConfig({ profileVideo: url });
+                    if (url) {
+                        updateLocalConfig({ profileVideo: url });
+                        showSuccess("Video Uploaded");
+                    } else showError("Upload Failed");
+                    endUpload('avatar');
                   }
                 }} className="hidden" />
               </div>
@@ -229,13 +253,19 @@ const Admin = () => {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      startUpload('music');
                       const url = await uploadToStorage(file, 'background_music.mp3');
-                      if (url) updateLocalConfig({ musicUrl: url });
+                      if (url) {
+                          updateLocalConfig({ musicUrl: url });
+                          showSuccess("Music Uploaded");
+                      } else showError("Upload Failed");
+                      endUpload('music');
                     }
                   }} 
                 />
-                <Button onClick={() => musicInputRef.current?.click()} className="bg-white text-black text-[8px] h-10 px-4 rounded-full flex items-center gap-2">
-                  <UploadCloud className="w-3 h-3" /> UPLOAD MP3
+                <Button disabled={uploadingState['music']} onClick={() => musicInputRef.current?.click()} className="bg-white text-black text-[8px] h-10 px-4 rounded-full flex items-center gap-2">
+                  {uploadingState['music'] ? <Loader2 className="w-3 h-3 animate-spin"/> : <UploadCloud className="w-3 h-3" />} 
+                  {uploadingState['music'] ? 'UPLOADING...' : 'UPLOAD MP3'}
                 </Button>
                 {config.musicUrl && (
                   <Button 
@@ -293,10 +323,16 @@ const Admin = () => {
               {[0, 1, 2, 3, 4, 5].map((index) => {
                 const review = config.reviews?.[index];
                 const hasUrl = review && review.url && review.url !== '';
+                const isUploading = uploadingState[`review-${index}`];
                 
                 return (
                   <div key={index} className="aspect-[335/88] border-2 border-zinc-800 border-dashed rounded-lg flex items-center justify-center relative bg-black/30 overflow-hidden group">
-                    {hasUrl ? (
+                    {isUploading ? (
+                        <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="w-6 h-6 animate-spin text-white" />
+                            <span className="text-[8px] text-zinc-400">UPLOADING...</span>
+                        </div>
+                    ) : hasUrl ? (
                       <>
                         <img src={review.url} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -366,7 +402,9 @@ const Admin = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {config.clients.map((client, index) => (
+              {config.clients.map((client, index) => {
+                const isUploading = uploadingState[`client-${index}`];
+                return (
                 <div key={client.id} className="p-4 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
                   <button 
                     onClick={() => removeClient(client.id)}
@@ -376,17 +414,31 @@ const Admin = () => {
                   </button>
                   <div className="flex items-center gap-4">
                     <div className="relative group/avatar">
-                      <img src={client.image} className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700" />
-                      <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover/avatar:opacity-100 cursor-pointer">
-                        <UploadCloud className="w-4 h-4" />
-                        <input type="file" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const url = await uploadToStorage(file, `client_${index}.png`);
-                            if (url) handleClientChange(index, 'image', url);
-                          }
-                        }} />
-                      </label>
+                      {isUploading ? (
+                        <div className="w-12 h-12 rounded-full border-2 border-zinc-700 bg-black flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        </div>
+                      ) : (
+                        <img src={client.image} className="w-12 h-12 rounded-full object-cover border-2 border-zinc-700" />
+                      )}
+                      
+                      {!isUploading && (
+                        <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover/avatar:opacity-100 cursor-pointer">
+                          <UploadCloud className="w-4 h-4" />
+                          <input type="file" className="hidden" onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              startUpload(`client-${index}`);
+                              const url = await uploadToStorage(file, `client_${index}.png`);
+                              if (url) {
+                                handleClientChange(index, 'image', url);
+                                showSuccess("Client Image Uploaded");
+                              } else showError("Upload Failed");
+                              endUpload(`client-${index}`);
+                            }
+                          }} />
+                        </label>
+                      )}
                     </div>
                     <div className="flex-1 space-y-2">
                       <div className="space-y-1">
@@ -410,7 +462,7 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
 
@@ -485,6 +537,9 @@ const Admin = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {(config.shortsVideos || []).map((short, index) => {
                  const isValidId = getYouTubeId(short.url);
+                 const uploadId = `shorts-${short.id}`;
+                 const isUploading = uploadingState[uploadId];
+
                  return (
                   <div key={short.id} className="p-6 border-2 border-zinc-800 rounded-3xl space-y-4 bg-black/30 relative group">
                     <button 
@@ -527,18 +582,24 @@ const Admin = () => {
                               </button>
                             </div>
                           ) : (
-                            <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white text-[8px] h-8 px-4 rounded-full flex items-center gap-2 justify-center transition-all w-full border border-zinc-700 hover:border-zinc-500">
-                              <UploadCloud className="w-3 h-3" />
-                              UPLOAD MP4
+                            <label className={`cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white text-[8px] h-8 px-4 rounded-full flex items-center gap-2 justify-center transition-all w-full border border-zinc-700 hover:border-zinc-500 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              {isUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <UploadCloud className="w-3 h-3" />}
+                              {isUploading ? 'UPLOADING...' : 'UPLOAD MP4'}
                               <input 
                                 type="file" 
                                 accept="video/mp4,video/webm" 
                                 className="hidden"
+                                disabled={isUploading}
                                 onChange={async (e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
+                                    startUpload(uploadId);
                                     const url = await uploadToStorage(file, `shorts_${short.id}_${Date.now()}.mp4`);
-                                    if (url) handleShortChange(index, 'customVideoUrl', url);
+                                    if (url) {
+                                        handleShortChange(index, 'customVideoUrl', url);
+                                        showSuccess("Short Video Uploaded");
+                                    } else showError("Upload Failed");
+                                    endUpload(uploadId);
                                   }
                                 }} 
                               />
