@@ -81,7 +81,7 @@ const ShortsSection = () => {
             SHORTS
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl place-items-center">
+          <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl mx-auto">
             {validShorts.map((short, index) => {
               const videoId = getYouTubeId(short.url);
               // Render if we have a valid YouTube ID OR a custom video URL
@@ -89,7 +89,7 @@ const ShortsSection = () => {
 
               return (
                 <Reveal key={short.id} delay={index * 0.1}>
-                  <div className="group relative aspect-[9/16] w-full bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-zinc-800 transition-all duration-500 hover:border-white/20 shadow-2xl">
+                  <div className="group relative aspect-[9/16] w-[280px] md:w-[300px] bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-zinc-800 transition-all duration-500 hover:border-white/20 shadow-2xl">
                     {short.customVideoUrl ? (
                       <LocalShortsPlayer src={short.customVideoUrl} />
                     ) : (
