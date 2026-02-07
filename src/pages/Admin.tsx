@@ -593,6 +593,10 @@ const Admin = () => {
                                 onChange={async (e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
+                                    if (file.size > 70 * 1024 * 1024) {
+                                      showError("FILE SIZE LIMIT: 70MB");
+                                      return;
+                                    }
                                     startUpload(uploadId);
                                     const url = await uploadToStorage(file, `shorts_${short.id}_${Date.now()}.mp4`);
                                     if (url) {

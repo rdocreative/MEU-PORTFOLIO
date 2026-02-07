@@ -81,7 +81,7 @@ const ShortsSection = () => {
             SHORTS
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl place-items-center">
             {validShorts.map((short, index) => {
               const videoId = getYouTubeId(short.url);
               // Render if we have a valid YouTube ID OR a custom video URL
