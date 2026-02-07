@@ -11,7 +11,7 @@ const ShortsPlayer = ({ videoId, title }: { videoId: string, title: string }) =>
   useEffect(() => {
     const timer = setInterval(() => {
       setKey(prev => prev + 1);
-    }, 20000); // Reset every 20 seconds
+    }, 20000); // Reseta a cada 20 segundos para manter o loop
     return () => clearInterval(timer);
   }, [videoId]);
 
@@ -68,46 +68,47 @@ const ShortsSection = () => {
   if (validShorts.length === 0) return null;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 mt-20">
-      <Reveal>
-        <div className="flex flex-col items-center gap-16">
-          <h2 
-            style={{ 
-              color: config.primaryColor,
-              textShadow: `0 0 20px ${config.primaryColor}80`
-            }} 
-            className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default"
-          >
-            SHORTS
-          </h2>
-          
-          <div className="flex flex-wrap justify-center gap-8 w-full max-w-5xl mx-auto">
-            {validShorts.map((short, index) => {
-              const videoId = getYouTubeId(short.url);
-              // Render if we have a valid YouTube ID OR a custom video URL
-              if (!videoId && !short.customVideoUrl) return null;
+    <section className="w-full flex justify-center px-4 mt-20">
+      <div className="w-full max-w-7xl">
+        <Reveal width="100%">
+          <div className="flex flex-col items-center gap-16 w-full">
+            <h2 
+              style={{ 
+                color: config.primaryColor,
+                textShadow: `0 0 20px ${config.primaryColor}80`
+              }} 
+              className="text-xl md:text-3xl tracking-[0.3em] font-bold uppercase cursor-default text-center"
+            >
+              SHORTS
+            </h2>
+            
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 w-full mx-auto">
+              {validShorts.map((short, index) => {
+                const videoId = getYouTubeId(short.url);
+                if (!videoId && !short.customVideoUrl) return null;
 
-              return (
-                <Reveal key={short.id} delay={index * 0.1}>
-                  <div className="group relative aspect-[9/16] w-[280px] md:w-[300px] bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-zinc-800 transition-all duration-500 hover:border-white/20 shadow-2xl">
-                    {short.customVideoUrl ? (
-                      <LocalShortsPlayer src={short.customVideoUrl} />
-                    ) : (
-                      <ShortsPlayer videoId={videoId!} title={short.title} />
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-20">
-                      <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">
-                        {short.title}
-                      </p>
+                return (
+                  <Reveal key={short.id} delay={index * 0.1}>
+                    <div className="group relative aspect-[9/16] w-[260px] sm:w-[280px] md:w-[300px] bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-zinc-800 transition-all duration-500 hover:border-white/20 shadow-2xl">
+                      {short.customVideoUrl ? (
+                        <LocalShortsPlayer src={short.customVideoUrl} />
+                      ) : (
+                        <ShortsPlayer videoId={videoId!} title={short.title} />
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-20">
+                        <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase text-center">
+                          {short.title}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </Reveal>
-              );
-            })}
+                  </Reveal>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </Reveal>
-    </div>
+        </Reveal>
+      </div>
+    </section>
   );
 };
 
