@@ -507,6 +507,46 @@ const Admin = () => {
                         placeholder="https://youtube.com/shorts/..." 
                       />
                     </div>
+                    
+                    {/* CUSTOM VIDEO UPLOAD FOR SHORTS */}
+                    <div className="space-y-2 border-t border-zinc-800 pt-4 mt-2">
+                       <Label className="text-[8px] flex items-center gap-2 text-zinc-400">OR UPLOAD VIDEO FILE</Label>
+                       
+                       <div className="flex items-center justify-between">
+                          {short.customVideoUrl ? (
+                            <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/30">
+                              <span className="text-[8px] text-green-500 flex items-center gap-1 font-bold">
+                                <Check className="w-3 h-3"/> UPLOADED
+                              </span>
+                              <button 
+                                onClick={() => handleShortChange(index, 'customVideoUrl', '')}
+                                className="text-red-500 hover:text-red-400 hover:bg-red-500/10 p-1 rounded-full transition-colors"
+                                title="Remove Video"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white text-[8px] h-8 px-4 rounded-full flex items-center gap-2 justify-center transition-all w-full border border-zinc-700 hover:border-zinc-500">
+                              <UploadCloud className="w-3 h-3" />
+                              UPLOAD MP4
+                              <input 
+                                type="file" 
+                                accept="video/mp4,video/webm" 
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const url = await uploadToStorage(file, `shorts_${short.id}_${Date.now()}.mp4`);
+                                    if (url) handleShortChange(index, 'customVideoUrl', url);
+                                  }
+                                }} 
+                              />
+                            </label>
+                          )}
+                       </div>
+                    </div>
+
                   </div>
               )})}
             </div>

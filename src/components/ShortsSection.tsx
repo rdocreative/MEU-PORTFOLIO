@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { Reveal } from './Reveal';
 import { getYouTubeId } from '@/utils/videoUtils';
@@ -31,12 +31,39 @@ const ShortsPlayer = ({ videoId, title }: { videoId: string, title: string }) =>
   );
 };
 
+const LocalShortsPlayer = ({ src }: { src: string }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (e.currentTarget.currentTime >= 20) {
+      e.currentTarget.currentTime = 0;
+      e.currentTarget.play();
+    }
+  };
+  
+  if (!src) return null;
+
+  return (
+    <video 
+      ref={videoRef}
+      src={src} 
+      className="w-full h-full object-cover pointer-events-none select-none"
+      muted loop playsInline
+      autoPlay
+      controls={false}
+      onTimeUpdate={handleTimeUpdate}
+    />
+  );
+};
+
 const ShortsSection = () => {
   const { config } = useConfig();
   
   if (!config.showShorts) return null;
 
-  const validShorts = config.shortsVideos?.filter(v => v.url !== '') || [];
+  const validShorts = config.shortsVideos?.filter(v => 
+    (v.url !== '' && v.url !== undefined) || (v.customVideoUrl && v.customVideoUrl !== '')
+  ) || [];
 
   if (validShorts.length === 0) return null;
 
@@ -57,12 +84,17 @@ const ShortsSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
             {validShorts.map((short, index) => {
               const videoId = getYouTubeId(short.url);
-              if (!videoId) return null;
+              // Render if we have a valid YouTube ID OR a custom video URL
+              if (!videoId && !short.customVideoUrl) return null;
 
               return (
                 <Reveal key={short.id} delay={index * 0.1}>
                   <div className="group relative aspect-[9/16] w-full bg-zinc-900 rounded-[32px] overflow-hidden border-2 border-zinc-800 transition-all duration-500 hover:border-white/20 shadow-2xl">
-                    <ShortsPlayer videoId={videoId} title={short.title} />
+                    {short.customVideoUrl ? (
+                      <LocalShortsPlayer src={short.customVideoUrl} />
+                    ) : (
+                      <ShortsPlayer videoId={videoId!} title={short.title} />
+                    )}
                     <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-20">
                       <p className="text-[10px] font-bold tracking-widest text-white/60 uppercase">
                         {short.title}
