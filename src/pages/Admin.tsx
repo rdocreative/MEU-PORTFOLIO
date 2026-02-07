@@ -567,19 +567,28 @@ const Admin = () => {
                     <div className="space-y-2 border-t border-zinc-800 pt-4 mt-2">
                        <Label className="text-[8px] flex items-center gap-2 text-zinc-400">OR UPLOAD VIDEO FILE</Label>
                        
-                       <div className="flex items-center justify-between">
+                       <div className="w-full">
                           {short.customVideoUrl ? (
-                            <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/30">
-                              <span className="text-[8px] text-green-500 flex items-center gap-1 font-bold">
-                                <Check className="w-3 h-3"/> UPLOADED
-                              </span>
-                              <button 
-                                onClick={() => handleShortChange(index, 'customVideoUrl', '')}
-                                className="text-red-500 hover:text-red-400 hover:bg-red-500/10 p-1 rounded-full transition-colors"
-                                title="Remove Video"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
+                            <div className="flex flex-col gap-2">
+                                <div className="relative w-full aspect-[9/16] bg-black rounded-lg overflow-hidden border border-zinc-700 group/preview">
+                                    <video 
+                                        src={short.customVideoUrl} 
+                                        className="w-full h-full object-cover" 
+                                        controls 
+                                    />
+                                    <button 
+                                        onClick={() => handleShortChange(index, 'customVideoUrl', '')}
+                                        className="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors z-10"
+                                        title="Remove Video"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/30 w-fit">
+                                    <span className="text-[8px] text-green-500 flex items-center gap-1 font-bold">
+                                        <Check className="w-3 h-3"/> UPLOADED
+                                    </span>
+                                </div>
                             </div>
                           ) : (
                             <label className={`cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-white text-[8px] h-8 px-4 rounded-full flex items-center gap-2 justify-center transition-all w-full border border-zinc-700 hover:border-zinc-500 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
