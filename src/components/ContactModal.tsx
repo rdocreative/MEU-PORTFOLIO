@@ -15,8 +15,8 @@ const ContactModal = ({ isOpen, onClose }: ContactModalProps) => {
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [showLocalToast, setShowLocalToast] = useState(false);
 
-  // Fallback para o link do twitter caso não venha da config
-  const twitterLink = config.twitterUrl || "https://x.com/rdocreative";
+  // Define o link do Twitter fixo conforme solicitado
+  const twitterLink = "https://x.com/rdocreative";
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
